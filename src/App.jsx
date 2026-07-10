@@ -626,10 +626,10 @@ export default function App() {
                   <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Artisan &amp; Créateur</p>
                   
                   <div className="about-social-row">
-                    <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="social-circle-link" aria-label="Instagram">
+                    <a href="https://www.instagram.com/evanpatruno.art/" target="_blank" rel="noopener noreferrer" className="social-circle-link" aria-label="Instagram">
                       <Instagram size={18} />
                     </a>
-                    <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="social-circle-link" aria-label="Facebook">
+                    <a href="https://www.facebook.com/evanpatruno.EP" target="_blank" rel="noopener noreferrer" className="social-circle-link" aria-label="Facebook">
                       <Facebook size={18} />
                     </a>
                   </div>
@@ -658,7 +658,7 @@ export default function App() {
                     <div className="contact-icon-box"><Mail size={18} /></div>
                     <div>
                       <span className="contact-label">Email</span>
-                      <p className="contact-value"><a href="mailto:info@evanpatrunoart.com">contact@evanpatruno.ca</a></p>
+                      <p className="contact-value"><a href="mailto:info@evanpatruno.ca">info@evanpatruno.ca</a></p>
                     </div>
                   </div>
 
@@ -666,7 +666,7 @@ export default function App() {
                     <div className="contact-icon-box"><Phone size={18} /></div>
                     <div>
                       <span className="contact-label">Téléphone</span>
-                      <p className="contact-value">+1 (514) 555-0199</p>
+                      <p className="contact-value">514-567-3249</p>
                     </div>
                   </div>
 
@@ -674,7 +674,7 @@ export default function App() {
                     <div className="contact-icon-box"><MapPin size={18} /></div>
                     <div>
                       <span className="contact-label">Localisation</span>
-                      <p className="contact-value">Montréal, Québec, Canada</p>
+                      <p className="contact-value">Saint-Jean-sur-Richelieu, QC, Canada</p>
                     </div>
                   </div>
                 </div>
@@ -685,12 +685,17 @@ export default function App() {
                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '20px' }}>
                   Suivez mon quotidien à l'atelier et découvrez les coulisses des prochaines coulées !
                 </p>
-                <div style={{ display: 'flex', gap: '15px' }}>
-                  <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, justifyContent: 'center', padding: '12px' }}>
-                    <Instagram size={18} /> Instagram
-                  </a>
-                  <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, justifyContent: 'center', padding: '12px' }}>
-                    <Facebook size={18} /> Facebook
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                  <div style={{ display: 'flex', gap: '15px' }}>
+                    <a href="https://www.instagram.com/evanpatruno.art/" target="_blank" rel="noopener noreferrer" className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, justifyContent: 'center', padding: '12px' }}>
+                      <Instagram size={18} /> Instagram
+                    </a>
+                    <a href="https://www.facebook.com/evanpatruno.EP" target="_blank" rel="noopener noreferrer" className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, justifyContent: 'center', padding: '12px' }}>
+                      <Facebook size={18} /> Facebook
+                    </a>
+                  </div>
+                  <a href="https://linktr.ee/evanpatruno.art" target="_blank" rel="noopener noreferrer" className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'center', padding: '12px', background: 'linear-gradient(135deg, #39E09B, #2BBD84)', border: 'none', color: '#100010' }}>
+                    <Sparkles size={16} /> Visiter mon Linktree
                   </a>
                 </div>
               </div>
@@ -775,11 +780,14 @@ export default function App() {
             </div>
             
             <div className="footer-socials">
-              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="social-circle-link" aria-label="Instagram">
+              <a href="https://www.instagram.com/evanpatruno.art/" target="_blank" rel="noopener noreferrer" className="social-circle-link" aria-label="Instagram">
                 <Instagram size={18} />
               </a>
-              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="social-circle-link" aria-label="Facebook">
+              <a href="https://www.facebook.com/evanpatruno.EP" target="_blank" rel="noopener noreferrer" className="social-circle-link" aria-label="Facebook">
                 <Facebook size={18} />
+              </a>
+              <a href="https://linktr.ee/evanpatruno.art" target="_blank" rel="noopener noreferrer" className="social-circle-link" aria-label="Linktree" style={{ color: '#39e09b' }}>
+                <Sparkles size={18} />
               </a>
             </div>
           </div>
