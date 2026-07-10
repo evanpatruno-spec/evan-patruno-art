@@ -142,6 +142,51 @@ export default function App() {
     }
   ];
 
+  const instagramPosts = [
+    {
+      id: 1,
+      image: "/assets/table.png",
+      caption: "Finitions d'une coulée rivière en noyer noir 🪵✨",
+      likes: "142",
+      comments: "12"
+    },
+    {
+      id: 2,
+      image: "/assets/jewelry.png",
+      caption: "Détails d'un pendentif en loupe et résine turquoise 💎",
+      likes: "89",
+      comments: "5"
+    },
+    {
+      id: 3,
+      image: "/assets/lichtenberg.png",
+      caption: "Lichtenberg fractal sous 10 000 Volts ⚡🔥",
+      likes: "210",
+      comments: "24"
+    },
+    {
+      id: 4,
+      image: "/assets/laser.png",
+      caption: "Mandala géométrique multicouches fini et verni 🎨",
+      likes: "155",
+      comments: "18"
+    },
+    {
+      id: 5,
+      image: "/assets/workshop.png",
+      caption: "Dans les coulisses de l'atelier d'artisanat 🛠️⚙️",
+      likes: "178",
+      comments: "14"
+    },
+    {
+      id: 6,
+      image: "/assets/painting.png",
+      caption: "Peinture acrylique fluide et détails de feuilles d'or 🌊✨",
+      likes: "115",
+      comments: "9"
+    }
+  ];
+
   const filteredPortfolio = galleryFilter === 'all' 
     ? portfolioItems 
     : portfolioItems.filter(item => item.category === galleryFilter);
@@ -636,6 +681,38 @@ export default function App() {
                 </div>
               </div>
             </div>
+          </div>
+        </section>
+
+        {/* INSTAGRAM FEED SECTION */}
+        <section className="instagram-feed-section">
+          <div className="section-header" style={{ marginBottom: '40px' }}>
+            <h2 className="section-title">Suivez mon travail sur Instagram</h2>
+            <p className="section-subtitle">
+              Découvrez les coulisses de la création et les dernières pièces sorties de l'atelier sur <a href="https://www.instagram.com/evanpatruno.art/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-epoxy)', fontWeight: 'bold' }}>@evanpatruno.art</a>
+            </p>
+          </div>
+          
+          <div className="instagram-grid" id="instagram-feed-grid">
+            {instagramPosts.map((post) => (
+              <a 
+                key={post.id} 
+                href="https://www.instagram.com/evanpatruno.art/" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="instagram-item"
+                id={`instagram-post-${post.id}`}
+              >
+                <img src={post.image} alt={post.caption} className="instagram-img" loading="lazy" />
+                <div className="instagram-overlay">
+                  <p className="instagram-caption">{post.caption}</p>
+                  <div className="instagram-stats">
+                    <span>❤️ {post.likes}</span>
+                    <span>💬 {post.comments}</span>
+                  </div>
+                </div>
+              </a>
+            ))}
           </div>
         </section>
 
