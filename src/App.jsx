@@ -4,7 +4,7 @@ import { db } from './firebase';
 import { 
   collection, 
   addDoc, 
-  updateDoc, 
+  setDoc, 
   deleteDoc, 
   doc, 
   onSnapshot, 
@@ -293,8 +293,8 @@ export default function App() {
 
     try {
       if (editingCreation) {
-        const docRef = doc(db, 'creations', editingCreation.id);
-        await updateDoc(docRef, newDoc);
+        const docRef = doc(db, 'creations', String(editingCreation.id));
+        await setDoc(docRef, newDoc, { merge: true });
       } else {
         await addDoc(collection(db, 'creations'), {
           ...newDoc,
