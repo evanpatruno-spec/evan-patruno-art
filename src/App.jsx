@@ -1,5 +1,17 @@
 // src/App.jsx
 import React, { useState, useEffect } from 'react';
+import { db } from './firebase';
+import { 
+  collection, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc, 
+  doc, 
+  onSnapshot, 
+  query, 
+  orderBy,
+  serverTimestamp 
+} from 'firebase/firestore';
 import { 
   Sparkles, 
   Flame, 
@@ -58,6 +70,24 @@ export default function App() {
   const [galleryFilter, setGalleryFilter] = useState('all');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
+  // Dynamic Creations List State
+  const [creations, setCreations] = useState([]);
+
+  // Admin Dashboard States
+  const [isAdminVisible, setIsAdminVisible] = useState(false);
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
+  const [adminPassword, setAdminPassword] = useState('');
+  const [adminError, setAdminError] = useState('');
+  const [editingCreation, setEditingCreation] = useState(null);
+  const [adminForm, setAdminForm] = useState({
+    title: '',
+    category: 'table',
+    desc: '',
+    price: '',
+    status: 'available',
+    image: ''
+  });
+
   // Custom Project Builder State
   const [builderStep, setBuilderStep] = useState(1);
   const [projectData, setProjectData] = useState({
@@ -187,9 +217,139 @@ export default function App() {
     }
   ];
 
+  // Load data from Firestore or fallback to mock
+  useEffect(() => {
+    if (!db) {
+      setCreations(portfolioItems);
+      return;
+    }
+
+    const q = query(collection(db, 'creations'), orderBy('createdAt', 'desc'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const fetched = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      
+      if (fetched.length === 0) {
+        setCreations(portfolioItems);
+      } else {
+        setCreations(fetched);
+      }
+    }, (error) => {
+      console.error("Erreur lors de la récupération Firestore :", error);
+      setCreations(portfolioItems);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const handleAdminLogin = (e) => {
+    e.preventDefault();
+    const envPassword = import.meta.env.VITE_ADMIN_PASSWORD || "admin123";
+    if (adminPassword === envPassword) {
+      setIsAdminLoggedIn(true);
+      setIsAdminVisible(false);
+      setAdminError('');
+      setAdminPassword('');
+      setTimeout(() => {
+        document.getElementById('admin-dashboard')?.scrollIntoView({ behavior: 'smooth' });
+      }, 300);
+    } else {
+      setAdminError("Mot de passe incorrect");
+    }
+  };
+
+  const handleSaveCreation = async (e) => {
+    e.preventDefault();
+    if (!db) {
+      alert("Firebase n'est pas configuré. Impossible d'enregistrer.");
+      return;
+    }
+
+    const mappingCategoryName = {
+      table: "Table & Mobilier",
+      jewelry: "Bijoux",
+      lichtenberg: "Fractale Lichtenberg",
+      laser: "Art Laser & Acrylique"
+    };
+
+    const mappingStatusText = {
+      available: "Disponible",
+      sold: "Vendu (Sur commande)",
+      'custom-only': "Sur commande uniquement"
+    };
+
+    const newDoc = {
+      title: adminForm.title,
+      category: adminForm.category,
+      categoryName: mappingCategoryName[adminForm.category] || "Art",
+      desc: adminForm.desc,
+      price: adminForm.price,
+      status: adminForm.status,
+      statusText: mappingStatusText[adminForm.status] || "Disponible",
+      image: adminForm.image.startsWith('/') ? adminForm.image : `/assets/${adminForm.image}`
+    };
+
+    try {
+      if (editingCreation) {
+        const docRef = doc(db, 'creations', editingCreation.id);
+        await updateDoc(docRef, newDoc);
+      } else {
+        await addDoc(collection(db, 'creations'), {
+          ...newDoc,
+          createdAt: serverTimestamp()
+        });
+      }
+      setAdminForm({
+        title: '',
+        category: 'table',
+        desc: '',
+        price: '',
+        status: 'available',
+        image: ''
+      });
+      setEditingCreation(null);
+      alert("Œuvre enregistrée avec succès !");
+    } catch (error) {
+      console.error("Erreur lors de l'enregistrement :", error);
+      alert("Erreur lors de l'enregistrement dans la base de données.");
+    }
+  };
+
+  const handleSelectEdit = (item) => {
+    setEditingCreation(item);
+    let cleanImage = item.image || '';
+    if (cleanImage.startsWith('/assets/')) {
+      cleanImage = cleanImage.replace('/assets/', '');
+    }
+    setAdminForm({
+      title: item.title,
+      category: item.category,
+      desc: item.desc,
+      price: item.price,
+      status: item.status,
+      image: cleanImage
+    });
+  };
+
+  const handleDeleteCreation = async (id) => {
+    if (!window.confirm("Êtes-vous sûr de vouloir supprimer cette création ?")) return;
+    if (!db) {
+      alert("Firebase n'est pas configuré.");
+      return;
+    }
+    try {
+      await deleteDoc(doc(db, 'creations', id));
+      alert("Œuvre supprimée avec succès !");
+    } catch (error) {
+      console.error("Erreur lors de la suppression :", error);
+    }
+  };
+
   const filteredPortfolio = galleryFilter === 'all' 
-    ? portfolioItems 
-    : portfolioItems.filter(item => item.category === galleryFilter);
+    ? creations 
+    : creations.filter(item => item.category === galleryFilter);
 
   // Custom Builder Next/Prev handlers
   const handleNextStep = () => {
@@ -261,6 +421,7 @@ export default function App() {
           <li><a href="#devis" className="nav-link">Projet sur Mesure</a></li>
           <li><a href="#atelier" className="nav-link">L'Atelier</a></li>
           <li><a href="#contact" className="nav-link">Contact</a></li>
+          {isAdminLoggedIn && <li><a href="#admin-dashboard" className="nav-link" style={{ color: 'var(--accent-epoxy)' }}>Tableau de bord</a></li>}
         </ul>
 
         <a href="#devis" className="btn-cta-nav" id="nav-cta-btn">Créer un Devis</a>
@@ -846,6 +1007,161 @@ export default function App() {
             </div>
           </div>
         </section>
+
+        {/* ADMIN DASHBOARD SECTION */}
+        {isAdminLoggedIn && (
+          <section id="admin-dashboard" className="admin-dashboard">
+            <div className="section-header">
+              <h2 className="section-title">Tableau de bord Administrateur</h2>
+              <p className="section-subtitle">
+                Gérez en direct les créations de votre catalogue public. Ajoutez de nouvelles pièces ou modifiez les prix et disponibilités.
+              </p>
+            </div>
+
+            <div className="admin-dashboard-grid">
+              {/* Form Col */}
+              <div className="admin-form-container glass">
+                <h3 className="contact-info-title" style={{ marginBottom: '20px' }}>
+                  {editingCreation ? "Modifier l'œuvre" : "Ajouter une œuvre"}
+                </h3>
+                <form onSubmit={handleSaveCreation} className="contact-form">
+                  <div className="builder-form-group">
+                    <label htmlFor="form-title">Titre de l'œuvre *</label>
+                    <input 
+                      type="text" 
+                      id="form-title" 
+                      className="builder-input" 
+                      required 
+                      value={adminForm.title}
+                      onChange={(e) => setAdminForm(prev => ({ ...prev, title: e.target.value }))}
+                    />
+                  </div>
+
+                  <div className="form-row">
+                    <div className="builder-form-group">
+                      <label htmlFor="form-category">Catégorie *</label>
+                      <select 
+                        id="form-category" 
+                        className="builder-select" 
+                        value={adminForm.category}
+                        onChange={(e) => setAdminForm(prev => ({ ...prev, category: e.target.value }))}
+                      >
+                        <option value="table">🪵 Table &amp; Mobilier</option>
+                        <option value="jewelry">💎 Bijoux</option>
+                        <option value="lichtenberg">⚡ Fractale Lichtenberg</option>
+                        <option value="laser">🎨 Art Laser &amp; Acrylique</option>
+                      </select>
+                    </div>
+
+                    <div className="builder-form-group">
+                      <label htmlFor="form-status">Statut *</label>
+                      <select 
+                        id="form-status" 
+                        className="builder-select" 
+                        value={adminForm.status}
+                        onChange={(e) => setAdminForm(prev => ({ ...prev, status: e.target.value }))}
+                      >
+                        <option value="available">Disponible</option>
+                        <option value="sold">Vendu</option>
+                        <option value="custom-only">Sur commande</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="form-row">
+                    <div className="builder-form-group">
+                      <label htmlFor="form-price">Prix (ex: 1 850 $ ou Sur demande) *</label>
+                      <input 
+                        type="text" 
+                        id="form-price" 
+                        className="builder-input" 
+                        required 
+                        value={adminForm.price}
+                        onChange={(e) => setAdminForm(prev => ({ ...prev, price: e.target.value }))}
+                      />
+                    </div>
+
+                    <div className="builder-form-group">
+                      <label htmlFor="form-image">Nom du fichier image (ex: table.png) *</label>
+                      <input 
+                        type="text" 
+                        id="form-image" 
+                        className="builder-input" 
+                        placeholder="nom-fichier.png (déposé dans public/assets)"
+                        required 
+                        value={adminForm.image}
+                        onChange={(e) => setAdminForm(prev => ({ ...prev, image: e.target.value }))}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="builder-form-group">
+                    <label htmlFor="form-desc">Description de l'œuvre *</label>
+                    <textarea 
+                      id="form-desc" 
+                      className="builder-textarea" 
+                      required 
+                      value={adminForm.desc}
+                      onChange={(e) => setAdminForm(prev => ({ ...prev, desc: e.target.value }))}
+                    ></textarea>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    {editingCreation && (
+                      <button 
+                        type="button" 
+                        onClick={() => {
+                          setEditingCreation(null);
+                          setAdminForm({
+                            title: '',
+                            category: 'table',
+                            desc: '',
+                            price: '',
+                            status: 'available',
+                            image: ''
+                          });
+                        }} 
+                        className="btn-secondary" 
+                        style={{ flex: 1 }}
+                      >
+                        Annuler
+                      </button>
+                    )}
+                    <button type="submit" className="btn-form-submit" style={{ flex: 1, marginTop: 0 }}>
+                      {editingCreation ? "Enregistrer" : "Créer l'œuvre"}
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              {/* List Col */}
+              <div className="admin-list-container glass">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '15px' }}>
+                  <h3 className="contact-info-title" style={{ margin: 0 }}>Catalogue Actuel ({creations.length})</h3>
+                  <button onClick={() => setIsAdminLoggedIn(false)} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '0.8rem' }}>Déconnexion</button>
+                </div>
+                
+                <div className="admin-list-scroll">
+                  {creations.map((item) => (
+                    <div key={item.id} className="admin-item-row">
+                      <div className="admin-item-meta">
+                        <img src={item.image} alt={item.title} className="admin-item-thumb" />
+                        <div className="admin-item-info">
+                          <h4>{item.title}</h4>
+                          <p>{item.price} • {item.statusText}</p>
+                        </div>
+                      </div>
+                      <div className="admin-item-actions">
+                        <button onClick={() => handleSelectEdit(item)} className="btn-admin-edit">Modifier</button>
+                        <button onClick={() => handleDeleteCreation(item.id)} className="btn-admin-delete">Supprimer</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
       </main>
 
       {/* Footer */}
@@ -870,7 +1186,10 @@ export default function App() {
           </div>
 
           <div className="footer-bottom">
-            <p>© {new Date().getFullYear()} Evan Patruno Art. Tous droits réservés.</p>
+            <div>
+              <p>© {new Date().getFullYear()} Evan Patruno Art. Tous droits réservés.</p>
+              <span onClick={() => setIsAdminVisible(true)} className="footer-admin-link">Gérer le catalogue (Admin)</span>
+            </div>
             <p style={{ display: 'flex', gap: '15px' }}>
               <span>Fait main au Québec</span>
               <span>•</span>
@@ -879,6 +1198,33 @@ export default function App() {
           </div>
         </div>
       </footer>
+
+      {/* ADMIN LOGIN OVERLAY */}
+      {isAdminVisible && (
+        <div className="admin-login-overlay">
+          <div className="admin-login-card glass animate-fade-in">
+            <h3 className="contact-info-title" style={{ marginBottom: '20px' }}>Connexion Admin</h3>
+            <form onSubmit={handleAdminLogin} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+              <div className="builder-form-group" style={{ textAlign: 'left' }}>
+                <label htmlFor="admin-pass">Mot de passe d'accès</label>
+                <input 
+                  type="password" 
+                  id="admin-pass" 
+                  className="builder-input" 
+                  required 
+                  value={adminPassword}
+                  onChange={(e) => setAdminPassword(e.target.value)}
+                />
+              </div>
+              {adminError && <p style={{ color: 'var(--accent-laser)', fontSize: '0.85rem' }}>{adminError}</p>}
+              <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                <button type="button" onClick={() => setIsAdminVisible(false)} className="btn-secondary" style={{ flex: 1 }}>Annuler</button>
+                <button type="submit" className="btn-primary" style={{ flex: 1 }}>Se connecter</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
