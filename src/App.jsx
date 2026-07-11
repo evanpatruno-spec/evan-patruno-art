@@ -175,43 +175,49 @@ export default function App() {
   const instagramPosts = [
     {
       id: 1,
-      image: "/assets/table.png",
-      caption: "Finitions d'une coulée rivière en noyer noir 🪵✨",
+      image: "/assets/sunset-montreal.jpg",
+      postUrl: "https://www.instagram.com/evanpatruno.art/reel/DZtvKL9NNhm/",
+      caption: "Le soleil s'étire et doucement décline... 🌅",
       likes: "142",
       comments: "12"
     },
     {
       id: 2,
-      image: "/assets/jewelry.png",
-      caption: "Détails d'un pendentif en loupe et résine turquoise 💎",
+      image: "/assets/mauricie-landscape.jpg",
+      postUrl: "https://www.instagram.com/evanpatruno.art/p/DZnLQAslieN/",
+      caption: "Une virée en Mauricie à capturer les contrastes sauvages... 🌲",
       likes: "89",
       comments: "5"
     },
     {
       id: 3,
-      image: "/assets/lichtenberg.png",
-      caption: "Lichtenberg fractal sous 10 000 Volts ⚡🔥",
+      image: "/assets/table-basse-chambre.jpg",
+      postUrl: "https://www.instagram.com/evanpatruno.art/reel/DZN01_7vb-dQNTNFtXwzi6EHx0zxuyI6vLRy480/",
+      caption: "Dessus d'une future table basse pour ma chambre 🪵",
       likes: "210",
       comments: "24"
     },
     {
       id: 4,
-      image: "/assets/laser.png",
-      caption: "Mandala géométrique multicouches fini et verni 🎨",
+      image: "/assets/pouring-exoplanete.jpg",
+      postUrl: "https://www.instagram.com/evanpatruno.art/p/DZDzSU2hZkc/",
+      caption: "Une coulée de matière... Toile Exoplanète 🌌",
       likes: "155",
       comments: "18"
     },
     {
       id: 5,
-      image: "/assets/workshop.png",
-      caption: "Dans les coulisses de l'atelier d'artisanat 🛠️⚙️",
+      image: "/assets/fluid-art-ai.jpg",
+      postUrl: "https://www.instagram.com/evanpatruno.art/p/DZAVeHnPjuh/",
+      caption: "Tech & Art : utiliser la tech comme amplificateur d'imaginaire 🔮",
       likes: "178",
       comments: "14"
     },
     {
       id: 6,
       image: "/assets/painting.png",
-      caption: "Peinture acrylique fluide et détails de feuilles d'or 🌊✨",
+      postUrl: "https://www.instagram.com/evanpatruno.art/p/DY8P9DuNtc8/",
+      caption: "Toiles pouring/abstraites et monstre cosmique 🎨",
       likes: "115",
       comments: "9"
     }
@@ -858,7 +864,7 @@ export default function App() {
             {instagramPosts.map((post) => (
               <a 
                 key={post.id} 
-                href="https://www.instagram.com/evanpatruno.art/" 
+                href={post.postUrl} 
                 target="_blank" 
                 rel="noopener noreferrer" 
                 className="instagram-item"
