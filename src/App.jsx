@@ -2100,7 +2100,7 @@ export default function App() {
             💬
           </button>
           <a 
-            href="https://m.me/evanpatruno.art" 
+            href="https://m.me/evanpatruno.EP" 
             target="_blank" 
             rel="noopener noreferrer" 
             className="chat-item ci-messenger" 
@@ -2109,7 +2109,7 @@ export default function App() {
             📘
           </a>
           <a 
-            href="https://www.instagram.com/evanpatruno.art" 
+            href="https://ig.me/m/evanpatruno.art" 
             target="_blank" 
             rel="noopener noreferrer" 
             className="chat-item ci-instagram" 
