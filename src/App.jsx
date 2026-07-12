@@ -76,6 +76,7 @@ const portfolioItems = [
     categoryName: "Table & Mobilier",
     desc: "Table ronde en frêne massif sublimée par une rivière de résine époxy turquoise. Chaque pièce de bois a été soigneusement sélectionnée pour révéler ses veines et ses nœuds uniques.",
     image: "/assets/table-ronde-turquoise.jpg",
+    images: ["/assets/table-ronde-turquoise.jpg", "/assets/table-ronde-turquoise-argent.jpg", "/assets/table-ronde-noir-argent.jpg"],
     status: "custom-only",
     statusText: "Sur commande uniquement",
     price: "Sur demande",
@@ -90,6 +91,7 @@ const portfolioItems = [
     categoryName: "Table & Mobilier",
     desc: "Table ronde de 24\" en frêne massif et résine époxy turquoise et argent métallique, offrant un contraste saisissant.",
     image: "/assets/table-ronde-turquoise-argent.jpg",
+    images: ["/assets/table-ronde-turquoise-argent.jpg", "/assets/table-ronde-turquoise.jpg"],
     status: "available",
     statusText: "Disponible",
     price: "Sur demande",
@@ -104,6 +106,7 @@ const portfolioItems = [
     categoryName: "Table & Mobilier",
     desc: "Table ronde haute (24\" de diamètre, 30\" de hauteur) en bois de frêne naturel et résine époxy noir et argent métallique.",
     image: "/assets/table-ronde-noir-argent.jpg",
+    images: ["/assets/table-ronde-noir-argent.jpg", "/assets/table-ronde-turquoise.jpg"],
     status: "available",
     statusText: "Disponible",
     price: "Sur demande",
@@ -118,6 +121,7 @@ const portfolioItems = [
     categoryName: "Table & Mobilier",
     desc: "Table basse fabriquée à partir de bois de récupération, brûlé à la torche pour une finition noire délicate et moderne.",
     image: "/assets/table-basse-brulee.jpg",
+    images: ["/assets/table-basse-brulee.jpg", "/assets/table-basse-chambre.jpg"],
     status: "custom-only",
     statusText: "Sur commande uniquement",
     price: "Sur demande",
@@ -132,6 +136,7 @@ const portfolioItems = [
     categoryName: "Table & Mobilier",
     desc: "Plateau en frêne massif destiné à une future table basse de chambre à coucher.",
     image: "/assets/table-basse-chambre.jpg",
+    images: ["/assets/table-basse-chambre.jpg", "/assets/table-basse-brulee.jpg"],
     status: "custom-only",
     statusText: "Sur commande uniquement",
     price: "Sur demande",
@@ -146,6 +151,8 @@ const portfolioItems = [
     categoryName: "Bijoux",
     desc: "Bijoux uniques fabriqués de façon artisanale à partir de loupe de bois noble et de résine époxy teintée et polie.",
     image: "/assets/jewelry-real.jpg",
+    images: ["/assets/jewelry-real.jpg", "/assets/table-ronde-turquoise-argent.jpg"],
+    has3DModel: true,
     status: "custom-only",
     statusText: "Sur commande uniquement",
     price: "Sur demande",
@@ -160,6 +167,7 @@ const portfolioItems = [
     categoryName: "Fractale Lichtenberg",
     desc: "Brûlage fractal Lichtenberg par décharge électrique de haute tension (10 000V) sur bois.",
     image: "/assets/lichtenberg-real.jpg",
+    images: ["/assets/lichtenberg-real.jpg", "/assets/table-ronde-noir-argent.jpg"],
     status: "custom-only",
     statusText: "Sur commande uniquement",
     price: "Sur demande",
@@ -172,8 +180,9 @@ const portfolioItems = [
     title: "Toile Fluid Art - Exoplanète",
     category: "laser",
     categoryName: "Art Laser & Acrylique",
-    desc: "Peinture acrylique fluide (pouring) aux textures d'écorce vivante évoquant le cosmos et le ballet de lunes exoplanétaires.",
+    desc: "Peinture acrylique fluide (pouring) aux textures d'écorce vivante évoquant le cosmos et le ballet de moons exoplanétaires.",
     image: "/assets/pouring-exoplanete.jpg",
+    images: ["/assets/pouring-exoplanete.jpg", "/assets/fluid-art-ai.jpg"],
     status: "available",
     statusText: "Disponible",
     price: "380 $",
@@ -188,6 +197,7 @@ const portfolioItems = [
     categoryName: "Art Laser & Acrylique",
     desc: "Toile pouring acrylique fusionnée à des détails d'illustration numérique créant un monstre cosmique.",
     image: "/assets/fluid-art-ai.jpg",
+    images: ["/assets/fluid-art-ai.jpg", "/assets/pouring-exoplanete.jpg"],
     status: "available",
     statusText: "Disponible",
     price: "420 $",
@@ -307,6 +317,14 @@ export default function App() {
   // Checkout Modal State
   const [checkoutItem, setCheckoutItem] = useState(null);
   const [selectedItemDetails, setSelectedItemDetails] = useState(null);
+  const [activeImageIdx, setActiveImageIdx] = useState(0);
+  const [view3DActive, setView3DActive] = useState(false);
+  const [currentReviews, setCurrentReviews] = useState([]);
+  const [newReviewName, setNewReviewName] = useState('');
+  const [newReviewRating, setNewReviewRating] = useState(5);
+  const [newReviewComment, setNewReviewComment] = useState('');
+  const [purchaseCertificate, setPurchaseCertificate] = useState(null);
+  
   const [checkoutForm, setCheckoutForm] = useState({
     name: '',
     email: '',
@@ -353,6 +371,57 @@ export default function App() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Fetch reviews when selectedItemDetails changes
+  useEffect(() => {
+    if (!db || !selectedItemDetails) {
+      setCurrentReviews([]);
+      return;
+    }
+    
+    // Reset index & view states
+    setActiveImageIdx(0);
+    setView3DActive(false);
+
+    const q = query(
+      collection(db, 'reviews'),
+      orderBy('createdAt', 'desc')
+    );
+
+    const unsubscribe = onSnapshot(q, (snap) => {
+      const allReviews = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const filtered = allReviews.filter(r => r.creationId === selectedItemDetails.id);
+      setCurrentReviews(filtered);
+    }, (err) => {
+      console.error("Err reading reviews:", err);
+    });
+
+    return () => unsubscribe();
+  }, [selectedItemDetails]);
+
+  const handleSubmitReview = async (e) => {
+    e.preventDefault();
+    if (!newReviewName.trim() || !newReviewComment.trim()) {
+      alert("Veuillez remplir votre nom et votre commentaire.");
+      return;
+    }
+    if (!db) return;
+    try {
+      await addDoc(collection(db, 'reviews'), {
+        creationId: selectedItemDetails.id,
+        name: newReviewName.trim(),
+        rating: newReviewRating,
+        comment: newReviewComment.trim(),
+        createdAt: serverTimestamp()
+      });
+      setNewReviewName('');
+      setNewReviewComment('');
+      setNewReviewRating(5);
+    } catch (err) {
+      console.error("Error submitting review:", err);
+      alert("Une erreur est survenue lors de l'enregistrement de l'avis.");
+    }
+  };
 
   const instagramPosts = [
     {
@@ -702,9 +771,10 @@ export default function App() {
     // Simuler le délai de paiement Stripe
     await new Promise(resolve => setTimeout(resolve, 2000));
     
+    let docId = "EPA-" + Math.floor(Math.random() * 900000 + 100000);
     if (db) {
       try {
-        await addDoc(collection(db, 'orders'), {
+        const docRef = await addDoc(collection(db, 'orders'), {
           creationId: checkoutItem.id,
           creationTitle: checkoutItem.title,
           priceCAD: checkoutItem.price,
@@ -716,13 +786,27 @@ export default function App() {
           status: 'received',
           createdAt: serverTimestamp()
         });
+        docId = docRef.id;
       } catch (err) {
         console.error("Erreur lors de la sauvegarde de la commande :", err);
       }
     }
     
+    const orderData = {
+      orderId: docId,
+      creationTitle: checkoutItem.title,
+      priceCAD: checkoutItem.price,
+      customerName: checkoutForm.name,
+      customerEmail: checkoutForm.email,
+      customerAddress: `${checkoutForm.address}, ${checkoutForm.city}, ${checkoutForm.zip}`,
+      wood: checkoutItem.wood || "N/A",
+      dimensions: checkoutItem.dimensions || "N/A",
+      mediums: checkoutItem.mediums || "N/A",
+      date: new Date().toLocaleDateString('fr-FR')
+    };
+
     setCheckoutSubmitting(false);
-    alert(`🎉 Commande réussie ! Un courriel de confirmation a été envoyé à ${checkoutForm.email}. Merci de votre achat !`);
+    setPurchaseCertificate(orderData);
     setCheckoutItem(null);
   };
 
@@ -877,6 +961,65 @@ export default function App() {
     if (!val) return;
     setChatbotInputValue('');
     handleBotChoice(val);
+  };
+  const downloadInvoice = (cert) => {
+    const text = `==================================================
+                 EVAN PATRUNO ART
+               FACTURE DE COMMANDE
+==================================================
+No. Commande  : ${cert.orderId}
+Date          : ${cert.date}
+Client        : ${cert.customerName}
+Courriel      : ${cert.customerEmail}
+Adresse       : ${cert.customerAddress}
+--------------------------------------------------
+Produit       : ${cert.creationTitle}
+Bois          : ${cert.wood}
+Dimensions    : ${cert.dimensions}
+Médiums       : ${cert.mediums}
+--------------------------------------------------
+Total Payé    : ${cert.priceCAD} (Sécurisé via Stripe)
+==================================================
+Merci pour votre confiance et votre achat d'art !
+`;
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `Facture_${cert.orderId}.txt`;
+    link.click();
+  };
+
+  const downloadCertificate = (cert) => {
+    const text = `==================================================
+              CERTIFICAT D'AUTHENTICITÉ
+                  EVAN PATRUNO ART
+==================================================
+Nous certifions que l'œuvre d'art originale suivante :
+
+Titre         : ${cert.creationTitle}
+Bois utilisé  : ${cert.wood}
+Dimensions    : ${cert.dimensions}
+Médiums/Style : ${cert.mediums}
+
+a été entièrement fabriquée de façon artisanale par
+l'artiste ébéniste Evan Patruno dans son atelier de
+Montréal, Québec, Canada.
+
+Date de vente : ${cert.date}
+No. Certificat: CERT-${cert.orderId}
+Signature     : Evan Patruno
+
+--------------------------------------------------
+Scannez le QR Code de votre œuvre pour voir
+les détails de fabrication originaux et l'état
+de commande en temps réel sur evanpatruno.art.
+==================================================
+`;
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `Certificat_${cert.orderId}.txt`;
+    link.click();
   };
 
   return (
@@ -2035,6 +2178,46 @@ export default function App() {
               </p>
             </div>
 
+            {/* ADMIN METRICS PANEL */}
+            {(() => {
+              const ordersCount = activityFeed.filter(act => act.type === 'order').length;
+              const totalRevenue = activityFeed
+                .filter(act => act.type === 'order')
+                .reduce((sum, act) => {
+                  const raw = act.priceCAD || act.convertedPrice || "0";
+                  const val = parseFloat(raw.replace(/[^0-9]/g, '')) || 0;
+                  return sum + val;
+                }, 0);
+              const leadsCount = activityFeed.filter(act => act.type === 'project' || act.type === 'inquiry' || act.type === 'chatbot').length;
+              const totalActs = activityFeed.length || 1;
+              const conversionRate = ((ordersCount / totalActs) * 100).toFixed(1);
+
+              return (
+                <div className="admin-metrics-grid" style={{ marginBottom: '30px' }}>
+                  <div className="metric-card glass" style={{ borderLeft: '4px solid var(--accent-epoxy)' }}>
+                    <span className="metric-title">Chiffre d'Affaires</span>
+                    <span className="metric-value">{totalRevenue.toLocaleString('fr-CA')} $ CAD</span>
+                    <span style={{ fontSize: '0.75rem', color: '#10b981' }}>📈 Ventes simulées Stripe</span>
+                  </div>
+                  <div className="metric-card glass" style={{ borderLeft: '4px solid var(--accent-wood)' }}>
+                    <span className="metric-title">Commandes Reçues</span>
+                    <span className="metric-value">{ordersCount}</span>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>🛒 Panier & Achat Direct</span>
+                  </div>
+                  <div className="metric-card glass" style={{ borderLeft: '4px solid var(--accent-voltage)' }}>
+                    <span className="metric-title">Prospects / Leads</span>
+                    <span className="metric-value">{leadsCount}</span>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>✉️ Formulaires & Chatbot</span>
+                  </div>
+                  <div className="metric-card glass" style={{ borderLeft: '4px solid var(--accent-laser)' }}>
+                    <span className="metric-title">Taux d'Engagement</span>
+                    <span className="metric-value">{conversionRate} %</span>
+                    <span style={{ fontSize: '0.75rem', color: '#3b82f6' }}>⚡ Taux de conversion</span>
+                  </div>
+                </div>
+              );
+            })()}
+
             <div className="admin-dashboard-grid">
               {/* Form Col */}
               <div className="admin-form-container glass">
@@ -2499,23 +2682,75 @@ export default function App() {
       {/* DETAILED PRODUCT VIEW OVERLAY */}
       {selectedItemDetails && (
         <div className="checkout-overlay" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 11000 }}>
-          <div className="checkout-card glass animate-fade-in" style={{ maxWidth: '800px', width: '90%', padding: '30px', maxHeight: '90vh', overflowY: 'auto' }}>
+          <div className="checkout-card glass animate-fade-in" style={{ maxWidth: '900px', width: '95%', padding: '30px', maxHeight: '90vh', overflowY: 'auto' }}>
             <div className="checkout-header" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '15px', marginBottom: '20px' }}>
               <h3 className="checkout-title" style={{ fontSize: '1.4rem' }}>{selectedItemDetails.title}</h3>
               <button className="checkout-close" onClick={() => setSelectedItemDetails(null)}>&times;</button>
             </div>
 
             <div className="product-details-grid">
-              {/* Image side */}
-              <div style={{ width: '100%', borderRadius: '16px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.08)' }}>
-                <img 
-                  src={selectedItemDetails.image} 
-                  alt={selectedItemDetails.title} 
-                  style={{ width: '100%', height: 'auto', display: 'block', objectFit: 'cover' }} 
-                />
+              {/* Left Column: Image Slider / 3D Viewer */}
+              <div style={{ position: 'relative' }}>
+                {selectedItemDetails.has3DModel && (
+                  <button 
+                    className="viewer3d-toggle-btn"
+                    onClick={() => setView3DActive(!view3DActive)}
+                  >
+                    {view3DActive ? "👁️ Afficher Photo" : "📦 Afficher Modèle 3D"}
+                  </button>
+                )}
+
+                {view3DActive ? (
+                  <div className="viewer3d-container">
+                    <div className="viewer3d-object">
+                      <div className="viewer3d-wireframe-cube">
+                        <div className="viewer3d-face face-front"></div>
+                        <div className="viewer3d-face face-back"></div>
+                        <div className="viewer3d-face face-left"></div>
+                        <div className="viewer3d-face face-right"></div>
+                        <div className="viewer3d-face face-top"></div>
+                        <div className="viewer3d-face face-bottom"></div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="slider-container">
+                    <img 
+                      src={selectedItemDetails.images ? selectedItemDetails.images[activeImageIdx] : selectedItemDetails.image} 
+                      alt={selectedItemDetails.title} 
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                    />
+                    
+                    {selectedItemDetails.images && selectedItemDetails.images.length > 1 && (
+                      <>
+                        <button 
+                          className="slider-btn slider-btn-prev"
+                          onClick={() => setActiveImageIdx(prev => (prev === 0 ? selectedItemDetails.images.length - 1 : prev - 1))}
+                        >
+                          ◀
+                        </button>
+                        <button 
+                          className="slider-btn slider-btn-next"
+                          onClick={() => setActiveImageIdx(prev => (prev === selectedItemDetails.images.length - 1 ? 0 : prev + 1))}
+                        >
+                          ▶
+                        </button>
+                        <div className="slider-dots">
+                          {selectedItemDetails.images.map((_, dotIdx) => (
+                            <span 
+                              key={dotIdx}
+                              className={`slider-dot ${activeImageIdx === dotIdx ? 'active' : ''}`}
+                              onClick={() => setActiveImageIdx(dotIdx)}
+                            ></span>
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
 
-              {/* Info side */}
+              {/* Right Column: Info & Star Reviews */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', textAlign: 'left' }}>
                 <div>
                   <span className={`art-badge ${selectedItemDetails.category}`} style={{ position: 'static', display: 'inline-block', marginBottom: '10px' }}>
@@ -2586,8 +2821,144 @@ export default function App() {
                     </button>
                   )}
                 </div>
+
+                {/* Reviews System */}
+                <div className="reviews-section">
+                  <h4 style={{ color: '#fff', fontSize: '1.05rem', marginBottom: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span>Avis Clients</span>
+                    <span className="review-stars">
+                      ★ {currentReviews.length > 0 ? (currentReviews.reduce((acc, r) => acc + r.rating, 0) / currentReviews.length).toFixed(1) : "0.0"} ({currentReviews.length})
+                    </span>
+                  </h4>
+
+                  {/* List of comments */}
+                  <div style={{ maxHeight: '200px', overflowY: 'auto', marginBottom: '20px', paddingRight: '8px' }}>
+                    {currentReviews.length === 0 ? (
+                      <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', textAlign: 'center', padding: '15px' }}>
+                        Aucun avis pour le moment. Soyez le premier à donner votre avis !
+                      </p>
+                    ) : (
+                      currentReviews.map((rev) => (
+                        <div key={rev.id} className="review-item">
+                          <div className="review-header">
+                            <strong style={{ fontSize: '0.85rem', color: '#fff' }}>{rev.name}</strong>
+                            <span className="review-stars">{"★".repeat(rev.rating)}{"☆".repeat(5 - rev.rating)}</span>
+                          </div>
+                          <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', lineHeight: '1.4', margin: 0 }}>{rev.comment}</p>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  {/* Write a comment form */}
+                  <form onSubmit={handleSubmitReview} style={{ display: 'flex', flexDirection: 'column', gap: '10px', background: 'rgba(255,255,255,0.02)', padding: '15px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.04)' }}>
+                    <h5 style={{ color: '#fff', margin: 0, fontSize: '0.85rem' }}>Laisser une évaluation</h5>
+                    
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Votre Note :</span>
+                      <div className="review-stars-input" style={{ margin: 0 }}>
+                        {[1, 2, 3, 4, 5].map((starVal) => (
+                          <button
+                            type="button"
+                            key={starVal}
+                            onClick={() => setNewReviewRating(starVal)}
+                            className="review-star-btn"
+                            style={{ color: starVal <= newReviewRating ? '#fbbf24' : 'rgba(255,255,255,0.15)' }}
+                          >
+                            ★
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <input 
+                      type="text"
+                      className="builder-input"
+                      placeholder="Votre nom..."
+                      required
+                      value={newReviewName}
+                      onChange={(e) => setNewReviewName(e.target.value)}
+                      style={{ padding: '8px 12px', fontSize: '0.8rem' }}
+                    />
+
+                    <textarea
+                      className="builder-textarea"
+                      placeholder="Partagez votre avis sur cette pièce..."
+                      required
+                      value={newReviewComment}
+                      onChange={(e) => setNewReviewComment(e.target.value)}
+                      style={{ padding: '8px 12px', fontSize: '0.8rem', minHeight: '60px', height: '60px' }}
+                    ></textarea>
+
+                    <button type="submit" className="btn-primary" style={{ padding: '8px', fontSize: '0.8rem', borderRadius: '8px' }}>
+                      Publier l'évaluation
+                    </button>
+                  </form>
+                </div>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* POST-PURCHASE CERTIFICATE OVERLAY */}
+      {purchaseCertificate && (
+        <div className="certificate-overlay">
+          <div className="certificate-card glass animate-fade-in">
+            <div className="certificate-seal"></div>
+            <h3 style={{ color: '#d4af37', fontFamily: 'var(--font-heading)', fontSize: '1.8rem', fontWeight: '800', marginBottom: '10px' }}>
+              Certificat d'Authenticité Numérique
+            </h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '20px' }}>
+              Félicitations pour l'acquisition d'une œuvre originale signée <strong>Evan Patruno</strong>.
+            </p>
+
+            <div style={{ background: 'rgba(212, 175, 55, 0.05)', border: '1px solid #d4af37', borderRadius: '12px', padding: '20px', margin: '20px 0', textAlign: 'left', fontSize: '0.9rem' }}>
+              <div style={{ marginBottom: '8px' }}>📜 <strong>Œuvre :</strong> {purchaseCertificate.creationTitle}</div>
+              <div style={{ marginBottom: '8px' }}>🪵 <strong>Bois :</strong> {purchaseCertificate.wood}</div>
+              <div style={{ marginBottom: '8px' }}>📏 <strong>Dimensions :</strong> {purchaseCertificate.dimensions}</div>
+              <div style={{ marginBottom: '8px' }}>✨ <strong>Médiums :</strong> {purchaseCertificate.mediums}</div>
+              <div style={{ borderTop: '1px dashed rgba(212, 175, 55, 0.2)', paddingTop: '10px', marginTop: '10px' }}>
+                🆔 <strong>No. Commande (Suivi) :</strong> <code style={{ color: '#d4af37', fontWeight: '700' }}>{purchaseCertificate.orderId}</code>
+              </div>
+            </div>
+
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+              Utilisez cet identifiant dans notre module de suivi de commande en direct pour suivre la préparation !
+            </p>
+
+            <div className="qr-code-box">
+              <img 
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=https://evanpatruno.art/track?id=${purchaseCertificate.orderId}`} 
+                alt="Code QR Certificat"
+                style={{ width: '100px', height: '100px' }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: '15px', marginTop: '20px' }}>
+              <button 
+                onClick={() => downloadInvoice(purchaseCertificate)}
+                className="btn-secondary" 
+                style={{ flex: 1, padding: '12px', fontSize: '0.9rem' }}
+              >
+                📄 Facture PDF (.txt)
+              </button>
+              <button 
+                onClick={() => downloadCertificate(purchaseCertificate)}
+                className="btn-primary" 
+                style={{ flex: 1, padding: '12px', fontSize: '0.9rem', background: 'linear-gradient(135deg, #d4af37, #aa7c11)', border: 'none', color: '#1e0a19' }}
+              >
+                📜 Certificat (.txt)
+              </button>
+            </div>
+
+            <button 
+              onClick={() => setPurchaseCertificate(null)}
+              className="btn-secondary" 
+              style={{ width: '100%', marginTop: '15px', padding: '12px', borderColor: 'transparent', background: 'rgba(255,255,255,0.02)' }}
+            >
+              Fermer
+            </button>
           </div>
         </div>
       )}
