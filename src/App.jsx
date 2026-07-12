@@ -881,9 +881,11 @@ export default function App() {
   return (
     <div id="root">
       {/* Background Decorative Glow Blurs */}
-      <div className="glow-blur" style={{ top: '15%', left: '10%', width: '450px', height: '450px', background: 'var(--accent-wood-glow)' }}></div>
-      <div className="glow-blur" style={{ top: '45%', right: '5%', width: '500px', height: '500px', background: 'var(--accent-epoxy-glow)' }}></div>
-      <div className="glow-blur" style={{ top: '75%', left: '5%', width: '400px', height: '400px', background: 'var(--accent-voltage-glow)' }}></div>
+      <div className="glow-blur" style={{ top: '5%', left: '10%', width: '450px', height: '450px', background: 'var(--accent-wood-glow)' }}></div>
+      <div className="glow-blur" style={{ top: '25%', right: '5%', width: '500px', height: '500px', background: 'var(--accent-epoxy-glow)' }}></div>
+      <div className="glow-blur" style={{ top: '50%', left: '5%', width: '400px', height: '400px', background: 'var(--accent-voltage-glow)' }}></div>
+      <div className="glow-blur" style={{ top: '70%', right: '10%', width: '450px', height: '450px', background: 'var(--accent-wood-glow)' }}></div>
+      <div className="glow-blur" style={{ top: '90%', left: '15%', width: '500px', height: '500px', background: 'var(--accent-epoxy-glow)' }}></div>
 
       {/* Header/Navigation */}
       <nav id="navbar" className={`header-nav glass ${scrolled ? 'scrolled' : ''}`}>
