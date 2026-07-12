@@ -194,10 +194,44 @@ const portfolioItems = [
   }
 ];
 
+const pigmentItems = [
+  { type: 'metal', name: 'Bleu Cosmique Nacré', color: 'radial-gradient(circle, #1e3a8a 0%, #0d1b2a 100%)', desc: 'Pigments métalliques créant des mouvements fluides tridimensionnels rappelant le cosmos.' },
+  { type: 'metal', name: 'Or Liquide', color: 'linear-gradient(135deg, #d4af37 0%, #aa7c11 100%)', desc: 'Reflets dorés luxueux et chauds, parfaits pour rehausser le grain sombre des bois nobles.' },
+  { type: 'metal', name: 'Cuivre Brûlé', color: 'linear-gradient(135deg, #b87333 0%, #804000 100%)', desc: 'Pigments cuivrés métallisés offrant un éclat chaleureux et une profondeur organique.' },
+  { type: 'translucent', name: 'Turquoise Lagon', color: 'rgba(64, 224, 208, 0.6)', desc: 'Teinte translucide vibrante imitant la clarté et le mouvement de l\'eau tropicale.' },
+  { type: 'translucent', name: 'Noir Fumé', color: 'rgba(20, 20, 20, 0.75)', desc: 'Effet vitré semi-transparent apportant une élégance sobre et moderne.' },
+  { type: 'translucent', name: 'Émeraude Profond', color: 'rgba(4, 120, 87, 0.65)', desc: 'Vert émeraude translucide captant magnifiquement la lumière.' },
+  { type: 'opaque', name: 'Blanc Albâtre', color: '#f8fafc', desc: 'Remplissage opaque d\'un blanc pur pour un contraste minimaliste et épuré.' },
+  { type: 'opaque', name: 'Charbon Mat', color: '#1e293b', desc: 'Finition opaque sombre et contemporaine soulignant la silhouette géométrique des pièces.' }
+];
+
 export default function App() {
   const [scrolled, setScrolled] = useState(false);
+  const [currency, setCurrency] = useState('CAD');
   const [galleryFilter, setGalleryFilter] = useState('all');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const formatPrice = (priceStr) => {
+    if (!priceStr || priceStr.toLowerCase().includes('demande')) {
+      return priceStr;
+    }
+    const match = priceStr.replace(/\s/g, '').match(/\d+/);
+    if (!match) return priceStr;
+    const amountCAD = parseFloat(match[0]);
+    
+    let rate = 1;
+    let symbol = ' $ CAD';
+    if (currency === 'USD') {
+      rate = 0.74;
+      symbol = ' $ USD';
+    } else if (currency === 'EUR') {
+      rate = 0.68;
+      symbol = ' €';
+    }
+    
+    const converted = Math.round(amountCAD * rate);
+    return `${converted.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ")}${symbol}`;
+  };
   
   // Dynamic Creations List State - initialized with fallback portfolioItems
   const [creations, setCreations] = useState(portfolioItems);
@@ -226,6 +260,7 @@ export default function App() {
     type: '',
     wood: '',
     epoxy: '',
+    legs: '',
     dimensions: '',
     notes: '',
     name: '',
@@ -242,6 +277,36 @@ export default function App() {
     subject: '',
     message: ''
   });
+
+  // Premium Features States
+  const [pigmentTab, setPigmentTab] = useState('all');
+  const [activeAccordion, setActiveAccordion] = useState(null);
+  
+  // Checkout Modal State
+  const [checkoutItem, setCheckoutItem] = useState(null);
+  const [checkoutForm, setCheckoutForm] = useState({
+    name: '',
+    email: '',
+    address: '',
+    city: '',
+    zip: '',
+    cardNumber: '',
+    expiry: '',
+    cvc: ''
+  });
+  const [checkoutSubmitting, setCheckoutSubmitting] = useState(false);
+  
+  // Admin Activity Log State
+  const [activityFeed, setActivityFeed] = useState([]);
+
+  // Chatbot State
+  const [chatbotOpen, setChatbotOpen] = useState(false);
+  const [chatbotWidgetActive, setChatbotWidgetActive] = useState(false);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [chatbotStep, setChatbotStep] = useState(0);
+  const [chatbotAnswers, setChatbotAnswers] = useState({});
+  const [chatbotInputVisible, setChatbotInputVisible] = useState(false);
+  const [chatbotInputValue, setChatbotInputValue] = useState('');
 
   // Track scroll position to add class to header
   useEffect(() => {
@@ -333,6 +398,74 @@ export default function App() {
 
     return () => unsubscribe();
   }, []);
+
+  // Fetch orders, projects, inquiries, chatbot leads for Admin Activity Feed
+  useEffect(() => {
+    if (!db || !isAdminLoggedIn) return;
+
+    const feedMap = { orders: [], projects: [], inquiries: [], chatbot: [] };
+    const updateFeed = (key, data) => {
+      feedMap[key] = data;
+      const combined = [
+        ...feedMap.orders,
+        ...feedMap.projects,
+        ...feedMap.inquiries,
+        ...feedMap.chatbot
+      ].sort((a, b) => b.date - a.date);
+      setActivityFeed(combined);
+    };
+
+    const unsubOrders = onSnapshot(collection(db, 'orders'), (snap) => {
+      const o = snap.docs.map(doc => ({
+        id: doc.id,
+        type: 'order',
+        title: 'Nouvelle commande d\'art',
+        details: `${doc.data().customerName} (${doc.data().customerEmail}) a commandé "${doc.data().creationTitle}" pour ${doc.data().convertedPrice || doc.data().priceCAD}`,
+        date: doc.data().createdAt?.toDate() || new Date()
+      }));
+      updateFeed('orders', o);
+    }, (err) => console.error("Err feed orders:", err));
+
+    const unsubProjects = onSnapshot(collection(db, 'projects'), (snap) => {
+      const p = snap.docs.map(doc => ({
+        id: doc.id,
+        type: 'project',
+        title: 'Nouveau projet sur mesure (devis)',
+        details: `${doc.data().name} (${doc.data().email}) veut un projet de type "${doc.data().type}" en ${doc.data().wood || 'bois non spécifié'}, résine: ${doc.data().epoxy || 'non spécifié'}, piétement: ${doc.data().legs || 'non spécifié'}. Notes: ${doc.data().notes || 'aucune'}`,
+        date: doc.data().createdAt?.toDate() || new Date()
+      }));
+      updateFeed('projects', p);
+    }, (err) => console.error("Err feed projects:", err));
+
+    const unsubInquiries = onSnapshot(collection(db, 'inquiries'), (snap) => {
+      const i = snap.docs.map(doc => ({
+        id: doc.id,
+        type: 'inquiry',
+        title: 'Nouveau message de contact',
+        details: `${doc.data().name} (${doc.data().email}) : Sujet: "${doc.data().subject}". Message: "${doc.data().message}"`,
+        date: doc.data().createdAt?.toDate() || new Date()
+      }));
+      updateFeed('inquiries', i);
+    }, (err) => console.error("Err feed inquiries:", err));
+
+    const unsubChatbot = onSnapshot(collection(db, 'chatbot_leads'), (snap) => {
+      const c = snap.docs.map(doc => ({
+        id: doc.id,
+        type: 'chatbot',
+        title: 'Lead qualifié par le Chatbot',
+        details: `${doc.data().name || 'Anonyme'} (${doc.data().contact || 'pas de contact'}) est intéressé par "${doc.data().project || 'un projet'}", bois: ${doc.data().wood_detail || 'non spécifié'}, délai: ${doc.data().delay || 'non spécifié'}`,
+        date: doc.data().createdAt?.toDate() || new Date()
+      }));
+      updateFeed('chatbot', c);
+    }, (err) => console.error("Err feed chatbot:", err));
+
+    return () => {
+      unsubOrders();
+      unsubProjects();
+      unsubInquiries();
+      unsubChatbot();
+    };
+  }, [isAdminLoggedIn]);
 
   const handleAdminLogin = (e) => {
     e.preventDefault();
@@ -480,14 +613,78 @@ export default function App() {
     handleNextStep();
   };
 
-  const handleBuilderSubmit = (e) => {
+  const handleBuilderSubmit = async (e) => {
     e.preventDefault();
+    if (db) {
+      try {
+        await addDoc(collection(db, 'projects'), {
+          ...projectData,
+          createdAt: serverTimestamp()
+        });
+      } catch (err) {
+        console.error("Erreur lors de la soumission du projet :", err);
+      }
+    }
     setBuilderSubmitted(true);
   };
 
-  const handleContactSubmit = (e) => {
+  const handleContactSubmit = async (e) => {
     e.preventDefault();
+    if (db) {
+      try {
+        await addDoc(collection(db, 'inquiries'), {
+          ...contactData,
+          createdAt: serverTimestamp()
+        });
+      } catch (err) {
+        console.error("Erreur lors de l'envoi du message :", err);
+      }
+    }
     setContactSubmitted(true);
+  };
+
+  const handleStartCheckout = (item) => {
+    setCheckoutItem(item);
+    setCheckoutForm({
+      name: '',
+      email: '',
+      address: '',
+      city: '',
+      zip: '',
+      cardNumber: '',
+      expiry: '',
+      cvc: ''
+    });
+  };
+
+  const handleCheckoutSubmit = async (e) => {
+    e.preventDefault();
+    setCheckoutSubmitting(true);
+    
+    // Simuler le délai de paiement Stripe
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    if (db) {
+      try {
+        await addDoc(collection(db, 'orders'), {
+          creationId: checkoutItem.id,
+          creationTitle: checkoutItem.title,
+          priceCAD: checkoutItem.price,
+          currency: currency,
+          convertedPrice: formatPrice(checkoutItem.price),
+          customerName: checkoutForm.name,
+          customerEmail: checkoutForm.email,
+          customerAddress: `${checkoutForm.address}, ${checkoutForm.city}, ${checkoutForm.zip}`,
+          createdAt: serverTimestamp()
+        });
+      } catch (err) {
+        console.error("Erreur lors de la sauvegarde de la commande :", err);
+      }
+    }
+    
+    setCheckoutSubmitting(false);
+    alert(`🎉 Commande réussie ! Un courriel de confirmation a été envoyé à ${checkoutForm.email}. Merci de votre achat !`);
+    setCheckoutItem(null);
   };
 
   // Reset helper
@@ -497,6 +694,7 @@ export default function App() {
       type: '',
       wood: '',
       epoxy: '',
+      legs: '',
       dimensions: '',
       notes: '',
       name: '',
@@ -504,6 +702,103 @@ export default function App() {
       phone: ''
     });
     setBuilderSubmitted(false);
+  };
+
+  // Qualificateur Chatbot Config
+  const contextQuestions = {
+    '🪵 Table sur mesure': { key: 'wood_detail', msg: '🌲 Quelle essence de bois préférez-vous ?', choices: ['Noyer noir', 'Frêne massif', 'Cèdre sauvage', 'Pas de préférence'] },
+    '💎 Bijou unique': { key: 'jewelry_type', msg: '💍 Quel type de bijou recherchez-vous ?', choices: ['Pendentif', 'Bague', 'Boucles d\'oreilles', 'Sur-mesure'] },
+    '⚡ Fractale Lichtenberg': { key: 'lichtenberg_type', msg: '⚡ Sur quel type d\'objet souhaitez-vous cette gravure électrique ?', choices: ['Planche de service', 'Tableau mural', 'Meuble complet'] },
+    '🎨 Autre projet d\'art': { key: 'art_notes', msg: '🖌️ Quel type d\'œuvre souhaitez-vous ? (Peinture, gravure, etc.)', choices: ['Toile acrylique', 'Découpe bois', 'Autre création'] }
+  };
+
+  const chatbotFlow = [
+    { key: 'project', msg: '👋 Bonjour ! Je suis l\'assistant virtuel d\'Evan Patruno Art. Quel est votre projet ?', choices: ['🪵 Table sur mesure', '💎 Bijou unique', '⚡ Fractale Lichtenberg', '🎨 Autre projet d\'art'] },
+    { key: 'delay', msg: 'Parfait ! Dans quel délai souhaitez-vous concrétiser ce projet ?', choices: ['🔥 Rapidement (0-3 mois)', '📅 Moyen terme (3-6 mois)', '🔭 Je planifie pour plus tard'] },
+    { key: 'name', msg: '😊 Super ! Pour personnaliser votre demande, quel est votre prénom ?', input: true, placeholder: 'Votre prénom...' },
+    { key: 'contact', msg: 'Comment peut-on vous contacter (courriel ou téléphone) ?', input: true, placeholder: 'Téléphone ou courriel...' }
+  ];
+
+  const handleOpenChatbot = () => {
+    setChatbotOpen(true);
+    setChatbotWidgetActive(false);
+    if (chatMessages.length === 0) {
+      setChatMessages([
+        { sender: 'bot', text: '👋 Bonjour ! Je suis l\'assistant virtuel d\'Evan Patruno Art. Quel est votre projet ?', choices: ['🪵 Table sur mesure', '💎 Bijou unique', '⚡ Fractale Lichtenberg', '🎨 Autre projet d\'art'] }
+      ]);
+      setChatbotStep(0);
+      setChatbotAnswers({});
+      setChatbotInputVisible(false);
+    }
+  };
+
+  const getDynamicFlow = (choiceVal, answersVal) => {
+    const selectedProject = answersVal?.project || choiceVal || chatbotAnswers.project;
+    const ctxQ = contextQuestions[selectedProject];
+    if (ctxQ) {
+      return [chatbotFlow[0], ctxQ, ...chatbotFlow.slice(1)];
+    }
+    return chatbotFlow;
+  };
+
+  const handleBotChoice = async (choice) => {
+    // Add user message
+    setChatMessages(prev => [...prev, { sender: 'user', text: choice }]);
+    
+    const updatedAnswers = { ...chatbotAnswers };
+    const dynamicFlowBefore = getDynamicFlow(choice, chatbotAnswers);
+    const currentFlowItem = dynamicFlowBefore[chatbotStep];
+    updatedAnswers[currentFlowItem.key] = choice;
+    setChatbotAnswers(updatedAnswers);
+
+    const nextStepIndex = chatbotStep + 1;
+    setChatbotStep(nextStepIndex);
+    
+    // Simuler le temps de frappe du bot
+    await new Promise(resolve => setTimeout(resolve, 600));
+
+    const dynamicFlowAfter = getDynamicFlow(choice, updatedAnswers);
+    if (nextStepIndex >= dynamicFlowAfter.length) {
+      // Fin du chatbot : enregistrement dans Firestore
+      if (db) {
+        try {
+          await addDoc(collection(db, 'chatbot_leads'), {
+            ...updatedAnswers,
+            createdAt: serverTimestamp()
+          });
+        } catch (err) {
+          console.error("Erreur lors de l'enregistrement du lead :", err);
+        }
+      }
+      setChatMessages(prev => [...prev, { sender: 'bot', text: `✅ Merci ${updatedAnswers.name || ''} ! Vos coordonnées ont été enregistrées. Evan va vous recontacter très bientôt.` }]);
+      setChatbotInputVisible(false);
+      return;
+    }
+
+    const nextFlowItem = dynamicFlowAfter[nextStepIndex];
+    let nextMsgText = nextFlowItem.msg;
+    if (nextFlowItem.key === 'contact') {
+      nextMsgText = `${updatedAnswers.name ? updatedAnswers.name + ', comment' : 'Comment'} peut-on vous contacter (courriel ou téléphone) ?`;
+    }
+
+    setChatMessages(prev => [...prev, { 
+      sender: 'bot', 
+      text: nextMsgText, 
+      choices: nextFlowItem.choices || null
+    }]);
+
+    if (nextFlowItem.input) {
+      setChatbotInputVisible(true);
+    } else {
+      setChatbotInputVisible(false);
+    }
+  };
+
+  const handleBotSubmitInput = () => {
+    const val = chatbotInputValue.trim();
+    if (!val) return;
+    setChatbotInputValue('');
+    handleBotChoice(val);
   };
 
   return (
@@ -529,7 +824,21 @@ export default function App() {
           {isAdminLoggedIn && <li><a href="#admin-dashboard" className="nav-link" style={{ color: 'var(--accent-epoxy)' }}>Tableau de bord</a></li>}
         </ul>
 
-        <a href="#devis" className="btn-cta-nav" id="nav-cta-btn">Créer un Devis</a>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+          <a href="#devis" className="btn-cta-nav" id="nav-cta-btn">Créer un Devis</a>
+          <div className="currency-dropdown-container">
+            <select 
+              value={currency} 
+              onChange={(e) => setCurrency(e.target.value)}
+              className="currency-select"
+              aria-label="Sélectionner la devise"
+            >
+              <option value="CAD">CAD ($)</option>
+              <option value="USD">USD ($)</option>
+              <option value="EUR">EUR (€)</option>
+            </select>
+          </div>
+        </div>
 
         <button 
           className="mobile-nav-toggle" 
@@ -640,12 +949,102 @@ export default function App() {
                     </div>
                   )}
 
-                  <div className="art-footer">
-                    <span className="art-status">
-                      <span className={`status-dot ${item.status}`}></span>
-                      {item.statusText}
-                    </span>
-                    <span className="art-price">{item.price}</span>
+                  <div className="art-footer" style={{ display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'stretch', width: '100%' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                      <span className="art-status">
+                        <span className={`status-dot ${item.status}`}></span>
+                        {item.statusText}
+                      </span>
+                      <span className="art-price">{formatPrice(item.price)}</span>
+                    </div>
+                    {item.status === 'available' && !item.price.toLowerCase().includes('demande') && (
+                      <button 
+                        onClick={() => handleStartCheckout(item)}
+                        className="btn-primary" 
+                        style={{ padding: '8px 16px', fontSize: '0.85rem', width: '100%', marginTop: '5px' }}
+                      >
+                        Commander
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* PIGMENT GALLERY SECTION */}
+        <section id="pigments" style={{ background: 'var(--bg-secondary)', borderTop: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
+          <div className="section-header">
+            <h2 className="section-title">Nos Pigments &amp; Effets Époxy</h2>
+            <p className="section-subtitle">
+              Découvrez la richesse de nos pigments de résine pour personnaliser vos créations et mobilier d'art.
+            </p>
+          </div>
+
+          <div className="pigments-tabs">
+            {[
+              { id: 'all', label: 'Tous les effets' },
+              { id: 'metal', label: '✨ Métalliques Nacres' },
+              { id: 'translucent', label: '🌊 Translucides Rivières' },
+              { id: 'opaque', label: '🎨 Opaques Unis' }
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                className={`pigment-tab-btn ${pigmentTab === tab.id ? 'active' : ''}`}
+                onClick={() => setPigmentTab(tab.id)}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="pigments-grid">
+            {pigmentItems
+              .filter(item => pigmentTab === 'all' || item.type === pigmentTab)
+              .map((item, idx) => (
+                <div key={idx} className="pigment-card glass">
+                  <div className="pigment-swatch" style={{ background: item.color }}></div>
+                  <h3 className="pigment-name">{item.name}</h3>
+                  <p className="pigment-desc">{item.desc}</p>
+                </div>
+              ))}
+          </div>
+        </section>
+
+        {/* CARE GUIDE SECTION */}
+        <section id="entretien">
+          <div className="section-header">
+            <h2 className="section-title">Guide d'Entretien &amp; de Durabilité</h2>
+            <p className="section-subtitle">
+              Conseils professionnels pour préserver l'éclat de vos meubles en bois massif et résine époxy.
+            </p>
+          </div>
+
+          <div className="care-guide-container">
+            {[
+              { title: 'Nettoyage au quotidien', emoji: '🪵', content: 'Utilisez simplement un chiffon en microfibre doux légèrement humide. Évitez les produits chimiques agressifs, les décapants ou les nettoyants abrasifs qui pourraient rayer la résine époxy ou altérer la finition de l\'huile protectrice.' },
+              { title: 'Protection contre les UV et la chaleur', emoji: '☀️', content: 'Bien que nos résines soient traitées contre le jaunissement UV, évitez d\'exposer vos meubles à la lumière directe prolongée du soleil. Utilisez toujours des sous-plats ou dessous de verre pour les tasses chaudes et les plats sortant du four.' },
+              { title: 'Gestion de l\'humidité', emoji: '💧', content: 'Le bois massif vit et respire. Maintenez un taux d\'humidité stable dans votre pièce (idéalement entre 40% et 60%). Essuyez immédiatement tout liquide renversé pour éviter qu\'il ne s\'infiltre dans les pores du bois.' },
+              { title: 'Restauration et huilage', emoji: '✨', content: 'Pour redonner de l\'éclat à la partie bois, appliquez une fine couche d\'huile de finition naturelle (ex: Rubio Monocoat ou Osmo) tous les 1 à 2 ans selon l\'usage. Pour la résine, un lustrage doux avec une pâte à polir automobile fine peut éliminer les micro-rayures.' }
+            ].map((item, idx) => (
+              <div key={idx} className={`care-accordion-item glass ${activeAccordion === idx ? 'active' : ''}`}>
+                <button 
+                  className="care-accordion-header"
+                  onClick={() => setActiveAccordion(activeAccordion === idx ? null : idx)}
+                >
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span>{item.emoji}</span>
+                    <span>{item.title}</span>
+                  </span>
+                  <span className="care-accordion-icon" style={{ transform: activeAccordion === idx ? 'rotate(180deg)' : 'none', display: 'inline-block' }}>▼</span>
+                </button>
+                <div 
+                  className="care-accordion-content" 
+                  style={{ maxHeight: activeAccordion === idx ? '200px' : '0', transition: 'all 0.3s ease-out' }}
+                >
+                  <div className="care-accordion-content-inner">
+                    {item.content}
                   </div>
                 </div>
               </div>
@@ -763,6 +1162,31 @@ export default function App() {
                           <option value="Pas d'époxy (Bois brut ou gravure seule)">Sans époxy / Naturel</option>
                         </select>
                       </div>
+
+                      {projectData.type === 'Table rivière' && (
+                        <div className="builder-form-group" style={{ gridColumn: 'span 2', marginTop: '20px' }}>
+                          <label>Style de piétement (Pattes de table)</label>
+                          <div className="legs-grid">
+                            {[
+                              { id: 'trapeze', title: 'Pieds Trapèze / H', emoji: '🪵', desc: 'Acier noir, style industriel moderne' },
+                              { id: 'x-shape', title: 'Pieds en X', emoji: '❌', desc: 'Design croisé classique et stable' },
+                              { id: 'hairpin', title: 'Pieds Épingle', emoji: '📍', desc: 'Look vintage mid-century épuré' },
+                              { id: 'spider', title: 'Pieds Mikado (Araignée)', emoji: '🕷️', desc: 'Pied central idéal pour les tables rondes' }
+                            ].map((leg) => (
+                              <div 
+                                key={leg.id} 
+                                className={`leg-card ${projectData.legs === leg.title ? 'active' : ''}`}
+                                onClick={() => setProjectData(prev => ({ ...prev, legs: leg.title }))}
+                              >
+                                <div className="leg-check">✓</div>
+                                <div className="leg-image-placeholder" style={{ fontSize: '1.8rem' }}>{leg.emoji}</div>
+                                <div className="leg-card-title">{leg.title}</div>
+                                <div className="leg-card-price" style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{leg.desc}</div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -1309,7 +1733,40 @@ export default function App() {
                     </div>
                   ))}
                 </div>
-              </div>
+            </div>
+          </div>
+
+          {/* Activity Feed Section */}
+            <div className="activity-feed-section glass" style={{ marginTop: '30px', padding: '30px', borderRadius: '24px' }}>
+              <h3 className="contact-info-title" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '15px', marginBottom: '20px' }}>
+                Flux d'Activité en Direct
+              </h3>
+              
+              {activityFeed.length === 0 ? (
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', textAlign: 'center', padding: '20px' }}>
+                  Aucune activité récente détectée.
+                </p>
+              ) : (
+                <div className="activity-feed-list" style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                  {activityFeed.map((act) => (
+                    <div key={act.id} className="activity-feed-item glass">
+                      <div className="activity-icon">
+                        {act.type === 'order' && '🛒'}
+                        {act.type === 'project' && '🪵'}
+                        {act.type === 'inquiry' && '✉️'}
+                        {act.type === 'chatbot' && '🤖'}
+                      </div>
+                      <div className="activity-content" style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '20px', flexWrap: 'wrap' }}>
+                          <strong style={{ fontSize: '0.95rem' }}>{act.title}</strong>
+                          <span className="activity-date">{act.date.toLocaleString('fr-CA')}</span>
+                        </div>
+                        <p style={{ color: 'var(--text-secondary)', marginTop: '5px' }}>{act.details}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </section>
         )}
@@ -1374,6 +1831,251 @@ export default function App() {
               </div>
             </form>
           </div>
+        </div>
+      )}
+
+      {/* SIMULATED STRIPE CHECKOUT OVERLAY */}
+      {checkoutItem && (
+        <div className="checkout-overlay">
+          <div className="checkout-card glass animate-fade-in">
+            <div className="checkout-header">
+              <h3 className="checkout-title">Finaliser votre commande</h3>
+              <button className="checkout-close" onClick={() => setCheckoutItem(null)}>&times;</button>
+            </div>
+            
+            <form onSubmit={handleCheckoutSubmit} className="contact-form">
+              <div className="checkout-summary-row">
+                <span>Produit : <strong>{checkoutItem.title}</strong></span>
+                <span>Prix : <strong>{formatPrice(checkoutItem.price)}</strong></span>
+              </div>
+              
+              <div className="stripe-form-group">
+                <label>Nom complet</label>
+                <input 
+                  type="text" 
+                  className="builder-input" 
+                  required 
+                  value={checkoutForm.name}
+                  onChange={(e) => setCheckoutForm(prev => ({ ...prev, name: e.target.value }))}
+                />
+              </div>
+
+              <div className="stripe-form-group">
+                <label>Adresse courriel</label>
+                <input 
+                  type="email" 
+                  className="builder-input" 
+                  required 
+                  value={checkoutForm.email}
+                  onChange={(e) => setCheckoutForm(prev => ({ ...prev, email: e.target.value }))}
+                />
+              </div>
+
+              <div className="stripe-form-group">
+                <label>Adresse de livraison</label>
+                <input 
+                  type="text" 
+                  className="builder-input" 
+                  required 
+                  placeholder="Rue, App / Suite"
+                  value={checkoutForm.address}
+                  onChange={(e) => setCheckoutForm(prev => ({ ...prev, address: e.target.value }))}
+                />
+              </div>
+
+              <div className="form-row">
+                <div className="stripe-form-group">
+                  <label>Ville</label>
+                  <input 
+                    type="text" 
+                    className="builder-input" 
+                    required 
+                    value={checkoutForm.city}
+                    onChange={(e) => setCheckoutForm(prev => ({ ...prev, city: e.target.value }))}
+                  />
+                </div>
+                <div className="stripe-form-group">
+                  <label>Code Postal</label>
+                  <input 
+                    type="text" 
+                    className="builder-input" 
+                    required 
+                    value={checkoutForm.zip}
+                    onChange={(e) => setCheckoutForm(prev => ({ ...prev, zip: e.target.value }))}
+                  />
+                </div>
+              </div>
+
+              <div className="stripe-form-group" style={{ marginTop: '10px', borderTop: '1px solid var(--border-color)', paddingTop: '15px' }}>
+                <label>Détails du paiement (Sécurisé par Stripe)</label>
+                <div className="stripe-card-input-wrapper">
+                  <span style={{ fontSize: '1.2rem' }}>💳</span>
+                  <input 
+                    type="text" 
+                    className="stripe-card-input" 
+                    required 
+                    placeholder="4242 4242 4242 4242"
+                    maxLength="19"
+                    value={checkoutForm.cardNumber}
+                    onChange={(e) => setCheckoutForm(prev => ({ ...prev, cardNumber: e.target.value }))}
+                  />
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="stripe-form-group">
+                  <label>Date d'expiration</label>
+                  <input 
+                    type="text" 
+                    className="builder-input" 
+                    required 
+                    placeholder="MM/AA"
+                    maxLength="5"
+                    value={checkoutForm.expiry}
+                    onChange={(e) => setCheckoutForm(prev => ({ ...prev, expiry: e.target.value }))}
+                  />
+                </div>
+                <div className="stripe-form-group">
+                  <label>Code CVC</label>
+                  <input 
+                    type="text" 
+                    className="builder-input" 
+                    required 
+                    placeholder="123"
+                    maxLength="3"
+                    value={checkoutForm.cvc}
+                    onChange={(e) => setCheckoutForm(prev => ({ ...prev, cvc: e.target.value }))}
+                  />
+                </div>
+              </div>
+
+              <button 
+                type="submit" 
+                className="btn-checkout-submit"
+                disabled={checkoutSubmitting}
+              >
+                {checkoutSubmitting ? 'Traitement en cours...' : `Payer ${formatPrice(checkoutItem.price)}`}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* FLOATING MULTI-CHANNEL CHAT WIDGET */}
+      <div className="chat-widget-container no-print">
+        <div className={`chat-menu ${chatbotWidgetActive ? 'active' : ''}`}>
+          <button 
+            className="chat-item ci-chatbot" 
+            onClick={handleOpenChatbot} 
+            data-label="Assistant Virtuel"
+          >
+            💬
+          </button>
+          <a 
+            href="https://m.me/evanpatruno.art" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="chat-item ci-messenger" 
+            data-label="Messenger"
+          >
+            📘
+          </a>
+          <a 
+            href="https://www.instagram.com/evanpatruno.art" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="chat-item ci-instagram" 
+            data-label="Instagram"
+          >
+            📸
+          </a>
+          <a 
+            href="https://wa.me/15145673249" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="chat-item ci-whatsapp" 
+            data-label="WhatsApp"
+          >
+            🟢
+          </a>
+          <a 
+            href="tel:5145673249" 
+            className="chat-item ci-phone" 
+            data-label="Appel direct"
+          >
+            📞
+          </a>
+        </div>
+        
+        <button 
+          className="chat-trigger" 
+          onClick={() => setChatbotWidgetActive(!chatbotWidgetActive)}
+          aria-label="Ouvrir le menu de contact"
+        >
+          {chatbotWidgetActive ? (
+            <span style={{ fontSize: '1.5rem', color: 'white' }}>&times;</span>
+          ) : (
+            <span style={{ fontSize: '1.5rem', color: 'white' }}>✉</span>
+          )}
+        </button>
+      </div>
+
+      {/* CHATBOT POPUP WINDOW */}
+      {chatbotOpen && (
+        <div className="chatbot-window open">
+          <div className="chatbot-header">
+            <div className="chatbot-header-avatar">🪵</div>
+            <div className="chatbot-header-info">
+              <h4>Assistant Evan Patruno Art</h4>
+              <p>Ébénisterie d'art &amp; créations sur mesure</p>
+            </div>
+            <button className="chatbot-close-btn" onClick={() => setChatbotOpen(false)}>&times;</button>
+          </div>
+          
+          <div className="chatbot-body">
+            {chatMessages.map((msg, idx) => (
+              <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div className={`chatbot-msg ${msg.sender === 'user' ? 'user' : 'bot'}`} style={{ flexDirection: msg.sender === 'user' ? 'row-reverse' : 'row' }}>
+                  {msg.sender === 'bot' && <div className="chatbot-msg-avatar">🎨</div>}
+                  <div className={msg.sender === 'user' ? 'chatbot-user-bubble' : 'chatbot-bubble'}>
+                    {msg.text}
+                  </div>
+                </div>
+                
+                {msg.choices && (
+                  <div className="chatbot-choices">
+                    {msg.choices.map((choice, cIdx) => (
+                      <button 
+                        key={cIdx} 
+                        className="chatbot-choice-btn"
+                        onClick={() => handleBotChoice(choice)}
+                      >
+                        {choice}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {chatbotInputVisible && (
+            <div className="chatbot-input-row">
+              <input 
+                type="text" 
+                className="chatbot-input" 
+                placeholder="Écrivez votre réponse..."
+                value={chatbotInputValue}
+                onChange={(e) => setChatbotInputValue(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleBotSubmitInput();
+                }}
+              />
+              <button className="chatbot-send-btn" onClick={handleBotSubmitInput}>
+                ▶
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>
