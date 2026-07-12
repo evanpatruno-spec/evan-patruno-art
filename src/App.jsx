@@ -26,7 +26,9 @@ import {
   MapPin, 
   Send,
   MessageSquare,
-  Scissors
+  Scissors,
+  Printer,
+  Camera
 } from 'lucide-react';
 
 const Instagram = ({ size = 24, ...props }) => (
@@ -194,15 +196,27 @@ const portfolioItems = [
   }
 ];
 
-const pigmentItems = [
-  { type: 'metal', name: 'Bleu Cosmique Nacré', color: 'radial-gradient(circle, #1e3a8a 0%, #0d1b2a 100%)', desc: 'Pigments métalliques créant des mouvements fluides tridimensionnels rappelant le cosmos.' },
-  { type: 'metal', name: 'Or Liquide', color: 'linear-gradient(135deg, #d4af37 0%, #aa7c11 100%)', desc: 'Reflets dorés luxueux et chauds, parfaits pour rehausser le grain sombre des bois nobles.' },
-  { type: 'metal', name: 'Cuivre Brûlé', color: 'linear-gradient(135deg, #b87333 0%, #804000 100%)', desc: 'Pigments cuivrés métallisés offrant un éclat chaleureux et une profondeur organique.' },
-  { type: 'translucent', name: 'Turquoise Lagon', color: 'rgba(64, 224, 208, 0.6)', desc: 'Teinte translucide vibrante imitant la clarté et le mouvement de l\'eau tropicale.' },
-  { type: 'translucent', name: 'Noir Fumé', color: 'rgba(20, 20, 20, 0.75)', desc: 'Effet vitré semi-transparent apportant une élégance sobre et moderne.' },
-  { type: 'translucent', name: 'Émeraude Profond', color: 'rgba(4, 120, 87, 0.65)', desc: 'Vert émeraude translucide captant magnifiquement la lumière.' },
-  { type: 'opaque', name: 'Blanc Albâtre', color: '#f8fafc', desc: 'Remplissage opaque d\'un blanc pur pour un contraste minimaliste et épuré.' },
-  { type: 'opaque', name: 'Charbon Mat', color: '#1e293b', desc: 'Finition opaque sombre et contemporaine soulignant la silhouette géométrique des pièces.' }
+const craftCapabilities = [
+  // Époxy
+  { type: 'epoxy', name: 'Bleu Cosmique Nacré', color: 'radial-gradient(circle, #1e3a8a 0%, #0d1b2a 100%)', desc: 'Mouvements fluides tridimensionnels nacrés rappelant la nébuleuse et le cosmos.' },
+  { type: 'epoxy', name: 'Turquoise Lagon Translucide', color: 'rgba(64, 224, 208, 0.65)', desc: 'Teinte translucide cristalline imitant les nuances et reflets de l\'eau tropicale.' },
+  { type: 'epoxy', name: 'Or Liquide Métallisé', color: 'linear-gradient(135deg, #d4af37 0%, #aa7c11 100%)', desc: 'Pigments métallisés dorés pour un contraste prestigieux avec les bois foncés.' },
+  
+  // Laser
+  { type: 'laser', name: 'Gravure Grand Format (4\'x4\')', icon: '📐', desc: 'Capacité de découper et graver des surfaces allant jusqu\'à 4 pieds par 4 pieds avec une précision micrométrique sur bois, acrylique et cuir.' },
+  { type: 'laser', name: 'Mandalas & Logos', icon: '🎨', desc: 'Découpe de précision multicouche complexe de mandalas décoratifs en relief ou gravures de logos d\'entreprises personnalisés.' },
+  
+  // 3D Print
+  { type: '3dprint', name: 'Impression Multicolore P1S', icon: '⚙️', desc: 'Impression 3D FDM avancée à l\'aide de notre imprimante Bambu Lab P1S avec chargeur automatique de filaments (AMS) pour des pièces multicolores en PLA/PETG.' },
+  { type: '3dprint', name: 'Prototypage & Figurines', icon: '🤖', desc: 'Modélisation et fabrication de pièces de rechange, boîtiers personnalisés, ou figurines détaillées.' },
+  
+  // Kumihimo
+  { type: 'kumihimo', name: 'Tressage Traditionnel Japonais', icon: '🧶', desc: 'Bracelets et cordons tissés à la main à l\'aide de fils de soie et de coton robustes sur un disque de tressage.' },
+  { type: 'kumihimo', name: 'Motifs Complexes', icon: '✨', desc: 'Tressage de précision à 8 ou 16 brins permettant d\'intégrer des motifs géométriques uniques.' },
+  
+  // Drone
+  { type: 'drone', name: 'Photos Aériennes 4K', icon: '📸', desc: 'Imagerie aérienne haute résolution à l\'aide du drone DJI Mini 3 Pro. Idéal pour l\'immobilier ou les paysages.' },
+  { type: 'drone', name: 'Vidéos Cinématiques', icon: '🎥', desc: 'Captures vidéo fluides en 4K avec nacelle stabilisée pour documenter des projets d\'art en plein air.' }
 ];
 
 export default function App() {
@@ -708,12 +722,15 @@ export default function App() {
   const contextQuestions = {
     '🪵 Table sur mesure': { key: 'wood_detail', msg: '🌲 Quelle essence de bois préférez-vous ?', choices: ['Noyer noir', 'Frêne massif', 'Cèdre sauvage', 'Pas de préférence'] },
     '💎 Bijou unique': { key: 'jewelry_type', msg: '💍 Quel type de bijou recherchez-vous ?', choices: ['Pendentif', 'Bague', 'Boucles d\'oreilles', 'Sur-mesure'] },
-    '⚡ Fractale Lichtenberg': { key: 'lichtenberg_type', msg: '⚡ Sur quel type d\'objet souhaitez-vous cette gravure électrique ?', choices: ['Planche de service', 'Tableau mural', 'Meuble complet'] },
-    '🎨 Autre projet d\'art': { key: 'art_notes', msg: '🖌️ Quel type d\'œuvre souhaitez-vous ? (Peinture, gravure, etc.)', choices: ['Toile acrylique', 'Découpe bois', 'Autre création'] }
+    '⚡ Laser & Lichtenberg': { key: 'laser_type', msg: '⚡ Quel type de travail souhaitez-vous ?', choices: ['Gravure Laser 4\'x4\'', 'Découpe de mandalas/logos', 'Fractale de Lichtenberg'] },
+    '🎨 Peinture & Toiles': { key: 'art_notes', msg: '🖌️ Quel format de toile ou style recherchez-vous ?', choices: ['Toile Fluid Art (Pouring)', 'Peinture abstraite', 'Autre format'] },
+    '⚙️ Impression 3D': { key: 'print3d_type', msg: '⚙️ Quel type d\'impression 3D souhaitez-vous réaliser sur la Bambu P1S ?', choices: ['Figurine / Déco multi-couleurs', 'Prototypage mécanique / Boîtier', 'Autre pièce sur mesure'] },
+    '🧶 Bracelet Kumihimo': { key: 'kumihimo_style', msg: '🧶 Quel style de tressage ou couleur préférez-vous ?', choices: ['Tons chauds (Rouge/Or)', 'Tons froids (Bleu/Argent)', 'Autre préférence'] },
+    '🚁 Vidéo / Photo Drone': { key: 'drone_job', msg: '🚁 Quel type de prestation drone désirez-vous (DJI Mini 3 Pro) ?', choices: ['Photo Immobilière', 'Suivi de chantier / Paysage', 'Vidéo événementielle'] }
   };
 
   const chatbotFlow = [
-    { key: 'project', msg: '👋 Bonjour ! Je suis l\'assistant virtuel d\'Evan Patruno Art. Quel est votre projet ?', choices: ['🪵 Table sur mesure', '💎 Bijou unique', '⚡ Fractale Lichtenberg', '🎨 Autre projet d\'art'] },
+    { key: 'project', msg: '👋 Bonjour ! Je suis l\'assistant virtuel d\'Evan Patruno Art. Quel est votre projet ?', choices: ['🪵 Table sur mesure', '💎 Bijou unique', '⚡ Laser & Lichtenberg', '🎨 Peinture & Toiles', '⚙️ Impression 3D', '🧶 Bracelet Kumihimo', '🚁 Vidéo / Photo Drone'] },
     { key: 'delay', msg: 'Parfait ! Dans quel délai souhaitez-vous concrétiser ce projet ?', choices: ['🔥 Rapidement (0-3 mois)', '📅 Moyen terme (3-6 mois)', '🔭 Je planifie pour plus tard'] },
     { key: 'name', msg: '😊 Super ! Pour personnaliser votre demande, quel est votre prénom ?', input: true, placeholder: 'Votre prénom...' },
     { key: 'contact', msg: 'Comment peut-on vous contacter (courriel ou téléphone) ?', input: true, placeholder: 'Téléphone ou courriel...' }
@@ -724,7 +741,7 @@ export default function App() {
     setChatbotWidgetActive(false);
     if (chatMessages.length === 0) {
       setChatMessages([
-        { sender: 'bot', text: '👋 Bonjour ! Je suis l\'assistant virtuel d\'Evan Patruno Art. Quel est votre projet ?', choices: ['🪵 Table sur mesure', '💎 Bijou unique', '⚡ Fractale Lichtenberg', '🎨 Autre projet d\'art'] }
+        { sender: 'bot', text: '👋 Bonjour ! Je suis l\'assistant virtuel d\'Evan Patruno Art. Quel est votre projet ?', choices: ['🪵 Table sur mesure', '💎 Bijou unique', '⚡ Laser & Lichtenberg', '🎨 Peinture & Toiles', '⚙️ Impression 3D', '🧶 Bracelet Kumihimo', '🚁 Vidéo / Photo Drone'] }
       ]);
       setChatbotStep(0);
       setChatbotAnswers({});
@@ -868,7 +885,7 @@ export default function App() {
             </h1>
             
             <p className="hero-description">
-              Tables rivière sur mesure, bijoux artisanaux d'exception et art géométrique. Je façonne la matière brute pour donner vie à vos projets artistiques personnalisés.
+              Ébénisterie d'art, résine époxy, gravure laser grand format (4'x4'), toiles de peinture, bijoux, bracelets Kumihimo, impression 3D (Bambu P1S) &amp; imagerie drone (DJI). Façonner la matière et la technologie sous toutes leurs formes pour donner vie à vos projets personnalisés.
             </p>
             
             <div className="hero-ctas">
@@ -973,21 +990,23 @@ export default function App() {
           </div>
         </section>
 
-        {/* PIGMENT GALLERY SECTION */}
-        <section id="pigments" style={{ background: 'var(--bg-secondary)', borderTop: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
+        {/* MATERIALS & TECH SECTION */}
+        <section id="materials" style={{ background: 'var(--bg-secondary)', borderTop: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
           <div className="section-header">
-            <h2 className="section-title">Nos Pigments &amp; Effets Époxy</h2>
+            <h2 className="section-title">La Palette Créative &amp; Technologies</h2>
             <p className="section-subtitle">
-              Découvrez la richesse de nos pigments de résine pour personnaliser vos créations et mobilier d'art.
+              De l'ébénisterie d'art à l'impression 3D en passant par la gravure laser 4'x4' et l'imagerie par drone, découvrez nos outils et matériaux.
             </p>
           </div>
 
-          <div className="pigments-tabs">
+          <div className="pigments-tabs" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center' }}>
             {[
-              { id: 'all', label: 'Tous les effets' },
-              { id: 'metal', label: '✨ Métalliques Nacres' },
-              { id: 'translucent', label: '🌊 Translucides Rivières' },
-              { id: 'opaque', label: '🎨 Opaques Unis' }
+              { id: 'all', label: 'Tout voir' },
+              { id: 'epoxy', label: '🌊 Époxy & Pigments' },
+              { id: 'laser', label: '📐 Gravure Laser 4\'x4\'' },
+              { id: '3dprint', label: '⚙️ Impression 3D P1S' },
+              { id: 'kumihimo', label: '🧶 Bracelets Kumihimo' },
+              { id: 'drone', label: '🚁 Drone DJI Mini 3' }
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -1000,11 +1019,17 @@ export default function App() {
           </div>
 
           <div className="pigments-grid">
-            {pigmentItems
+            {craftCapabilities
               .filter(item => pigmentTab === 'all' || item.type === pigmentTab)
               .map((item, idx) => (
                 <div key={idx} className="pigment-card glass">
-                  <div className="pigment-swatch" style={{ background: item.color }}></div>
+                  {item.color ? (
+                    <div className="pigment-swatch" style={{ background: item.color }}></div>
+                  ) : (
+                    <div className="pigment-swatch" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                      {item.icon}
+                    </div>
+                  )}
                   <h3 className="pigment-name">{item.name}</h3>
                   <p className="pigment-desc">{item.desc}</p>
                 </div>
@@ -1017,16 +1042,16 @@ export default function App() {
           <div className="section-header">
             <h2 className="section-title">Guide d'Entretien &amp; de Durabilité</h2>
             <p className="section-subtitle">
-              Conseils professionnels pour préserver l'éclat de vos meubles en bois massif et résine époxy.
+              Conseils professionnels pour préserver l'éclat de vos mobiliers, toiles, bijoux et pièces imprimées en 3D.
             </p>
           </div>
 
           <div className="care-guide-container">
             {[
-              { title: 'Nettoyage au quotidien', emoji: '🪵', content: 'Utilisez simplement un chiffon en microfibre doux légèrement humide. Évitez les produits chimiques agressifs, les décapants ou les nettoyants abrasifs qui pourraient rayer la résine époxy ou altérer la finition de l\'huile protectrice.' },
-              { title: 'Protection contre les UV et la chaleur', emoji: '☀️', content: 'Bien que nos résines soient traitées contre le jaunissement UV, évitez d\'exposer vos meubles à la lumière directe prolongée du soleil. Utilisez toujours des sous-plats ou dessous de verre pour les tasses chaudes et les plats sortant du four.' },
-              { title: 'Gestion de l\'humidité', emoji: '💧', content: 'Le bois massif vit et respire. Maintenez un taux d\'humidité stable dans votre pièce (idéalement entre 40% et 60%). Essuyez immédiatement tout liquide renversé pour éviter qu\'il ne s\'infiltre dans les pores du bois.' },
-              { title: 'Restauration et huilage', emoji: '✨', content: 'Pour redonner de l\'éclat à la partie bois, appliquez une fine couche d\'huile de finition naturelle (ex: Rubio Monocoat ou Osmo) tous les 1 à 2 ans selon l\'usage. Pour la résine, un lustrage doux avec une pâte à polir automobile fine peut éliminer les micro-rayures.' }
+              { title: '🪵 Mobilier en Bois & Époxy', emoji: '🪵', content: 'Nettoyage doux avec un chiffon microfibre humide. Évitez les produits abrasifs, protégez de la lumière directe prolongée du soleil et utilisez des sous-plats pour les objets chauds. Appliquez une huile protectrice (Rubio/Osmo) tous les 1 à 2 ans sur la partie bois.' },
+              { title: '🎨 Toiles & Peintures Acryliques', emoji: '🎨', content: 'Dépoussiérez uniquement avec un plumeau doux ou un pinceau sec et propre. Évitez l\'eau ou les chiffons humides sur la couche picturale. Conservez vos toiles à l\'abri de l\'humidité extrême et de l\'exposition directe au soleil.' },
+              { title: '💎 Bijoux Résine & Bracelets Kumihimo', emoji: '💎', content: 'Évitez de vaporiser du parfum ou d\'appliquer des crèmes directement sur le bijou. Retirez vos bijoux et bracelets Kumihimo avant la douche, la piscine ou le sport pour préserver l\'éclat des fibres tressées et de la résine.' },
+              { title: '⚙️ Impression 3D (PLA / PETG)', emoji: '⚙️', content: 'Les pièces imprimées en 3D (Bambu P1S) ne doivent pas être exposées à des températures supérieures à 50°C (comme dans une voiture en été) sous peine de ramollissement et déformation. Nettoyez à l\'eau tiède savonneuse.' }
             ].map((item, idx) => (
               <div key={idx} className={`care-accordion-item glass ${activeAccordion === idx ? 'active' : ''}`}>
                 <button 
@@ -1091,7 +1116,7 @@ export default function App() {
                       >
                         <div className="choice-icon"><Hammer size={24} /></div>
                         <span className="choice-title">Table rivière</span>
-                        <span className="choice-desc">Mobilier haut de gamme en bois massif</span>
+                        <span className="choice-desc">Mobilier haut de gamme en bois massif & résine</span>
                       </div>
 
                       <div 
@@ -1101,7 +1126,7 @@ export default function App() {
                       >
                         <div className="choice-icon"><Gem size={24} /></div>
                         <span className="choice-title">Bijoux artisanaux</span>
-                        <span className="choice-desc">Colliers, pendentifs, bagues</span>
+                        <span className="choice-desc">Colliers, pendentifs et bagues uniques</span>
                       </div>
 
                       <div 
@@ -1111,7 +1136,7 @@ export default function App() {
                       >
                         <div className="choice-icon"><Zap size={24} /></div>
                         <span className="choice-title">Art Lichtenberg</span>
-                        <span className="choice-desc">Brûlures électriques sur bois</span>
+                        <span className="choice-desc">Brûlures électriques haute tension</span>
                       </div>
 
                       <div 
@@ -1120,49 +1145,190 @@ export default function App() {
                         id="choice-laser"
                       >
                         <div className="choice-icon"><Scissors size={24} /></div>
-                        <span className="choice-title">Découpe Laser</span>
-                        <span className="choice-desc">Mandalas multicouches ou logos</span>
+                        <span className="choice-title">Gravure Laser 4'x4'</span>
+                        <span className="choice-desc">Découpes et gravures grand format</span>
+                      </div>
+
+                      <div 
+                        className={`choice-card ${projectData.type === 'Impression 3D' ? 'selected' : ''}`}
+                        onClick={() => selectProjectType('Impression 3D')}
+                        id="choice-print3d"
+                      >
+                        <div className="choice-icon"><Printer size={24} /></div>
+                        <span className="choice-title">Impression 3D</span>
+                        <span className="choice-desc">Pièces multi-couleurs Bambu P1S</span>
+                      </div>
+
+                      <div 
+                        className={`choice-card ${projectData.type === 'Bracelet Kumihimo' ? 'selected' : ''}`}
+                        onClick={() => selectProjectType('Bracelet Kumihimo')}
+                        id="choice-kumihimo"
+                      >
+                        <div className="choice-icon"><Sparkles size={24} /></div>
+                        <span className="choice-title">Bracelet Kumihimo</span>
+                        <span className="choice-desc">Tissage traditionnel fait main</span>
+                      </div>
+
+                      <div 
+                        className={`choice-card ${projectData.type === 'Photo/Vidéo Drone' ? 'selected' : ''}`}
+                        onClick={() => selectProjectType('Photo/Vidéo Drone')}
+                        id="choice-drone"
+                      >
+                        <div className="choice-icon"><Camera size={24} /></div>
+                        <span className="choice-title">Imagerie Drone</span>
+                        <span className="choice-desc">Photos/Vidéos 4K DJI Mini 3 Pro</span>
                       </div>
                     </div>
                   )}
 
-                  {/* Step 2: Wood & Epoxy options */}
+                  {/* Step 2: Custom options based on project type */}
                   {builderStep === 2 && (
                     <div className="choices-grid" id="builder-step-2">
-                      <div className="builder-form-group" style={{ gridColumn: 'span 2' }}>
-                        <label htmlFor="wood-select">Essence de bois privilégiée</label>
-                        <select 
-                          id="wood-select"
-                          className="builder-select" 
-                          value={projectData.wood}
-                          onChange={(e) => setProjectData(prev => ({ ...prev, wood: e.target.value }))}
-                        >
-                          <option value="">Sélectionnez une option...</option>
-                          <option value="Noyer noir (Foncé, grain riche)">Noyer noir (Foncé, grain riche)</option>
-                          <option value="Érable (Clair, très robuste)">Érable (Clair, très robuste)</option>
-                          <option value="Cèdre (Chaud, excellent parfum, résistant)">Cèdre (Chaud, excellent parfum)</option>
-                          <option value="Cerisier (Ambré, grain fin)">Cerisier (Ambré, grain fin)</option>
-                          <option value="Autre / Je ne sais pas encore">Autre / Pas de préférence</option>
-                        </select>
-                      </div>
+                      {/* For Wood & Resin projects (Tables, Jewelry, Lichtenberg, Laser) */}
+                      {['Table rivière', 'Bijou en bois/époxy', 'Fractale de Lichtenberg', 'Découpe & Gravure laser'].includes(projectData.type) && (
+                        <>
+                          <div className="builder-form-group" style={{ gridColumn: 'span 2' }}>
+                            <label htmlFor="wood-select">Essence de bois privilégiée</label>
+                            <select 
+                              id="wood-select"
+                              className="builder-select" 
+                              value={projectData.wood}
+                              onChange={(e) => setProjectData(prev => ({ ...prev, wood: e.target.value }))}
+                            >
+                              <option value="">Sélectionnez une option...</option>
+                              <option value="Noyer noir (Foncé, grain riche)">Noyer noir (Foncé, grain riche)</option>
+                              <option value="Érable (Clair, très robuste)">Érable (Clair, très robuste)</option>
+                              <option value="Cèdre (Chaud, excellent parfum, résistant)">Cèdre (Chaud, excellent parfum)</option>
+                              <option value="Cerisier (Ambré, grain fin)">Cerisier (Ambré, grain fin)</option>
+                              <option value="Autre / Je ne sais pas encore">Autre / Pas de préférence</option>
+                            </select>
+                          </div>
 
-                      <div className="builder-form-group" style={{ gridColumn: 'span 2' }}>
-                        <label htmlFor="epoxy-select">Style ou Couleur de la résine Époxy</label>
-                        <select 
-                          id="epoxy-select" 
-                          className="builder-select"
-                          value={projectData.epoxy}
-                          onChange={(e) => setProjectData(prev => ({ ...prev, epoxy: e.target.value }))}
-                        >
-                          <option value="">Sélectionnez une option...</option>
-                          <option value="Bleu océan translucide / Turquoise">Bleu océan translucide / Turquoise</option>
-                          <option value="Vert émeraude nacré">Vert émeraude nacré</option>
-                          <option value="Noir fumé ou Opaque">Noir fumé ou Opaque</option>
-                          <option value="Doré métallique scintillant">Doré métallique scintillant</option>
-                          <option value="Pas d'époxy (Bois brut ou gravure seule)">Sans époxy / Naturel</option>
-                        </select>
-                      </div>
+                          <div className="builder-form-group" style={{ gridColumn: 'span 2' }}>
+                            <label htmlFor="epoxy-select">Style ou Couleur de la résine Époxy / Finition</label>
+                            <select 
+                              id="epoxy-select" 
+                              className="builder-select"
+                              value={projectData.epoxy}
+                              onChange={(e) => setProjectData(prev => ({ ...prev, epoxy: e.target.value }))}
+                            >
+                              <option value="">Sélectionnez une option...</option>
+                              <option value="Bleu océan translucide / Turquoise">Bleu océan translucide / Turquoise</option>
+                              <option value="Vert émeraude nacré">Vert émeraude nacré</option>
+                              <option value="Noir fumé ou Opaque">Noir fumé ou Opaque</option>
+                              <option value="Doré métallique scintillant">Doré métallique scintillant</option>
+                              <option value="Pas d'époxy (Bois brut ou gravure seule)">Sans résine / Fini naturel</option>
+                            </select>
+                          </div>
+                        </>
+                      )}
 
+                      {/* For 3D Printing projects */}
+                      {projectData.type === 'Impression 3D' && (
+                        <>
+                          <div className="builder-form-group" style={{ gridColumn: 'span 2' }}>
+                            <label htmlFor="filament-select">Matériau / Filament d'Impression</label>
+                            <select 
+                              id="filament-select"
+                              className="builder-select" 
+                              value={projectData.wood}
+                              onChange={(e) => setProjectData(prev => ({ ...prev, wood: e.target.value }))}
+                            >
+                              <option value="">Sélectionnez un matériau...</option>
+                              <option value="PLA (Standard, biodégradable, grand choix de couleurs)">PLA (Standard, excellent fini)</option>
+                              <option value="PETG (Résistant aux intempéries et chocs)">PETG (Robuste, extérieur)</option>
+                              <option value="TPU (Flexible / Caoutchouteux)">TPU (Flexible, joints/coques)</option>
+                              <option value="Autre / Je ne sais pas">Autre / Conseil requis</option>
+                            </select>
+                          </div>
+
+                          <div className="builder-form-group" style={{ gridColumn: 'span 2' }}>
+                            <label htmlFor="printcolor-select">Style de couleur &amp; Finition</label>
+                            <select 
+                              id="printcolor-select" 
+                              className="builder-select"
+                              value={projectData.epoxy}
+                              onChange={(e) => setProjectData(prev => ({ ...prev, epoxy: e.target.value }))}
+                            >
+                              <option value="">Sélectionnez un style...</option>
+                              <option value="Couleur unie simple">Couleur unie simple</option>
+                              <option value="Multi-couleurs précis (Bambu AMS)">Multi-couleurs précis (Bambu AMS)</option>
+                              <option value="Phosphorescent (Glow in the dark)">Phosphorescent (Glow-in-the-dark)</option>
+                              <option value="Transparent / Translucide">Transparent / Translucide</option>
+                            </select>
+                          </div>
+                        </>
+                      )}
+
+                      {/* For Kumihimo bracelets */}
+                      {projectData.type === 'Bracelet Kumihimo' && (
+                        <>
+                          <div className="builder-form-group" style={{ gridColumn: 'span 2' }}>
+                            <label htmlFor="cord-select">Type de fil / Cordon</label>
+                            <select 
+                              id="cord-select"
+                              className="builder-select" 
+                              value={projectData.wood}
+                              onChange={(e) => setProjectData(prev => ({ ...prev, wood: e.target.value }))}
+                            >
+                              <option value="">Sélectionnez une matière...</option>
+                              <option value="Soie artificielle (Lisse, brillant et élégant)">Soie artificielle (Finition brillante)</option>
+                              <option value="Coton ciré (Mat, style rustique et solide)">Coton ciré (Style mat/naturel)</option>
+                              <option value="Polyester haute résistance (Idéal sport/eau)">Polyester robuste</option>
+                            </select>
+                          </div>
+
+                          <div className="builder-form-group" style={{ gridColumn: 'span 2' }}>
+                            <label htmlFor="kumihimo-colors">Préférences de couleurs (ex: Bleu, Blanc, Or)</label>
+                            <input 
+                              type="text" 
+                              id="kumihimo-colors"
+                              className="builder-input"
+                              placeholder="Indiquez les couleurs souhaitées..."
+                              value={projectData.epoxy}
+                              onChange={(e) => setProjectData(prev => ({ ...prev, epoxy: e.target.value }))}
+                            />
+                          </div>
+                        </>
+                      )}
+
+                      {/* For Drone photography/videography */}
+                      {projectData.type === 'Photo/Vidéo Drone' && (
+                        <>
+                          <div className="builder-form-group" style={{ gridColumn: 'span 2' }}>
+                            <label htmlFor="drone-service">Type de service requis</label>
+                            <select 
+                              id="drone-service"
+                              className="builder-select" 
+                              value={projectData.wood}
+                              onChange={(e) => setProjectData(prev => ({ ...prev, wood: e.target.value }))}
+                            >
+                              <option value="">Sélectionnez un service...</option>
+                              <option value="Prises de vue Immobilières (Vente/Promotion)">Immobilier (Photos &amp; Vidéos)</option>
+                              <option value="Inspection de toiture / structures">Inspection de structures</option>
+                              <option value="Paysage / Suivi de chantier de construction">Suivi de chantier / Paysage</option>
+                              <option value="Événementiel / Créatif">Événementiel / Créatif</option>
+                            </select>
+                          </div>
+
+                          <div className="builder-form-group" style={{ gridColumn: 'span 2' }}>
+                            <label htmlFor="drone-format">Format &amp; Résolution de livraison</label>
+                            <select 
+                              id="drone-format"
+                              className="builder-select" 
+                              value={projectData.epoxy}
+                              onChange={(e) => setProjectData(prev => ({ ...prev, epoxy: e.target.value }))}
+                            >
+                              <option value="">Sélectionnez un format...</option>
+                              <option value="4K Horizontal standard (YouTube, Web, TV)">4K Horizontal (Standard)</option>
+                              <option value="9:16 Vertical (Idéal TikTok, Instagram Reels)">9:16 Vertical (Réseaux sociaux)</option>
+                              <option value="Les deux formats (Optimisation complète)">Les deux formats (Complet)</option>
+                            </select>
+                          </div>
+                        </>
+                      )}
+
+                      {/* Table legs configurator (Only for tables) */}
                       {projectData.type === 'Table rivière' && (
                         <div className="builder-form-group" style={{ gridColumn: 'span 2', marginTop: '20px' }}>
                           <label>Style de piétement (Pattes de table)</label>
