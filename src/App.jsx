@@ -75,7 +75,10 @@ const portfolioItems = [
     image: "/assets/table-ronde-turquoise.jpg",
     status: "custom-only",
     statusText: "Sur commande uniquement",
-    price: "Sur demande"
+    price: "Sur demande",
+    wood: "Frêne",
+    dimensions: "Diamètre 24\" / Hauteur 20\"",
+    mediums: "Résine époxy turquoise"
   },
   {
     id: 2,
@@ -86,7 +89,10 @@ const portfolioItems = [
     image: "/assets/table-ronde-turquoise-argent.jpg",
     status: "available",
     statusText: "Disponible",
-    price: "Sur demande"
+    price: "Sur demande",
+    wood: "Frêne",
+    dimensions: "Diamètre 24\"",
+    mediums: "Résine époxy turquoise & pigments argent"
   },
   {
     id: 3,
@@ -97,7 +103,10 @@ const portfolioItems = [
     image: "/assets/table-ronde-noir-argent.jpg",
     status: "available",
     statusText: "Disponible",
-    price: "Sur demande"
+    price: "Sur demande",
+    wood: "Frêne",
+    dimensions: "Diamètre 24\" / Hauteur 30\"",
+    mediums: "Résine époxy noire & pigments argent"
   },
   {
     id: 4,
@@ -108,7 +117,10 @@ const portfolioItems = [
     image: "/assets/table-basse-brulee.jpg",
     status: "custom-only",
     statusText: "Sur commande uniquement",
-    price: "Sur demande"
+    price: "Sur demande",
+    wood: "Bois de récupération (pin/épinette)",
+    dimensions: "40\" x 20\" x 18\"",
+    mediums: "Bois brûlé à la torche, vernis de protection"
   },
   {
     id: 5,
@@ -119,7 +131,10 @@ const portfolioItems = [
     image: "/assets/table-basse-chambre.jpg",
     status: "custom-only",
     statusText: "Sur commande uniquement",
-    price: "Sur demande"
+    price: "Sur demande",
+    wood: "Frêne",
+    dimensions: "36\" x 18\"",
+    mediums: "Huile de finition naturelle"
   },
   {
     id: 6,
@@ -130,7 +145,10 @@ const portfolioItems = [
     image: "/assets/jewelry-real.jpg",
     status: "custom-only",
     statusText: "Sur commande uniquement",
-    price: "Sur demande"
+    price: "Sur demande",
+    wood: "Loupe de bois (érable/noyer)",
+    dimensions: "Tailles variées (pendentifs)",
+    mediums: "Résine époxy teintée, cordons en cuir"
   },
   {
     id: 7,
@@ -141,7 +159,10 @@ const portfolioItems = [
     image: "/assets/lichtenberg-real.jpg",
     status: "custom-only",
     statusText: "Sur commande uniquement",
-    price: "Sur demande"
+    price: "Sur demande",
+    wood: "Cèdre / Frêne",
+    dimensions: "Dimensions variables",
+    mediums: "Brûlage haute tension, résine de couleur"
   },
   {
     id: 8,
@@ -152,7 +173,10 @@ const portfolioItems = [
     image: "/assets/pouring-exoplanete.jpg",
     status: "available",
     statusText: "Disponible",
-    price: "380 $"
+    price: "380 $",
+    wood: "Support toile sur châssis de bois",
+    dimensions: "20\" x 20\"",
+    mediums: "Acrylique fluide (coulée/pouring), vernis brillant"
   },
   {
     id: 9,
@@ -163,7 +187,10 @@ const portfolioItems = [
     image: "/assets/fluid-art-ai.jpg",
     status: "available",
     statusText: "Disponible",
-    price: "420 $"
+    price: "420 $",
+    wood: "Support toile sur châssis de bois",
+    dimensions: "24\" x 24\"",
+    mediums: "Acrylique pouring, illustration numérique, technique mixte"
   }
 ];
 
@@ -187,7 +214,10 @@ export default function App() {
     desc: '',
     price: '',
     status: 'available',
-    image: ''
+    image: '',
+    wood: '',
+    dimensions: '',
+    mediums: ''
   });
 
   // Custom Project Builder State
@@ -348,7 +378,10 @@ export default function App() {
       price: adminForm.price,
       status: adminForm.status,
       statusText: mappingStatusText[adminForm.status] || "Disponible",
-      image: adminForm.image.startsWith('/') ? adminForm.image : `/assets/${adminForm.image}`
+      image: adminForm.image.startsWith('/') ? adminForm.image : `/assets/${adminForm.image}`,
+      wood: adminForm.wood || '',
+      dimensions: adminForm.dimensions || '',
+      mediums: adminForm.mediums || ''
     };
 
     try {
@@ -367,7 +400,10 @@ export default function App() {
         desc: '',
         price: '',
         status: 'available',
-        image: ''
+        image: '',
+        wood: '',
+        dimensions: '',
+        mediums: ''
       });
       setEditingCreation(null);
       alert("Œuvre enregistrée avec succès !");
@@ -389,7 +425,10 @@ export default function App() {
       desc: item.desc,
       price: item.price,
       status: item.status,
-      image: cleanImage
+      image: cleanImage,
+      wood: item.wood || '',
+      dimensions: item.dimensions || '',
+      mediums: item.mediums || ''
     });
   };
 
@@ -593,6 +632,14 @@ export default function App() {
                     <p className="art-desc">{item.desc}</p>
                   </div>
                   
+                  {(item.wood || item.dimensions || item.mediums) && (
+                    <div className="art-specs" style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '12px', marginBottom: '12px', borderTop: '1px solid rgba(255, 255, 255, 0.1)', paddingTop: '10px' }}>
+                      {item.wood && <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><span>🪵</span> <span><strong>Bois :</strong> {item.wood}</span></div>}
+                      {item.dimensions && <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><span>📏</span> <span><strong>Dimensions :</strong> {item.dimensions}</span></div>}
+                      {item.mediums && <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><span>✨</span> <span><strong>Matériaux :</strong> {item.mediums}</span></div>}
+                    </div>
+                  )}
+
                   <div className="art-footer">
                     <span className="art-status">
                       <span className={`status-dot ${item.status}`}></span>
@@ -1159,6 +1206,44 @@ export default function App() {
                         onChange={(e) => setAdminForm(prev => ({ ...prev, image: e.target.value }))}
                       />
                     </div>
+                  </div>
+
+                  <div className="form-row">
+                    <div className="builder-form-group">
+                      <label htmlFor="form-wood">Essence de bois</label>
+                      <input 
+                        type="text" 
+                        id="form-wood" 
+                        className="builder-input" 
+                        placeholder="Ex: Frêne, Noyer, N/A"
+                        value={adminForm.wood}
+                        onChange={(e) => setAdminForm(prev => ({ ...prev, wood: e.target.value }))}
+                      />
+                    </div>
+
+                    <div className="builder-form-group">
+                      <label htmlFor="form-dimensions">Dimensions</label>
+                      <input 
+                        type="text" 
+                        id="form-dimensions" 
+                        className="builder-input" 
+                        placeholder='Ex: 24" x 30", Diamètre 24"'
+                        value={adminForm.dimensions}
+                        onChange={(e) => setAdminForm(prev => ({ ...prev, dimensions: e.target.value }))}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="builder-form-group">
+                    <label htmlFor="form-mediums">Médiums / Résine / Matériaux</label>
+                    <input 
+                      type="text" 
+                      id="form-mediums" 
+                      className="builder-input" 
+                      placeholder="Ex: Résine turquoise, Acrylique pouring"
+                      value={adminForm.mediums}
+                      onChange={(e) => setAdminForm(prev => ({ ...prev, mediums: e.target.value }))}
+                    />
                   </div>
 
                   <div className="builder-form-group">
