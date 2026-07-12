@@ -12,6 +12,17 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
+// Correction automatique en cas de coquille dans les variables d'environnement Vercel
+if (firebaseConfig.projectId === "van-patruno-art") {
+  firebaseConfig.projectId = "evan-patruno-art";
+  if (firebaseConfig.authDomain) {
+    firebaseConfig.authDomain = firebaseConfig.authDomain.replace("van-patruno-art", "evan-patruno-art");
+  }
+  if (firebaseConfig.storageBucket) {
+    firebaseConfig.storageBucket = firebaseConfig.storageBucket.replace("van-patruno-art", "evan-patruno-art");
+  }
+}
+
 // Vérifie si la configuration minimale est présente (API Key et Project ID)
 const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.projectId;
 

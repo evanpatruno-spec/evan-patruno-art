@@ -65,13 +65,115 @@ const Facebook = ({ size = 24, ...props }) => (
   </svg>
 );
 
+const portfolioItems = [
+  {
+    id: 1,
+    title: "Table Ronde Frêne & Rivière Turquoise",
+    category: "table",
+    categoryName: "Table & Mobilier",
+    desc: "Table ronde en frêne massif sublimée par une rivière de résine époxy turquoise. Chaque pièce de bois a été soigneusement sélectionnée pour révéler ses veines et ses nœuds uniques.",
+    image: "/assets/table-ronde-turquoise.jpg",
+    status: "custom-only",
+    statusText: "Sur commande uniquement",
+    price: "Sur demande"
+  },
+  {
+    id: 2,
+    title: "Table Ronde Frêne & Turquoise/Argent",
+    category: "table",
+    categoryName: "Table & Mobilier",
+    desc: "Table ronde de 24\" en frêne massif et résine époxy turquoise et argent métallique, offrant un contraste saisissant.",
+    image: "/assets/table-ronde-turquoise-argent.jpg",
+    status: "available",
+    statusText: "Disponible",
+    price: "Sur demande"
+  },
+  {
+    id: 3,
+    title: "Table Haute Ronde Frêne & Noir/Argent",
+    category: "table",
+    categoryName: "Table & Mobilier",
+    desc: "Table ronde haute (24\" de diamètre, 30\" de hauteur) en bois de frêne naturel et résine époxy noir et argent métallique.",
+    image: "/assets/table-ronde-noir-argent.jpg",
+    status: "available",
+    statusText: "Disponible",
+    price: "Sur demande"
+  },
+  {
+    id: 4,
+    title: "Table Basse en Bois Brûlé (Shou Sugi Ban)",
+    category: "table",
+    categoryName: "Table & Mobilier",
+    desc: "Table basse fabriquée à partir de bois de récupération, brûlé à la torche pour une finition noire délicate et moderne.",
+    image: "/assets/table-basse-brulee.jpg",
+    status: "custom-only",
+    statusText: "Sur commande uniquement",
+    price: "Sur demande"
+  },
+  {
+    id: 5,
+    title: "Dessus de Table Basse en Frêne",
+    category: "table",
+    categoryName: "Table & Mobilier",
+    desc: "Plateau en frêne massif destiné à une future table basse de chambre à coucher.",
+    image: "/assets/table-basse-chambre.jpg",
+    status: "custom-only",
+    statusText: "Sur commande uniquement",
+    price: "Sur demande"
+  },
+  {
+    id: 6,
+    title: "Créations de Bijoux en Bois & Résine Époxy",
+    category: "jewelry",
+    categoryName: "Bijoux",
+    desc: "Bijoux uniques fabriqués de façon artisanale à partir de loupe de bois noble et de résine époxy teintée et polie.",
+    image: "/assets/jewelry-real.jpg",
+    status: "custom-only",
+    statusText: "Sur commande uniquement",
+    price: "Sur demande"
+  },
+  {
+    id: 7,
+    title: "Gravure Fractale Lichtenberg sur Bois",
+    category: "lichtenberg",
+    categoryName: "Fractale Lichtenberg",
+    desc: "Brûlage fractal Lichtenberg par décharge électrique de haute tension (10 000V) sur bois.",
+    image: "/assets/lichtenberg-real.jpg",
+    status: "custom-only",
+    statusText: "Sur commande uniquement",
+    price: "Sur demande"
+  },
+  {
+    id: 8,
+    title: "Toile Fluid Art - Exoplanète",
+    category: "laser",
+    categoryName: "Art Laser & Acrylique",
+    desc: "Peinture acrylique fluide (pouring) aux textures d'écorce vivante évoquant le cosmos et le ballet de lunes exoplanétaires.",
+    image: "/assets/pouring-exoplanete.jpg",
+    status: "available",
+    statusText: "Disponible",
+    price: "380 $"
+  },
+  {
+    id: 9,
+    title: "Toile Fluid Art - Monstre Cosmique",
+    category: "laser",
+    categoryName: "Art Laser & Acrylique",
+    desc: "Toile pouring acrylique fusionnée à des détails d'illustration numérique créant un monstre cosmique.",
+    image: "/assets/fluid-art-ai.jpg",
+    status: "available",
+    statusText: "Disponible",
+    price: "420 $"
+  }
+];
+
 export default function App() {
   const [scrolled, setScrolled] = useState(false);
   const [galleryFilter, setGalleryFilter] = useState('all');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
-  // Dynamic Creations List State
-  const [creations, setCreations] = useState([]);
+  // Dynamic Creations List State - initialized with fallback portfolioItems
+  const [creations, setCreations] = useState(portfolioItems);
 
   // Admin Dashboard States
   const [isAdminVisible, setIsAdminVisible] = useState(false);
@@ -123,109 +225,6 @@ export default function App() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  // Portfolio items data
-  const portfolioItems = [
-    {
-      id: 1,
-      title: "Table Ronde Frêne & Rivière Turquoise",
-      category: "table",
-      categoryName: "Table & Mobilier",
-      desc: "Table ronde en frêne massif sublimée par une rivière de résine époxy turquoise. Chaque pièce de bois a été soigneusement sélectionnée pour révéler ses veines et ses nœuds uniques.",
-      image: "/assets/table-ronde-turquoise.jpg",
-      status: "custom-only",
-      statusText: "Sur commande uniquement",
-      price: "Sur demande"
-    },
-    {
-      id: 2,
-      title: "Table Ronde Frêne & Turquoise/Argent",
-      category: "table",
-      categoryName: "Table & Mobilier",
-      desc: "Table ronde de 24\" en frêne massif et résine époxy turquoise et argent métallique, offrant un contraste saisissant.",
-      image: "/assets/table-ronde-turquoise-argent.jpg",
-      status: "available",
-      statusText: "Disponible",
-      price: "Sur demande"
-    },
-    {
-      id: 3,
-      title: "Table Haute Ronde Frêne & Noir/Argent",
-      category: "table",
-      categoryName: "Table & Mobilier",
-      desc: "Table ronde haute (24\" de diamètre, 30\" de hauteur) en bois de frêne naturel et résine époxy noir et argent métallique.",
-      image: "/assets/table-ronde-noir-argent.jpg",
-      status: "available",
-      statusText: "Disponible",
-      price: "Sur demande"
-    },
-    {
-      id: 4,
-      title: "Table Basse en Bois Brûlé (Shou Sugi Ban)",
-      category: "table",
-      categoryName: "Table & Mobilier",
-      desc: "Table basse fabriquée à partir de bois de récupération, brûlé à la torche pour une finition noire délicate et moderne.",
-      image: "/assets/table-basse-brulee.jpg",
-      status: "custom-only",
-      statusText: "Sur commande uniquement",
-      price: "Sur demande"
-    },
-    {
-      id: 5,
-      title: "Dessus de Table Basse en Frêne",
-      category: "table",
-      categoryName: "Table & Mobilier",
-      desc: "Plateau en frêne massif destiné à une future table basse de chambre à coucher.",
-      image: "/assets/table-basse-chambre.jpg",
-      status: "custom-only",
-      statusText: "Sur commande uniquement",
-      price: "Sur demande"
-    },
-    {
-      id: 6,
-      title: "Créations de Bijoux en Bois & Résine Époxy",
-      category: "jewelry",
-      categoryName: "Bijoux",
-      desc: "Bijoux uniques fabriqués de façon artisanale à partir de loupe de bois noble et de résine époxy teintée et polie.",
-      image: "/assets/jewelry-real.jpg",
-      status: "custom-only",
-      statusText: "Sur commande uniquement",
-      price: "Sur demande"
-    },
-    {
-      id: 7,
-      title: "Gravure Fractale Lichtenberg sur Bois",
-      category: "lichtenberg",
-      categoryName: "Fractale Lichtenberg",
-      desc: "Brûlage fractal Lichtenberg par décharge électrique de haute tension (10 000V) sur bois.",
-      image: "/assets/lichtenberg-real.jpg",
-      status: "custom-only",
-      statusText: "Sur commande uniquement",
-      price: "Sur demande"
-    },
-    {
-      id: 8,
-      title: "Toile Fluid Art - Exoplanète",
-      category: "laser",
-      categoryName: "Art Laser & Acrylique",
-      desc: "Peinture acrylique fluide (pouring) aux textures d'écorce vivante évoquant le cosmos et le ballet de lunes exoplanétaires.",
-      image: "/assets/pouring-exoplanete.jpg",
-      status: "available",
-      statusText: "Disponible",
-      price: "380 $"
-    },
-    {
-      id: 9,
-      title: "Toile Fluid Art - Monstre Cosmique",
-      category: "laser",
-      categoryName: "Art Laser & Acrylique",
-      desc: "Toile pouring acrylique fusionnée à des détails d'illustration numérique créant un monstre cosmique.",
-      image: "/assets/fluid-art-ai.jpg",
-      status: "available",
-      statusText: "Disponible",
-      price: "420 $"
-    }
-  ];
 
   const instagramPosts = [
     {
