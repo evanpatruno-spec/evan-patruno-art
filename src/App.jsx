@@ -306,6 +306,7 @@ export default function App() {
   
   // Checkout Modal State
   const [checkoutItem, setCheckoutItem] = useState(null);
+  const [selectedItemDetails, setSelectedItemDetails] = useState(null);
   const [checkoutForm, setCheckoutForm] = useState({
     name: '',
     email: '',
@@ -1008,7 +1009,13 @@ export default function App() {
           {/* Gallery Grid */}
           <div className="gallery-grid" id="portfolio-grid">
             {filteredPortfolio.map((item) => (
-              <div key={item.id} className="art-card glass" id={`portfolio-item-${item.id}`}>
+              <div 
+                key={item.id} 
+                className="art-card glass" 
+                id={`portfolio-item-${item.id}`}
+                style={{ cursor: 'pointer' }}
+                onClick={() => setSelectedItemDetails(item)}
+              >
                 <div className="art-image-wrapper">
                   <span className={`art-badge ${item.category}`}>{item.categoryName}</span>
                   <img src={item.image} alt={item.title} className="art-image" loading="lazy" />
@@ -1036,13 +1043,30 @@ export default function App() {
                       </span>
                       <span className="art-price">{formatPrice(item.price)}</span>
                     </div>
-                    {item.status === 'available' && !item.price.toLowerCase().includes('demande') && (
+                    {item.status === 'available' && !item.price.toLowerCase().includes('demande') ? (
                       <button 
-                        onClick={() => handleStartCheckout(item)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleStartCheckout(item);
+                        }}
                         className="btn-primary" 
                         style={{ padding: '8px 16px', fontSize: '0.85rem', width: '100%', marginTop: '5px' }}
                       >
                         Commander
+                      </button>
+                    ) : (
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // Pre-populate custom builder with this item category and open it
+                          setProjectData(prev => ({ ...prev, type: item.category === 'table' ? '🪵 Table sur mesure' : item.category === 'jewelry' ? '💎 Bijou unique' : '🎨 Autre projet d\'art' }));
+                          setBuilderStep(1);
+                          window.location.hash = 'devis';
+                        }}
+                        className="btn-secondary" 
+                        style={{ padding: '8px 16px', fontSize: '0.85rem', width: '100%', marginTop: '5px' }}
+                      >
+                        Sur Mesure
                       </button>
                     )}
                   </div>
@@ -2468,6 +2492,102 @@ export default function App() {
                 {checkoutSubmitting ? 'Traitement en cours...' : `Payer ${formatPrice(checkoutItem.price)}`}
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* DETAILED PRODUCT VIEW OVERLAY */}
+      {selectedItemDetails && (
+        <div className="checkout-overlay" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 11000 }}>
+          <div className="checkout-card glass animate-fade-in" style={{ maxWidth: '800px', width: '90%', padding: '30px', maxHeight: '90vh', overflowY: 'auto' }}>
+            <div className="checkout-header" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '15px', marginBottom: '20px' }}>
+              <h3 className="checkout-title" style={{ fontSize: '1.4rem' }}>{selectedItemDetails.title}</h3>
+              <button className="checkout-close" onClick={() => setSelectedItemDetails(null)}>&times;</button>
+            </div>
+
+            <div className="product-details-grid">
+              {/* Image side */}
+              <div style={{ width: '100%', borderRadius: '16px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <img 
+                  src={selectedItemDetails.image} 
+                  alt={selectedItemDetails.title} 
+                  style={{ width: '100%', height: 'auto', display: 'block', objectFit: 'cover' }} 
+                />
+              </div>
+
+              {/* Info side */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', textAlign: 'left' }}>
+                <div>
+                  <span className={`art-badge ${selectedItemDetails.category}`} style={{ position: 'static', display: 'inline-block', marginBottom: '10px' }}>
+                    {selectedItemDetails.categoryName}
+                  </span>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.6' }}>
+                    {selectedItemDetails.desc}
+                  </p>
+                </div>
+
+                <div style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px', padding: '15px' }}>
+                  <h4 style={{ color: 'var(--accent-wood)', fontSize: '0.9rem', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '1px' }}>Spécifications :</h4>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.9rem' }}>
+                    {selectedItemDetails.wood && <div>🪵 <strong>Bois :</strong> {selectedItemDetails.wood}</div>}
+                    {selectedItemDetails.dimensions && <div>📏 <strong>Dimensions :</strong> {selectedItemDetails.dimensions}</div>}
+                    {selectedItemDetails.mediums && <div>✨ <strong>Matériaux :</strong> {selectedItemDetails.mediums}</div>}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+                      <span>Statut :</span>
+                      <span className="art-status">
+                        <span className={`status-dot ${selectedItemDetails.status}`}></span>
+                        {selectedItemDetails.statusText}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px' }}>
+                  <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>Prix unitaire :</span>
+                  <span style={{ fontSize: '1.6rem', fontWeight: '800', color: '#fff' }}>{formatPrice(selectedItemDetails.price)}</span>
+                </div>
+
+                <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                  <button 
+                    type="button" 
+                    onClick={() => setSelectedItemDetails(null)} 
+                    className="btn-secondary" 
+                    style={{ flex: 1, padding: '12px' }}
+                  >
+                    Retour
+                  </button>
+                  {selectedItemDetails.status === 'available' && !selectedItemDetails.price.toLowerCase().includes('demande') ? (
+                    <button 
+                      type="button" 
+                      onClick={() => {
+                        const item = selectedItemDetails;
+                        setSelectedItemDetails(null);
+                        handleStartCheckout(item);
+                      }} 
+                      className="btn-primary" 
+                      style={{ flex: 1.5, padding: '12px' }}
+                    >
+                      Acheter maintenant
+                    </button>
+                  ) : (
+                    <button 
+                      type="button" 
+                      onClick={() => {
+                        const cat = selectedItemDetails.category;
+                        setSelectedItemDetails(null);
+                        setProjectData(prev => ({ ...prev, type: cat === 'table' ? '🪵 Table sur mesure' : cat === 'jewelry' ? '💎 Bijou unique' : '🎨 Autre projet d\'art' }));
+                        setBuilderStep(1);
+                        window.location.hash = 'devis';
+                      }} 
+                      className="btn-primary" 
+                      style={{ flex: 1.5, padding: '12px' }}
+                    >
+                      Commander sur mesure
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
