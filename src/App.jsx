@@ -396,15 +396,21 @@ export default function App() {
 
   const handleDeleteCreation = async (id) => {
     if (!window.confirm("Êtes-vous sûr de vouloir supprimer cette création ?")) return;
+    
+    // Update local state immediately so it's responsive and works in mock/offline mode
+    setCreations(prev => prev.filter(item => item.id !== id));
+
     if (!db) {
-      alert("Firebase n'est pas configuré.");
+      alert("Œuvre supprimée localement.");
       return;
     }
     try {
-      await deleteDoc(doc(db, 'creations', id));
+      // Cast the ID to a string to prevent Firestore type errors (e.g. for numeric fallback IDs)
+      await deleteDoc(doc(db, 'creations', String(id)));
       alert("Œuvre supprimée avec succès !");
     } catch (error) {
       console.error("Erreur lors de la suppression :", error);
+      alert("Erreur lors de la suppression dans la base de données.");
     }
   };
 
