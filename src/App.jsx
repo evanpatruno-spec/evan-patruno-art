@@ -517,7 +517,7 @@ export default function App() {
             </div>
             
             <h1 className="hero-title">
-              La fusion du <span className="wood">Bois</span>, de la <span className="epoxy">Résine</span> &amp; du Feu
+              Plusieurs <span className="wood">arts</span>, une <span className="epoxy">passion</span>
             </h1>
             
             <p className="hero-description">
