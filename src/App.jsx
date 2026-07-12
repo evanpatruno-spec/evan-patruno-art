@@ -169,6 +169,50 @@ export default function App() {
       status: "available",
       statusText: "Disponible",
       price: "340 $"
+    },
+    {
+      id: 5,
+      title: "Table Ronde Frêne & Rivière Turquoise",
+      category: "table",
+      categoryName: "Table & Mobilier",
+      desc: "Table ronde en frêne massif sublimée par une rivière de résine époxy turquoise. Chaque pièce de bois a été soigneusement sélectionnée pour révéler ses veines et ses nœuds uniques.",
+      image: "/assets/table-ronde-turquoise.jpg",
+      status: "custom-only",
+      statusText: "Sur commande uniquement",
+      price: "Sur demande"
+    },
+    {
+      id: 6,
+      title: "Table Ronde Frêne & Turquoise/Argent",
+      category: "table",
+      categoryName: "Table & Mobilier",
+      desc: "Table ronde de 24\" en frêne massif et résine époxy turquoise et argent métallique, offrant un contraste saisissant.",
+      image: "/assets/table-ronde-turquoise-argent.jpg",
+      status: "available",
+      statusText: "Disponible",
+      price: "Sur demande"
+    },
+    {
+      id: 7,
+      title: "Table Haute Ronde Frêne & Noir/Argent",
+      category: "table",
+      categoryName: "Table & Mobilier",
+      desc: "Table ronde haute (24\" de diamètre, 30\" de hauteur) en bois de frêne naturel et résine époxy noir et argent métallique.",
+      image: "/assets/table-ronde-noir-argent.jpg",
+      status: "available",
+      statusText: "Disponible",
+      price: "Sur demande"
+    },
+    {
+      id: 8,
+      title: "Table Basse en Bois Brûlé (Shou Sugi Ban)",
+      category: "table",
+      categoryName: "Table & Mobilier",
+      desc: "Table basse fabriquée à partir de bois de récupération, brûlé à la torche pour une finition noire délicate et moderne.",
+      image: "/assets/table-basse-brulee.jpg",
+      status: "custom-only",
+      statusText: "Sur commande uniquement",
+      price: "Sur demande"
     }
   ];
 
@@ -208,16 +252,16 @@ export default function App() {
     {
       id: 5,
       image: "/assets/fluid-art-ai.jpg",
-      postUrl: "https://www.instagram.com/evanpatruno.art/p/DZAVeHnPjuh/",
-      caption: "Tech & Art : utiliser la tech comme amplificateur d'imaginaire 🔮",
+      postUrl: "https://www.instagram.com/evanpatruno.art/p/DY8P9DuNtc8/",
+      caption: "Toiles pouring/abstraites et monstre cosmique 🎨",
       likes: "178",
       comments: "14"
     },
     {
       id: 6,
-      image: "/assets/painting.png",
-      postUrl: "https://www.instagram.com/evanpatruno.art/p/DY8P9DuNtc8/",
-      caption: "Toiles pouring/abstraites et monstre cosmique 🎨",
+      image: "/assets/jewelry.png",
+      postUrl: "https://www.instagram.com/evanpatruno.art/p/DRIowfnAbMa/",
+      caption: "Créations uniques : bijoux en bois et résine époxy 🪵✨",
       likes: "115",
       comments: "9"
     }
