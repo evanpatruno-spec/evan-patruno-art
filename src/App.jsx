@@ -128,50 +128,6 @@ export default function App() {
   const portfolioItems = [
     {
       id: 1,
-      title: "Table Rivière Noyer Massif",
-      category: "table",
-      categoryName: "Table & Mobilier",
-      desc: "Table de salle à manger majestueuse en noyer d'ici, avec une coulée centrale d'époxy turquoise nacrée aux reflets océaniques.",
-      image: "/assets/table.png",
-      status: "available",
-      statusText: "Disponible",
-      price: "1 850 $"
-    },
-    {
-      id: 2,
-      title: "Pendentif Loupe d'Érable",
-      category: "jewelry",
-      categoryName: "Bijoux",
-      desc: "Bijou unique fabriqué à partir de loupe d'érable stabilisée et de résine époxy bleue translucide polie à la main.",
-      image: "/assets/jewelry.png",
-      status: "sold",
-      statusText: "Vendu (Sur commande)",
-      price: "95 $"
-    },
-    {
-      id: 3,
-      title: "Planche de Cèdre Lichtenberg",
-      category: "lichtenberg",
-      categoryName: "Fractale Lichtenberg",
-      desc: "Planche décorative en cèdre brûlée par courant électrique à haute tension (10,000V) puis comblée d'une résine dorée brillante.",
-      image: "/assets/lichtenberg.png",
-      status: "custom-only",
-      statusText: "Sur commande uniquement",
-      price: "190 $"
-    },
-    {
-      id: 4,
-      title: "Mandala Géométrique Lumineux",
-      category: "laser",
-      categoryName: "Art Laser & Acrylique",
-      desc: "Œuvre murale en 3D constituée de 7 couches de bois de bouleau découpées au laser, peintes à l'acrylique bleue et assemblées avec soin.",
-      image: "/assets/laser.png",
-      status: "available",
-      statusText: "Disponible",
-      price: "340 $"
-    },
-    {
-      id: 5,
       title: "Table Ronde Frêne & Rivière Turquoise",
       category: "table",
       categoryName: "Table & Mobilier",
@@ -182,7 +138,7 @@ export default function App() {
       price: "Sur demande"
     },
     {
-      id: 6,
+      id: 2,
       title: "Table Ronde Frêne & Turquoise/Argent",
       category: "table",
       categoryName: "Table & Mobilier",
@@ -193,7 +149,7 @@ export default function App() {
       price: "Sur demande"
     },
     {
-      id: 7,
+      id: 3,
       title: "Table Haute Ronde Frêne & Noir/Argent",
       category: "table",
       categoryName: "Table & Mobilier",
@@ -204,7 +160,7 @@ export default function App() {
       price: "Sur demande"
     },
     {
-      id: 8,
+      id: 4,
       title: "Table Basse en Bois Brûlé (Shou Sugi Ban)",
       category: "table",
       categoryName: "Table & Mobilier",
@@ -213,6 +169,61 @@ export default function App() {
       status: "custom-only",
       statusText: "Sur commande uniquement",
       price: "Sur demande"
+    },
+    {
+      id: 5,
+      title: "Dessus de Table Basse en Frêne",
+      category: "table",
+      categoryName: "Table & Mobilier",
+      desc: "Plateau en frêne massif destiné à une future table basse de chambre à coucher.",
+      image: "/assets/table-basse-chambre.jpg",
+      status: "custom-only",
+      statusText: "Sur commande uniquement",
+      price: "Sur demande"
+    },
+    {
+      id: 6,
+      title: "Créations de Bijoux en Bois & Résine Époxy",
+      category: "jewelry",
+      categoryName: "Bijoux",
+      desc: "Bijoux uniques fabriqués de façon artisanale à partir de loupe de bois noble et de résine époxy teintée et polie.",
+      image: "/assets/jewelry-real.jpg",
+      status: "custom-only",
+      statusText: "Sur commande uniquement",
+      price: "Sur demande"
+    },
+    {
+      id: 7,
+      title: "Gravure Fractale Lichtenberg sur Bois",
+      category: "lichtenberg",
+      categoryName: "Fractale Lichtenberg",
+      desc: "Brûlage fractal Lichtenberg par décharge électrique de haute tension (10 000V) sur bois.",
+      image: "/assets/lichtenberg-real.jpg",
+      status: "custom-only",
+      statusText: "Sur commande uniquement",
+      price: "Sur demande"
+    },
+    {
+      id: 8,
+      title: "Toile Fluid Art - Exoplanète",
+      category: "laser",
+      categoryName: "Art Laser & Acrylique",
+      desc: "Peinture acrylique fluide (pouring) aux textures d'écorce vivante évoquant le cosmos et le ballet de lunes exoplanétaires.",
+      image: "/assets/pouring-exoplanete.jpg",
+      status: "available",
+      statusText: "Disponible",
+      price: "380 $"
+    },
+    {
+      id: 9,
+      title: "Toile Fluid Art - Monstre Cosmique",
+      category: "laser",
+      categoryName: "Art Laser & Acrylique",
+      desc: "Toile pouring acrylique fusionnée à des détails d'illustration numérique créant un monstre cosmique.",
+      image: "/assets/fluid-art-ai.jpg",
+      status: "available",
+      statusText: "Disponible",
+      price: "420 $"
     }
   ];
 
@@ -235,14 +246,6 @@ export default function App() {
     },
     {
       id: 3,
-      image: "/assets/table-basse-chambre.jpg",
-      postUrl: "https://www.instagram.com/evanpatruno.art/reel/DZN01_7vb-dQNTNFtXwzi6EHx0zxuyI6vLRy480/",
-      caption: "Dessus d'une future table basse pour ma chambre 🪵",
-      likes: "210",
-      comments: "24"
-    },
-    {
-      id: 4,
       image: "/assets/pouring-exoplanete.jpg",
       postUrl: "https://www.instagram.com/evanpatruno.art/p/DZDzSU2hZkc/",
       caption: "Une coulée de matière... Toile Exoplanète 🌌",
@@ -250,7 +253,7 @@ export default function App() {
       comments: "18"
     },
     {
-      id: 5,
+      id: 4,
       image: "/assets/fluid-art-ai.jpg",
       postUrl: "https://www.instagram.com/evanpatruno.art/p/DY8P9DuNtc8/",
       caption: "Toiles pouring/abstraites et monstre cosmique 🎨",
@@ -258,12 +261,20 @@ export default function App() {
       comments: "14"
     },
     {
-      id: 6,
-      image: "/assets/jewelry.png",
+      id: 5,
+      image: "/assets/jewelry-real.jpg",
       postUrl: "https://www.instagram.com/evanpatruno.art/p/DRIowfnAbMa/",
       caption: "Créations uniques : bijoux en bois et résine époxy 🪵✨",
       likes: "115",
       comments: "9"
+    },
+    {
+      id: 6,
+      image: "/assets/table-ronde-turquoise.jpg",
+      postUrl: "https://www.instagram.com/evanpatruno.art/p/DOQsJAfDQv-/",
+      caption: "Table ronde en frêne & résine époxy turquoise 🌊",
+      likes: "135",
+      comments: "16"
     }
   ];
 
