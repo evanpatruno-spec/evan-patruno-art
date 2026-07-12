@@ -7,6 +7,7 @@ import {
   setDoc, 
   deleteDoc, 
   doc, 
+  getDoc,
   onSnapshot, 
   query, 
   orderBy,
@@ -206,6 +207,22 @@ const craftCapabilities = [
   { type: 'drone', name: 'Production Média & Drone (DJI Mini 3 Pro)', icon: '🚁', desc: 'Captations aériennes haute résolution (photos 48 Mpx et vidéos 4K) pour suivis de chantiers, imagerie immobilière ou contenus artistiques.' }
 ];
 
+const droneVideos = [
+  { id: 1, title: "Survol de l'Atelier & Forêt Sauvage", embedUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ", desc: "Vidéo aérienne cinématique capturant les grands espaces sauvages d'où proviennent nos essences de bois nobles." },
+  { id: 2, title: "Suivi de Chantier & Intégration Paysagère", embedUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ", desc: "Démonstration d'imagerie drone DJI Mini 3 Pro pour le suivi d'une structure architecturale en bois massif." },
+  { id: 3, title: "L'Art sous un Autre Angle (Perspective vertical)", embedUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ", desc: "Vidéo artistique montrant le contraste entre le bois brut et la rivière d'époxy sous perspective aérienne." }
+];
+
+const faqItems = [
+  { category: "general", question: "Quels sont les délais de fabrication pour un projet sur mesure ?", answer: "Les délais varient selon la complexité : environ 4 à 8 semaines pour une table rivière (séchage, coulée et finition), 2 semaines pour des découpes/gravures laser personnalisées, et 3 à 5 jours pour des pièces imprimées en 3D standard." },
+  { category: "wood", question: "Quelles essences de bois utilisez-vous pour vos tables ?", answer: "Nous travaillons principalement avec des bois locaux d'une grande noblesse : le Noyer noir (sombre et veiné), l'Érable (très clair et dense), le Cerisier (ambré) et le Cèdre (chaud, odorant et résistant à l'humidité)." },
+  { category: "wood", question: "La résine époxy est-elle résistante à la chaleur et aux rayures ?", answer: "Nos résines sont traitées contre les rayons UV (jaunissement) et reçoivent un vernis de protection haute résistance. Cependant, pour préserver la brillance, il est fortement recommandé d'utiliser des sous-plats pour les plats chauds et d'éviter les rayures directes avec des objets tranchants." },
+  { category: "3dprint", question: "Quels sont les formats de fichiers acceptés pour l'impression 3D ?", answer: "Nous acceptons principalement les fichiers de modèles 3D au format .STL, .OBJ ou .3MF. Vous pouvez téléverser votre fichier directement lors de votre demande de devis ou coller un lien Thingiverse/Printables." },
+  { category: "3dprint", question: "Quels matériaux de filaments utilisez-vous sur votre Bambu P1S ?", answer: "Nous imprimons principalement en PLA (biodégradable, parfait pour la décoration et le multi-couleurs), en PETG (plus résistant, idéal pour l'extérieur) et en TPU (flexible et caoutchouteux)." },
+  { category: "laser", question: "Quelle est la taille maximale pour les gravures et découpes laser ?", answer: "Notre équipement laser professionnel dispose d'une surface de travail maximale de 4 pieds par 4 pieds (48\" x 48\"). Nous pouvons graver ou découper le bois massif, le contreplaqué, l'acrylique (plexiglas) et le cuir." },
+  { category: "drone", question: "Quelles sont les réglementations respectées lors de vos vols de drone ?", answer: "Nos opérations de drone DJI Mini 3 Pro respectent scrupuleusement la réglementation de Transports Canada pour les drones de moins de 250g. Les vols sont effectués en toute sécurité, hors des zones de restriction aérienne et dans le respect de la vie privée." }
+];
+
 export default function App() {
   const [scrolled, setScrolled] = useState(false);
   const [currency, setCurrency] = useState('CAD');
@@ -266,7 +283,11 @@ export default function App() {
     notes: '',
     name: '',
     email: '',
-    phone: ''
+    phone: '',
+    fileBase64: '',
+    fileName: '',
+    fileSize: '',
+    cloudLink: ''
   });
   const [builderSubmitted, setBuilderSubmitted] = useState(false);
 
@@ -308,6 +329,16 @@ export default function App() {
   const [chatbotAnswers, setChatbotAnswers] = useState({});
   const [chatbotInputVisible, setChatbotInputVisible] = useState(false);
   const [chatbotInputValue, setChatbotInputValue] = useState('');
+
+  // Order Tracking States
+  const [trackingOrderId, setTrackingOrderId] = useState('');
+  const [trackedOrder, setTrackedOrder] = useState(null);
+  const [trackingError, setTrackingError] = useState('');
+  
+  // Searchable FAQ States
+  const [faqSearchQuery, setFaqSearchQuery] = useState('');
+  const [faqActiveCategory, setFaqActiveCategory] = useState('all');
+  const [faqActiveAccordion, setFaqActiveAccordion] = useState(null);
 
   // Track scroll position to add class to header
   useEffect(() => {
@@ -422,6 +453,7 @@ export default function App() {
         type: 'order',
         title: 'Nouvelle commande d\'art',
         details: `${doc.data().customerName} (${doc.data().customerEmail}) a commandé "${doc.data().creationTitle}" pour ${doc.data().convertedPrice || doc.data().priceCAD}`,
+        status: doc.data().status || 'received',
         date: doc.data().createdAt?.toDate() || new Date()
       }));
       updateFeed('orders', o);
@@ -433,6 +465,10 @@ export default function App() {
         type: 'project',
         title: 'Nouveau projet sur mesure (devis)',
         details: `${doc.data().name} (${doc.data().email}) veut un projet de type "${doc.data().type}" en ${doc.data().wood || 'bois non spécifié'}, résine: ${doc.data().epoxy || 'non spécifié'}, piétement: ${doc.data().legs || 'non spécifié'}. Notes: ${doc.data().notes || 'aucune'}`,
+        fileBase64: doc.data().fileBase64 || '',
+        fileName: doc.data().fileName || '',
+        fileSize: doc.data().fileSize || '',
+        cloudLink: doc.data().cloudLink || '',
         date: doc.data().createdAt?.toDate() || new Date()
       }));
       updateFeed('projects', p);
@@ -676,6 +712,7 @@ export default function App() {
           customerName: checkoutForm.name,
           customerEmail: checkoutForm.email,
           customerAddress: `${checkoutForm.address}, ${checkoutForm.city}, ${checkoutForm.zip}`,
+          status: 'received',
           createdAt: serverTimestamp()
         });
       } catch (err) {
@@ -688,7 +725,39 @@ export default function App() {
     setCheckoutItem(null);
   };
 
-  // Reset helper
+  const handleTrackOrder = async (e) => {
+    e.preventDefault();
+    if (!trackingOrderId.trim()) {
+      setTrackingError("Veuillez saisir un numéro de commande.");
+      return;
+    }
+    setTrackingError("");
+    setTrackedOrder(null);
+    try {
+      const docRef = doc(db, "orders", trackingOrderId.trim());
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        setTrackedOrder({ id: docSnap.id, ...docSnap.data() });
+      } else {
+        setTrackingError("Aucune commande trouvée avec cet identifiant. Vérifiez le format (ex: 2cT9...)");
+      }
+    } catch (err) {
+      console.error("Error fetching order status:", err);
+      setTrackingError("Une erreur est survenue lors de la recherche. Veuillez réessayer.");
+    }
+  };
+
+  const updateOrderStatus = async (orderId, newStatus) => {
+    if (!db) return;
+    try {
+      await setDoc(doc(db, 'orders', orderId), { status: newStatus }, { merge: true });
+      alert("✅ Statut de la commande mis à jour avec succès !");
+    } catch (err) {
+      console.error("Erreur lors de la mise à jour du statut :", err);
+      alert("Une erreur est survenue lors de la mise à jour.");
+    }
+  };
+
   const resetBuilder = () => {
     setBuilderStep(1);
     setProjectData({
@@ -700,7 +769,11 @@ export default function App() {
       notes: '',
       name: '',
       email: '',
-      phone: ''
+      phone: '',
+      fileBase64: '',
+      fileName: '',
+      fileSize: '',
+      cloudLink: ''
     });
     setBuilderSubmitted(false);
   };
@@ -999,6 +1072,38 @@ export default function App() {
           </div>
         </section>
 
+        {/* DRONE VIDEO PORTFOLIO SECTION */}
+        <section id="drone-portfolio" style={{ borderBottom: '1px solid var(--border-color)' }}>
+          <div className="section-header">
+            <h2 className="section-title">Production Média &amp; Drone</h2>
+            <p className="section-subtitle">
+              Perspectives aériennes uniques capturées au drone DJI Mini 3 Pro. Suivis de chantiers, mise en valeur immobilière et réalisations artistiques.
+            </p>
+          </div>
+
+          <div className="drone-video-grid">
+            {droneVideos.map((video) => (
+              <div key={video.id} className="drone-video-card glass">
+                <div className="drone-video-wrapper">
+                  <iframe 
+                    className="drone-video-element"
+                    src={video.embedUrl}
+                    title={video.title}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  ></iframe>
+                </div>
+                <div className="drone-video-info">
+                  <div>
+                    <h3 className="drone-video-title">{video.title}</h3>
+                    <p className="drone-video-desc">{video.desc}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
         {/* CARE GUIDE SECTION */}
         <section id="entretien">
           <div className="section-header">
@@ -1036,6 +1141,76 @@ export default function App() {
                 </div>
               </div>
             ))}
+          </div>
+        </section>
+
+        {/* FAQ SECTION */}
+        <section id="faq" style={{ background: 'var(--bg-secondary)', borderTop: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
+          <div className="section-header">
+            <h2 className="section-title">Foire Aux Questions (FAQ)</h2>
+            <p className="section-subtitle">
+              Retrouvez toutes les réponses concernant nos processus, nos technologies laser, 3D, drone et nos bois.
+            </p>
+          </div>
+
+          <div className="faq-search-wrapper">
+            <span className="faq-search-icon">🔍</span>
+            <input 
+              type="text" 
+              className="faq-search-input"
+              placeholder="Rechercher une question ou un mot-clé (ex: laser, résine, délai)..."
+              value={faqSearchQuery}
+              onChange={(e) => setFaqSearchQuery(e.target.value)}
+            />
+          </div>
+
+          <div className="faq-category-filters">
+            {[
+              { id: 'all', label: 'Toutes les catégories' },
+              { id: 'general', label: '📅 Général & Délais' },
+              { id: 'wood', label: '🪵 Ébénisterie & Résine' },
+              { id: '3dprint', label: '⚙️ Impression 3D' },
+              { id: 'laser', label: '📐 Découpe & Laser' },
+              { id: 'drone', label: '🚁 Réglementation Drone' }
+            ].map((cat) => (
+              <button
+                key={cat.id}
+                className={`faq-filter-btn ${faqActiveCategory === cat.id ? 'active' : ''}`}
+                onClick={() => setFaqActiveCategory(cat.id)}
+              >
+                {cat.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="care-guide-container" style={{ maxWidth: '800px', margin: '0 auto' }}>
+            {faqItems
+              .filter(item => {
+                const matchesCat = faqActiveCategory === 'all' || item.category === faqActiveCategory;
+                const matchesQuery = item.question.toLowerCase().includes(faqSearchQuery.toLowerCase()) || 
+                                     item.answer.toLowerCase().includes(faqSearchQuery.toLowerCase());
+                return matchesCat && matchesQuery;
+              })
+              .map((item, idx) => (
+                <div key={idx} className={`care-accordion-item glass ${faqActiveAccordion === idx ? 'active' : ''}`}>
+                  <button 
+                    className="care-accordion-header"
+                    onClick={() => setFaqActiveAccordion(faqActiveAccordion === idx ? null : idx)}
+                    style={{ textAlign: 'left' }}
+                  >
+                    <span style={{ fontWeight: '600', color: '#fff' }}>{item.question}</span>
+                    <span className="care-accordion-icon" style={{ transform: faqActiveAccordion === idx ? 'rotate(180deg)' : 'none', display: 'inline-block' }}>▼</span>
+                  </button>
+                  <div 
+                    className="care-accordion-content" 
+                    style={{ maxHeight: faqActiveAccordion === idx ? '250px' : '0', transition: 'all 0.3s ease-out' }}
+                  >
+                    <div className="care-accordion-content-inner" style={{ color: 'var(--text-secondary)', lineHeight: '1.6', fontSize: '0.9rem' }}>
+                      {item.answer}
+                    </div>
+                  </div>
+                </div>
+              ))}
           </div>
         </section>
 
@@ -1343,6 +1518,78 @@ export default function App() {
                           onChange={(e) => setProjectData(prev => ({ ...prev, notes: e.target.value }))}
                         ></textarea>
                       </div>
+
+                      <div className="builder-form-group">
+                        <label>Fichier de conception ou croquis (optionnel)</label>
+                        <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>
+                          Importez un croquis ou modèle (.jpg, .png, .svg, .stl) OU insérez un lien de partage (Google Drive, Thingiverse) ci-dessous.
+                        </p>
+                        
+                        {projectData.fileBase64 ? (
+                          <div className="file-upload-preview-container">
+                            {projectData.fileBase64.startsWith('data:image/') ? (
+                              <img src={projectData.fileBase64} alt="Preview" className="file-upload-preview" />
+                            ) : (
+                              <div className="file-upload-preview" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.05)', fontSize: '1.2rem' }}>📄</div>
+                            )}
+                            <div className="file-upload-meta">
+                              <div className="file-upload-filename">{projectData.fileName}</div>
+                              <div className="file-upload-size">{projectData.fileSize}</div>
+                            </div>
+                            <button 
+                              type="button" 
+                              className="file-upload-remove"
+                              onClick={() => setProjectData(prev => ({ ...prev, fileBase64: '', fileName: '', fileSize: '' }))}
+                            >
+                              &times;
+                            </button>
+                          </div>
+                        ) : (
+                          <div 
+                            className="file-upload-wrapper"
+                            onClick={() => document.getElementById('builder-file-input').click()}
+                          >
+                            <span>📁 Cliquez pour choisir un fichier</span>
+                            <input 
+                              type="file" 
+                              id="builder-file-input" 
+                              style={{ display: 'none' }} 
+                              accept=".jpg,.jpeg,.png,.svg,.stl,.dxf,.obj"
+                              onChange={(e) => {
+                                const file = e.target.files[0];
+                                if (file) {
+                                  if (file.size > 2 * 1024 * 1024) {
+                                    alert("Le fichier est trop lourd. Veuillez privilégier un lien cloud ci-dessous pour les fichiers de plus de 2 Mo.");
+                                    return;
+                                  }
+                                  const reader = new FileReader();
+                                  reader.onload = (uploadEvent) => {
+                                    setProjectData(prev => ({
+                                      ...prev,
+                                      fileBase64: uploadEvent.target.result,
+                                      fileName: file.name,
+                                      fileSize: (file.size / 1024).toFixed(1) + ' KB'
+                                    }));
+                                  };
+                                  reader.readAsDataURL(file);
+                                }
+                              }}
+                            />
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="builder-form-group">
+                        <label htmlFor="input-cloud-link">Lien vers fichier de conception externe (ex: Google Drive, Dropbox, Thingiverse)</label>
+                        <input 
+                          type="url" 
+                          id="input-cloud-link"
+                          className="builder-input" 
+                          placeholder="https://drive.google.com/... ou https://thingiverse.com/..."
+                          value={projectData.cloudLink}
+                          onChange={(e) => setProjectData(prev => ({ ...prev, cloudLink: e.target.value }))}
+                        />
+                      </div>
                     </div>
                   )}
 
@@ -1539,6 +1786,85 @@ export default function App() {
                 </div>
               </a>
             ))}
+          </div>
+        </section>
+
+        {/* ORDER TRACKING SECTION */}
+        <section id="suivi-commande" style={{ borderBottom: '1px solid var(--border-color)' }}>
+          <div className="section-header">
+            <h2 className="section-title">Suivi de Commande en Direct</h2>
+            <p className="section-subtitle">
+              Entrez votre numéro de commande unique reçu lors de votre achat pour suivre son avancement en temps réel dans notre atelier.
+            </p>
+          </div>
+
+          <div className="glass order-tracker-container" style={{ maxWidth: '800px', margin: '0 auto', padding: '30px' }}>
+            <form onSubmit={handleTrackOrder} style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '20px' }}>
+              <input 
+                type="text" 
+                className="faq-search-input"
+                placeholder="Entrez votre numéro de commande (ex: jx8f2Nf...)"
+                value={trackingOrderId}
+                onChange={(e) => setTrackingOrderId(e.target.value)}
+                style={{ maxWidth: '450px', margin: 0 }}
+              />
+              <button type="submit" className="btn-primary" style={{ padding: '12px 24px', whiteSpace: 'nowrap' }}>
+                Rechercher
+              </button>
+            </form>
+
+            {trackingError && (
+              <p style={{ color: 'var(--accent-laser)', fontSize: '0.9rem', marginTop: '10px' }}>{trackingError}</p>
+            )}
+
+            {trackedOrder && (
+              <div style={{ marginTop: '30px', animation: 'fadeIn 0.5s ease' }}>
+                <h3 style={{ color: '#fff', fontSize: '1.2rem', marginBottom: '10px' }}>
+                  Commande : <span style={{ color: 'var(--accent-epoxy)' }}>{trackedOrder.id}</span>
+                </h3>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '20px' }}>
+                  Objet : <strong>{trackedOrder.creationTitle || 'Projet personnalisé'}</strong> — Client : {trackedOrder.customerName}
+                </p>
+
+                <div className="order-tracker-stepper">
+                  <div 
+                    className="order-tracker-progress-line" 
+                    style={{ 
+                      width: `${
+                        trackedOrder.status === 'received' ? 5 :
+                        trackedOrder.status === 'production' ? 38 :
+                        trackedOrder.status === 'finishing' ? 71 :
+                        trackedOrder.status === 'shipped' ? 90 : 5
+                      }%` 
+                    }}
+                  ></div>
+
+                  {[
+                    { label: '📦 Commande Reçue', statusKey: 'received' },
+                    { label: '⚙️ En fabrication', statusKey: 'production' },
+                    { label: '🎨 Finition & Laser', statusKey: 'finishing' },
+                    { label: '🚚 Prêt / Expédié', statusKey: 'shipped' }
+                  ].map((step, idx) => {
+                    const statuses = ['received', 'production', 'finishing', 'shipped'];
+                    const currentIdx = statuses.indexOf(trackedOrder.status || 'received');
+                    const isCompleted = idx < currentIdx;
+                    const isActive = idx === currentIdx;
+                    
+                    return (
+                      <div 
+                        key={idx} 
+                        className={`order-tracker-step ${isCompleted ? 'completed' : ''} ${isActive ? 'active' : ''}`}
+                      >
+                        <div className="order-tracker-icon">
+                          {idx + 1}
+                        </div>
+                        <span className="order-tracker-label">{step.label}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         </section>
 
@@ -1877,8 +2203,8 @@ export default function App() {
               ) : (
                 <div className="activity-feed-list" style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                   {activityFeed.map((act) => (
-                    <div key={act.id} className="activity-feed-item glass">
-                      <div className="activity-icon">
+                    <div key={act.id} className="activity-feed-item glass" style={{ padding: '20px', display: 'flex', gap: '15px' }}>
+                      <div className="activity-icon" style={{ fontSize: '1.5rem' }}>
                         {act.type === 'order' && '🛒'}
                         {act.type === 'project' && '🪵'}
                         {act.type === 'inquiry' && '✉️'}
@@ -1886,10 +2212,65 @@ export default function App() {
                       </div>
                       <div className="activity-content" style={{ flex: 1 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '20px', flexWrap: 'wrap' }}>
-                          <strong style={{ fontSize: '0.95rem' }}>{act.title}</strong>
+                          <strong style={{ fontSize: '0.95rem', color: '#fff' }}>{act.title}</strong>
                           <span className="activity-date">{act.date.toLocaleString('fr-CA')}</span>
                         </div>
-                        <p style={{ color: 'var(--text-secondary)', marginTop: '5px' }}>{act.details}</p>
+                        <p style={{ color: 'var(--text-secondary)', marginTop: '5px', fontSize: '0.9rem', lineHeight: '1.4' }}>{act.details}</p>
+                        
+                        {act.type === 'order' && (
+                          <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Numéro de suivi : <code>{act.id}</code></span>
+                            <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginLeft: '10px' }}>Statut :</span>
+                            <select
+                              value={act.status || 'received'}
+                              onChange={(e) => updateOrderStatus(act.id, e.target.value)}
+                              style={{
+                                background: '#1e0a19',
+                                color: '#fff',
+                                border: '1px solid rgba(255,255,255,0.15)',
+                                borderRadius: '6px',
+                                padding: '4px 8px',
+                                fontSize: '0.8rem',
+                                cursor: 'pointer',
+                                outline: 'none'
+                              }}
+                            >
+                              <option value="received">📦 Commande Reçue</option>
+                              <option value="production">⚙️ En fabrication</option>
+                              <option value="finishing">🎨 Finition &amp; Laser</option>
+                              <option value="shipped">🚚 Prêt / Expédié</option>
+                            </select>
+                          </div>
+                        )}
+
+                        {act.type === 'project' && (act.fileBase64 || act.cloudLink) && (
+                          <div style={{ marginTop: '12px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '10px' }}>
+                            {act.fileBase64 && (
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                {act.fileBase64.startsWith('data:image/') ? (
+                                  <img src={act.fileBase64} alt="Sketch Preview" style={{ width: '70px', height: '70px', objectFit: 'cover', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)' }} />
+                                ) : (
+                                  <div style={{ width: '70px', height: '70px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.8rem', border: '1px solid rgba(255,255,255,0.1)' }}>📄</div>
+                                )}
+                                <div>
+                                  <div style={{ fontSize: '0.85rem', color: '#fff', fontWeight: '500' }}>{act.fileName} ({act.fileSize})</div>
+                                  <a href={act.fileBase64} download={act.fileName} className="btn-secondary" style={{ display: 'inline-block', fontSize: '0.75rem', padding: '4px 10px', marginTop: '6px', borderRadius: '4px', textDecoration: 'none' }}>
+                                    Télécharger le fichier
+                                  </a>
+                                </div>
+                              </div>
+                            )}
+
+                            {act.cloudLink && (
+                              <div style={{ marginTop: act.fileBase64 ? '8px' : '0' }}>
+                                <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Lien de conception : </span>
+                                <a href={act.cloudLink} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-epoxy)', fontSize: '0.85rem', textDecoration: 'underline' }}>
+                                  {act.cloudLink}
+                                </a>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
