@@ -197,26 +197,13 @@ const portfolioItems = [
 ];
 
 const craftCapabilities = [
-  // Époxy
-  { type: 'epoxy', name: 'Bleu Cosmique Nacré', color: 'radial-gradient(circle, #1e3a8a 0%, #0d1b2a 100%)', desc: 'Mouvements fluides tridimensionnels nacrés rappelant la nébuleuse et le cosmos.' },
-  { type: 'epoxy', name: 'Turquoise Lagon Translucide', color: 'rgba(64, 224, 208, 0.65)', desc: 'Teinte translucide cristalline imitant les nuances et reflets de l\'eau tropicale.' },
-  { type: 'epoxy', name: 'Or Liquide Métallisé', color: 'linear-gradient(135deg, #d4af37 0%, #aa7c11 100%)', desc: 'Pigments métallisés dorés pour un contraste prestigieux avec les bois foncés.' },
-  
-  // Laser
-  { type: 'laser', name: 'Gravure Grand Format (4\'x4\')', icon: '📐', desc: 'Capacité de découper et graver des surfaces allant jusqu\'à 4 pieds par 4 pieds avec une précision micrométrique sur bois, acrylique et cuir.' },
-  { type: 'laser', name: 'Mandalas & Logos', icon: '🎨', desc: 'Découpe de précision multicouche complexe de mandalas décoratifs en relief ou gravures de logos d\'entreprises personnalisés.' },
-  
-  // 3D Print
-  { type: '3dprint', name: 'Impression Multicolore P1S', icon: '⚙️', desc: 'Impression 3D FDM avancée à l\'aide de notre imprimante Bambu Lab P1S avec chargeur automatique de filaments (AMS) pour des pièces multicolores en PLA/PETG.' },
-  { type: '3dprint', name: 'Prototypage & Figurines', icon: '🤖', desc: 'Modélisation et fabrication de pièces de rechange, boîtiers personnalisés, ou figurines détaillées.' },
-  
-  // Kumihimo
-  { type: 'kumihimo', name: 'Tressage Traditionnel Japonais', icon: '🧶', desc: 'Bracelets et cordons tissés à la main à l\'aide de fils de soie et de coton robustes sur un disque de tressage.' },
-  { type: 'kumihimo', name: 'Motifs Complexes', icon: '✨', desc: 'Tressage de précision à 8 ou 16 brins permettant d\'intégrer des motifs géométriques uniques.' },
-  
-  // Drone
-  { type: 'drone', name: 'Photos Aériennes 4K', icon: '📸', desc: 'Imagerie aérienne haute résolution à l\'aide du drone DJI Mini 3 Pro. Idéal pour l\'immobilier ou les paysages.' },
-  { type: 'drone', name: 'Vidéos Cinématiques', icon: '🎥', desc: 'Captures vidéo fluides en 4K avec nacelle stabilisée pour documenter des projets d\'art en plein air.' }
+  { type: 'ébénisterie', name: 'Ébénisterie & Mobilier Résine', icon: '🪵', desc: 'Conception et fabrication de tables rivières haut de gamme et objets de service en bois nobles (noyer, érable, cèdre) combinés à de la résine époxy.' },
+  { type: 'bijoux', name: 'Bijoux en Bois & Résine', icon: '💎', desc: 'Façonnage de pièces d\'orfèvrerie brute, pendentifs, bagues et colliers alliant l\'essence naturelle du bois à la transparence colorée de l\'époxy.' },
+  { type: 'laser', name: 'Gravure & Découpe Laser 4\'x4\'', icon: '📐', desc: 'Marquage et découpe de précision grand format (jusqu\'à 4 pieds par 4 pieds) sur bois massif, acrylique et cuir pour enseignes, décors multicouches et logos.' },
+  { type: 'peinture', name: 'Toiles d\'Art & Peinture Acrylique', icon: '🎨', desc: 'Création d\'œuvres abstraites et toiles Fluid Art (pouring) aux textures fluides et organiques évoquant le cosmos ou des textures minérales.' },
+  { type: 'impression3d', name: 'Impression 3D Multicolore (Bambu P1S)', icon: '⚙️', desc: 'Fabrication additive haute vitesse et multicolore (jusqu\'à 4 couleurs par pièce) pour du prototypage fonctionnel, pièces de rechange ou décors personnalisés.' },
+  { type: 'kumihimo', name: 'Bracelets & Tressage Kumihimo', icon: '🧶', desc: 'Tissage artisanal traditionnel japonais réalisé entièrement à la main avec des cordons en soie, coton ciré ou polyester pour des bracelets uniques.' },
+  { type: 'drone', name: 'Production Média & Drone (DJI Mini 3 Pro)', icon: '🚁', desc: 'Captations aériennes haute résolution (photos 48 Mpx et vidéos 4K) pour suivis de chantiers, imagerie immobilière ou contenus artistiques.' }
 ];
 
 export default function App() {
@@ -993,47 +980,22 @@ export default function App() {
         {/* MATERIALS & TECH SECTION */}
         <section id="materials" style={{ background: 'var(--bg-secondary)', borderTop: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
           <div className="section-header">
-            <h2 className="section-title">La Palette Créative &amp; Technologies</h2>
+            <h2 className="section-title">Ce que je peux produire</h2>
             <p className="section-subtitle">
-              De l'ébénisterie d'art à l'impression 3D en passant par la gravure laser 4'x4' et l'imagerie par drone, découvrez nos outils et matériaux.
+              De l'ébénisterie d'art de luxe à la haute technologie de fabrication : explorez mes capacités de production et d'artisanat.
             </p>
           </div>
 
-          <div className="pigments-tabs" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center' }}>
-            {[
-              { id: 'all', label: 'Tout voir' },
-              { id: 'epoxy', label: '🌊 Époxy & Pigments' },
-              { id: 'laser', label: '📐 Gravure Laser 4\'x4\'' },
-              { id: '3dprint', label: '⚙️ Impression 3D P1S' },
-              { id: 'kumihimo', label: '🧶 Bracelets Kumihimo' },
-              { id: 'drone', label: '🚁 Drone DJI Mini 3' }
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                className={`pigment-tab-btn ${pigmentTab === tab.id ? 'active' : ''}`}
-                onClick={() => setPigmentTab(tab.id)}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-
-          <div className="pigments-grid">
-            {craftCapabilities
-              .filter(item => pigmentTab === 'all' || item.type === pigmentTab)
-              .map((item, idx) => (
-                <div key={idx} className="pigment-card glass">
-                  {item.color ? (
-                    <div className="pigment-swatch" style={{ background: item.color }}></div>
-                  ) : (
-                    <div className="pigment-swatch" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                      {item.icon}
-                    </div>
-                  )}
-                  <h3 className="pigment-name">{item.name}</h3>
-                  <p className="pigment-desc">{item.desc}</p>
+          <div className="pigments-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', marginTop: '20px' }}>
+            {craftCapabilities.map((item, idx) => (
+              <div key={idx} className="pigment-card glass" style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '25px', textAlign: 'left', alignItems: 'flex-start' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem', width: '60px', height: '60px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', marginBottom: '20px' }}>
+                  {item.icon}
                 </div>
-              ))}
+                <h3 className="pigment-name" style={{ fontSize: '1.2rem', marginBottom: '10px', fontWeight: '600' }}>{item.name}</h3>
+                <p className="pigment-desc" style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: '1.5', margin: 0 }}>{item.desc}</p>
+              </div>
+            ))}
           </div>
         </section>
 
