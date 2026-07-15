@@ -29,7 +29,13 @@ import {
   MessageSquare,
   Scissors,
   Printer,
-  Camera
+  Camera,
+  ChefHat,
+  Calculator,
+  History,
+  Search,
+  DollarSign,
+  Info
 } from 'lucide-react';
 
 const Instagram = ({ size = 24, ...props }) => (
@@ -218,9 +224,9 @@ const craftCapabilities = [
 ];
 
 const droneVideos = [
-  { id: 1, title: "Survol de l'Atelier & Forêt Sauvage", embedUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ", desc: "Vidéo aérienne cinématique capturant les grands espaces sauvages d'où proviennent nos essences de bois nobles." },
-  { id: 2, title: "Suivi de Chantier & Intégration Paysagère", embedUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ", desc: "Démonstration d'imagerie drone DJI Mini 3 Pro pour le suivi d'une structure architecturale en bois massif." },
-  { id: 3, title: "L'Art sous un Autre Angle (Perspective vertical)", embedUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ", desc: "Vidéo artistique montrant le contraste entre le bois brut et la rivière d'époxy sous perspective aérienne." }
+  { id: 1, title: "Survol de l'Atelier & Forêt Sauvage", embedUrl: "https://www.youtube.com/embed/5vP9go4Jdxs", desc: "Vidéo aérienne cinématique capturant les grands espaces sauvages d'où proviennent nos essences de bois nobles." },
+  { id: 2, title: "Suivi de Chantier & Intégration Paysagère", embedUrl: "https://www.youtube.com/embed/1nf61dNdzPc", desc: "Démonstration d'imagerie drone DJI Mini 3 Pro pour le suivi d'une structure architecturale en bois massif." },
+  { id: 3, title: "L'Art sous un Autre Angle (Perspective vertical)", embedUrl: "https://www.youtube.com/embed/gS0N_W6-QeA", desc: "Vidéo artistique montrant le contraste entre le bois brut et la rivière d'époxy sous perspective aérienne." }
 ];
 
 const faqItems = [
@@ -264,6 +270,15 @@ export default function App() {
   // Dynamic Creations List State - initialized with fallback portfolioItems
   const [creations, setCreations] = useState(portfolioItems);
 
+  // Wood price mapping per board foot
+  const woodPriceMapping = {
+    'Noyer noir (Foncé, grain riche)': 14,
+    'Érable (Clair, très robuste)': 9,
+    'Cèdre (Chaud, excellent parfum, résistant)': 7,
+    'Cerisier (Ambré, grain fin)': 10,
+    'Autre / Je ne sais pas encore': 9
+  };
+
   // Admin Dashboard States
   const [isAdminVisible, setIsAdminVisible] = useState(false);
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
@@ -282,6 +297,29 @@ export default function App() {
     mediums: ''
   });
 
+  // Admin Pricing Calculator & References States
+  const [adminActiveTab, setAdminActiveTab] = useState('boutique'); // 'boutique', 'calculator', 'feed'
+  const [savedEstimates, setSavedEstimates] = useState([]);
+  const [calcForm, setCalcForm] = useState({
+    title: '',
+    category: 'board',
+    woodSpecies: 'Noyer noir (Foncé, grain riche)',
+    length: '18',
+    width: '12',
+    thickness: '1',
+    epoxyPercent: '15',
+    laborHours: '4',
+    hourlyRate: '40',
+    woodCostPerBF: '14',
+    epoxyCostPerL: '28',
+    finishingCost: '20',
+    marginMultiplier: '1.4',
+    notes: ''
+  });
+  const [estimateSearch, setEstimateSearch] = useState('');
+  const [estimateCategoryFilter, setEstimateCategoryFilter] = useState('all');
+  const [selectedEstimateDetail, setSelectedEstimateDetail] = useState(null);
+
   // Custom Project Builder State
   const [builderStep, setBuilderStep] = useState(1);
   const [projectData, setProjectData] = useState({
@@ -297,7 +335,11 @@ export default function App() {
     fileBase64: '',
     fileName: '',
     fileSize: '',
-    cloudLink: ''
+    cloudLink: '',
+    presetSize: '',
+    length: '',
+    width: '',
+    thickness: ''
   });
   const [builderSubmitted, setBuilderSubmitted] = useState(false);
 
@@ -534,7 +576,7 @@ export default function App() {
         id: doc.id,
         type: 'project',
         title: 'Nouveau projet sur mesure (devis)',
-        details: `${doc.data().name} (${doc.data().email}) veut un projet de type "${doc.data().type}" en ${doc.data().wood || 'bois non spécifié'}, résine: ${doc.data().epoxy || 'non spécifié'}, piétement: ${doc.data().legs || 'non spécifié'}. Notes: ${doc.data().notes || 'aucune'}`,
+        details: `${doc.data().name || 'Anonyme'} (${doc.data().email || 'pas de courriel'}) veut un projet de type "${doc.data().type}" en ${doc.data().wood || 'bois non spécifié'}, résine: ${doc.data().epoxy || 'non spécifié'}, piétement: ${doc.data().legs || 'non spécifié'}. Notes: ${doc.data().notes || 'aucune'}${doc.data().estimatedPrice ? ` [Est: ${doc.data().estimatedPrice}]` : ''}`,
         fileBase64: doc.data().fileBase64 || '',
         fileName: doc.data().fileName || '',
         fileSize: doc.data().fileSize || '',
@@ -549,7 +591,7 @@ export default function App() {
         id: doc.id,
         type: 'inquiry',
         title: 'Nouveau message de contact',
-        details: `${doc.data().name} (${doc.data().email}) : Sujet: "${doc.data().subject}". Message: "${doc.data().message}"`,
+        details: `${doc.data().name || 'Nom non spécifié'} (${doc.data().email || 'pas de courriel'}) : Sujet: "${doc.data().subject}". Message: "${doc.data().message}"`,
         date: doc.data().createdAt?.toDate() || new Date()
       }));
       updateFeed('inquiries', i);
@@ -566,13 +608,94 @@ export default function App() {
       updateFeed('chatbot', c);
     }, (err) => console.error("Err feed chatbot:", err));
 
+    // Fetch saved calculations/estimates
+    const unsubEstimates = onSnapshot(collection(db, 'saved_estimates'), (snap) => {
+      const ests = snap.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        date: doc.data().createdAt?.toDate() || new Date()
+      }));
+      setSavedEstimates(ests.sort((a, b) => b.date - a.date));
+    }, (err) => {
+      console.error("Err feed estimates:", err);
+    });
+
     return () => {
       unsubOrders();
       unsubProjects();
       unsubInquiries();
       unsubChatbot();
+      unsubEstimates();
     };
   }, [isAdminLoggedIn]);
+
+  // Set mock saved estimates if firebase is absent (fallback for local mock mode)
+  useEffect(() => {
+    if (!db && isAdminLoggedIn && savedEstimates.length === 0) {
+      setSavedEstimates([
+        {
+          id: 'mock-est-1',
+          title: "Planche apéro en noyer pour Sophie",
+          category: "board",
+          woodSpecies: "Noyer noir (Foncé, grain riche)",
+          dimensions: "10\" x 14\" x 0.75\"",
+          length: 14,
+          width: 10,
+          thickness: 0.75,
+          woodCost: 18,
+          epoxyVolume: 0.35,
+          epoxyCost: 10,
+          laborHours: 4,
+          laborCost: 160,
+          otherCosts: 15,
+          margin: 1.4,
+          finalPrice: 284,
+          notes: "Poignées intégrées et gravure au laser d'un logo de famille.",
+          date: new Date(Date.now() - 3600000 * 24 * 3)
+        },
+        {
+          id: 'mock-est-2',
+          title: "Table rivière en érable pour Tremblay",
+          category: "table",
+          woodSpecies: "Érable (Clair, très robuste)",
+          dimensions: "36\" x 72\" x 1.75\"",
+          length: 72,
+          width: 36,
+          thickness: 1.75,
+          woodCost: 350,
+          epoxyVolume: 12.5,
+          epoxyCost: 350,
+          laborHours: 25,
+          laborCost: 1000,
+          otherCosts: 120,
+          margin: 1.4,
+          finalPrice: 2548,
+          notes: "Pieds en X, rivière bleu océan translucide.",
+          date: new Date(Date.now() - 3600000 * 24 * 10)
+        },
+        {
+          id: 'mock-est-3',
+          title: "Planche charcuterie géante - Le Cargo",
+          category: "board",
+          woodSpecies: "Cerisier (Ambré, grain fin)",
+          dimensions: "18\" x 36\" x 1.25\"",
+          length: 36,
+          width: 18,
+          thickness: 1.25,
+          woodCost: 75,
+          epoxyVolume: 1.8,
+          epoxyCost: 50,
+          laborHours: 6,
+          laborCost: 240,
+          otherCosts: 25,
+          margin: 1.3,
+          finalPrice: 507,
+          notes: "Série de 3 planches pour le service du bar à vin.",
+          date: new Date(Date.now() - 3600000 * 24 * 15)
+        }
+      ]);
+    }
+  }, [isAdminLoggedIn, db]);
 
   const handleAdminLogin = (e) => {
     e.preventDefault();
@@ -720,12 +843,231 @@ export default function App() {
     handleNextStep();
   };
 
+  const handleSelectPreset = (preset, dims) => {
+    let parsed = {};
+    if (dims !== 'custom') {
+      const cleanDims = dims.replace(/"/g, '');
+      const parts = cleanDims.split(' x ');
+      if (parts.length === 3) {
+        parsed = {
+          length: parseFloat(parts[0]) || '',
+          width: parseFloat(parts[1]) || '',
+          thickness: parseFloat(parts[2]) || ''
+        };
+      }
+    }
+    setProjectData(prev => {
+      const l = dims === 'custom' ? (prev.length || '') : (parsed.length || '');
+      const w = dims === 'custom' ? (prev.width || '') : (parsed.width || '');
+      const t = dims === 'custom' ? (prev.thickness || '') : (parsed.thickness || '');
+      return {
+        ...prev,
+        presetSize: preset,
+        dimensions: dims === 'custom' ? `${l}" x ${w}" x ${t}"` : dims,
+        length: l,
+        width: w,
+        thickness: t
+      };
+    });
+  };
+
+  const handleCustomDimensionChange = (field, value) => {
+    setProjectData(prev => {
+      const updated = { ...prev, [field]: value };
+      const l = updated.length || '0';
+      const w = updated.width || '0';
+      const t = updated.thickness || '0';
+      updated.dimensions = `${l}" x ${w}" x ${t}"`;
+      return updated;
+    });
+  };
+
+  const calculateLiveEstimate = (data) => {
+    if (!data.type) return null;
+    
+    // Non-wood/epoxy projects simple pricing fallbacks
+    if (data.type === 'Bijou en bois/époxy') return { min: 45, max: 95 };
+    if (data.type === 'Fractale de Lichtenberg') return { min: 140, max: 280 };
+    if (data.type === 'Découpe & Gravure laser') return { min: 60, max: 220 };
+    if (data.type === 'Impression 3D') return { min: 25, max: 150 };
+    if (data.type === 'Bracelet Kumihimo') return { min: 20, max: 45 };
+    if (data.type === 'Photo/Vidéo Drone') return { min: 180, max: 450 };
+
+    // Wood & Epoxy projects calculations (Tables and Presentation boards)
+    let length = parseFloat(data.length);
+    let width = parseFloat(data.width);
+    let thickness = parseFloat(data.thickness);
+
+    // Fallback if dimensions aren't fully specified
+    if (isNaN(length) || isNaN(width) || isNaN(thickness) || length <= 0 || width <= 0 || thickness <= 0) {
+      if (data.type === 'Planche de présentation') {
+        return { min: 120, max: 290 }; // generic range for presentation board
+      }
+      if (data.type === 'Table rivière') {
+        return { min: 1200, max: 3200 }; // generic range for table
+      }
+      return null;
+    }
+
+    // Wood price factor
+    let bfPrice = 9; // average/default
+    if (data.wood) {
+      if (data.wood.includes('Noyer')) bfPrice = 14;
+      else if (data.wood.includes('Érable')) bfPrice = 9;
+      else if (data.wood.includes('Cèdre')) bfPrice = 7;
+      else if (data.wood.includes('Cerisier')) bfPrice = 10;
+    }
+
+    // Epoxy inclusion factor
+    let hasEpoxy = data.epoxy && !data.epoxy.includes("Sans résine") && !data.epoxy.includes("Pas d'époxy");
+    let epoxyFraction = 0;
+    if (hasEpoxy) {
+      epoxyFraction = data.type === 'Table rivière' ? 0.30 : 0.15;
+    }
+
+    // Calculations
+    const totalVolume = length * width * thickness;
+    const woodBF = (totalVolume * (1 - epoxyFraction)) / 12;
+    const woodCost = woodBF * bfPrice;
+
+    let epoxyCost = 0;
+    if (hasEpoxy) {
+      const epoxyVolumeLiters = totalVolume * epoxyFraction * 0.0163871;
+      epoxyCost = epoxyVolumeLiters * 28; // $28 per liter
+    }
+
+    // Labor hours estimate
+    let laborHours = 0;
+    if (data.type === 'Planche de présentation') {
+      laborHours = length > 20 ? 6 : 4;
+    } else if (data.type === 'Table rivière') {
+      laborHours = length > 60 ? 30 : 20;
+    }
+    const laborCost = laborHours * 40; // $40 per hour
+
+    // Piétement (legs) for tables
+    let legsCost = 0;
+    if (data.type === 'Table rivière' && data.legs) {
+      if (data.legs.includes('X')) legsCost = 130;
+      else if (data.legs.includes('Trapèze') || data.legs.includes('H')) legsCost = 150;
+      else if (data.legs.includes('Épingle')) legsCost = 80;
+      else if (data.legs.includes('Mikado') || data.legs.includes('Araignée')) legsCost = 250;
+    }
+
+    const finishingCost = data.type === 'Table rivière' ? 100 : 20;
+
+    const baseCost = woodCost + epoxyCost + laborCost + legsCost + finishingCost;
+    const retailPrice = baseCost * 1.4; // 1.4x markup
+
+    // Return a realistic range (+/- 10%)
+    const min = Math.round(retailPrice * 0.9);
+    const max = Math.round(retailPrice * 1.1);
+    
+    return { min, max, woodBF: woodBF.toFixed(1), epoxyLiters: (totalVolume * epoxyFraction * 0.0163871).toFixed(2) };
+  };
+
+  const handleSaveEstimate = async (e) => {
+    e.preventDefault();
+    
+    // Calculate final price mathematically
+    const length = parseFloat(calcForm.length) || 0;
+    const width = parseFloat(calcForm.width) || 0;
+    const thickness = parseFloat(calcForm.thickness) || 0;
+    const epoxyPercent = parseFloat(calcForm.epoxyPercent) || 0;
+    const laborHours = parseFloat(calcForm.laborHours) || 0;
+    const hourlyRate = parseFloat(calcForm.hourlyRate) || 40;
+    const woodCostPerBF = parseFloat(calcForm.woodCostPerBF) || 0;
+    const epoxyCostPerL = parseFloat(calcForm.epoxyCostPerL) || 0;
+    const finishingCost = parseFloat(calcForm.finishingCost) || 20;
+    const marginMultiplier = parseFloat(calcForm.marginMultiplier) || 1.4;
+
+    const totalVolume = length * width * thickness;
+    const epoxyFraction = epoxyPercent / 100;
+    const woodBF = (totalVolume * (1 - epoxyFraction)) / 12;
+    const woodCost = woodBF * woodCostPerBF;
+    const epoxyVolumeLiters = totalVolume * epoxyFraction * 0.0163871;
+    const epoxyCost = epoxyVolumeLiters * epoxyCostPerL;
+    const laborCost = laborHours * hourlyRate;
+    const baseCost = woodCost + epoxyCost + laborCost + finishingCost;
+    const finalPrice = Math.round(baseCost * marginMultiplier);
+
+    const estimateData = {
+      title: calcForm.title || `Simulation ${calcForm.category === 'board' ? 'Planche' : 'Table'} ${new Date().toLocaleDateString('fr-CA')}`,
+      category: calcForm.category,
+      woodSpecies: calcForm.woodSpecies,
+      dimensions: `${length}" x ${width}" x ${thickness}"`,
+      length,
+      width,
+      thickness,
+      woodCost: Math.round(woodCost),
+      epoxyVolume: parseFloat(epoxyVolumeLiters.toFixed(2)),
+      epoxyCost: Math.round(epoxyCost),
+      laborHours,
+      laborCost: Math.round(laborCost),
+      otherCosts: Math.round(finishingCost),
+      margin: marginMultiplier,
+      finalPrice,
+      notes: calcForm.notes
+    };
+
+    if (db) {
+      try {
+        await addDoc(collection(db, 'saved_estimates'), {
+          ...estimateData,
+          createdAt: serverTimestamp()
+        });
+        alert("Simulation enregistrée avec succès comme référence !");
+      } catch (err) {
+        console.error("Erreur lors de l'enregistrement de l'estimation :", err);
+        alert("Erreur lors de l'enregistrement dans Firestore.");
+      }
+    } else {
+      const newEst = {
+        id: 'mock-est-' + Date.now(),
+        ...estimateData,
+        date: new Date()
+      };
+      setSavedEstimates(prev => [newEst, ...prev]);
+      alert("Firebase n'est pas configuré. L'estimation a été enregistrée en mode local (mémoire).");
+    }
+
+    setCalcForm(prev => ({
+      ...prev,
+      title: '',
+      notes: ''
+    }));
+  };
+
+  const handleDeleteEstimate = async (id) => {
+    if (!window.confirm("Êtes-vous sûr de vouloir supprimer cette simulation ?")) return;
+    
+    setSavedEstimates(prev => prev.filter(item => item.id !== id));
+    
+    if (!db) {
+      alert("Simulation supprimée localement.");
+      return;
+    }
+    
+    try {
+      await deleteDoc(doc(db, 'saved_estimates', String(id)));
+      alert("Simulation supprimée avec succès !");
+    } catch (error) {
+      console.error("Erreur lors de la suppression de l'estimation :", error);
+      alert("Erreur de suppression dans Firestore.");
+    }
+  };
+
   const handleBuilderSubmit = async (e) => {
     e.preventDefault();
+    
+    const est = calculateLiveEstimate(projectData);
+    const calculatedPrice = est ? `${est.min} $ - ${est.max} $ CAD` : 'Sur demande';
+
     if (db) {
       try {
         await addDoc(collection(db, 'projects'), {
           ...projectData,
+          estimatedPrice: calculatedPrice,
           createdAt: serverTimestamp()
         });
       } catch (err) {
@@ -1426,6 +1768,16 @@ de commande en temps réel sur evanpatruno.art.
                       </div>
 
                       <div 
+                        className={`choice-card ${projectData.type === 'Planche de présentation' ? 'selected' : ''}`}
+                        onClick={() => selectProjectType('Planche de présentation')}
+                        id="choice-presentation-board"
+                      >
+                        <div className="choice-icon"><ChefHat size={24} /></div>
+                        <span className="choice-title">Planche de présentation</span>
+                        <span className="choice-desc">Planches à découper, de service &amp; charcuterie en bois et époxy</span>
+                      </div>
+
+                      <div 
                         className={`choice-card ${projectData.type === 'Bijou en bois/époxy' ? 'selected' : ''}`}
                         onClick={() => selectProjectType('Bijou en bois/époxy')}
                         id="choice-jewelry"
@@ -1490,8 +1842,8 @@ de commande en temps réel sur evanpatruno.art.
                   {/* Step 2: Custom options based on project type */}
                   {builderStep === 2 && (
                     <div className="choices-grid" id="builder-step-2">
-                      {/* For Wood & Resin projects (Tables, Jewelry, Lichtenberg, Laser) */}
-                      {['Table rivière', 'Bijou en bois/époxy', 'Fractale de Lichtenberg', 'Découpe & Gravure laser'].includes(projectData.type) && (
+                      {/* For Wood & Resin projects (Tables, Boards, Jewelry, Lichtenberg, Laser) */}
+                      {['Table rivière', 'Planche de présentation', 'Bijou en bois/époxy', 'Fractale de Lichtenberg', 'Découpe & Gravure laser'].includes(projectData.type) && (
                         <>
                           <div className="builder-form-group" style={{ gridColumn: 'span 2' }}>
                             <label htmlFor="wood-select">Essence de bois privilégiée</label>
@@ -1665,17 +2017,108 @@ de commande en temps réel sur evanpatruno.art.
                   {/* Step 3: Dimensions & Notes */}
                   {builderStep === 3 && (
                     <div className="choices-grid" id="builder-step-3" style={{ display: 'flex', flexDirection: 'column' }}>
-                      <div className="builder-form-group">
-                        <label htmlFor="input-dimensions">Dimensions approximatives (ex: 30" x 60" ou en mm)</label>
-                        <input 
-                          type="text" 
-                          id="input-dimensions"
-                          className="builder-input" 
-                          placeholder="Entrez les dimensions souhaitées"
-                          value={projectData.dimensions}
-                          onChange={(e) => setProjectData(prev => ({ ...prev, dimensions: e.target.value }))}
-                        />
-                      </div>
+                      {['Table rivière', 'Planche de présentation'].includes(projectData.type) ? (
+                        <div className="builder-form-group">
+                          <label>Dimensions souhaitées (pouces)</label>
+                          <div className="presets-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', marginBottom: '15px' }}>
+                            {projectData.type === 'Planche de présentation' ? [
+                              { id: 'small', title: 'Petite planche', desc: '10" x 14" x 0.75" (Apéro/Service)', dimensions: '14" x 10" x 0.75"' },
+                              { id: 'medium', title: 'Moyenne planche', desc: '12" x 18" x 1.0" (Standard)', dimensions: '18" x 12" x 1.0"' },
+                              { id: 'large', title: 'Grande planche', desc: '16" x 24" x 1.25" (Charcuterie géante)', dimensions: '24" x 16" x 1.25"' },
+                              { id: 'custom', title: 'Sur mesure', desc: 'Définissez vos propres dimensions', dimensions: 'custom' }
+                            ].map(p => (
+                              <div 
+                                key={p.id}
+                                className={`preset-card glass ${projectData.presetSize === p.id ? 'active' : ''}`}
+                                onClick={() => handleSelectPreset(p.id, p.dimensions)}
+                                style={{
+                                  padding: '12px',
+                                  borderRadius: '12px',
+                                  border: projectData.presetSize === p.id ? '2px solid var(--accent-epoxy)' : '1px solid var(--border-color)',
+                                  cursor: 'pointer',
+                                  background: projectData.presetSize === p.id ? 'rgba(176, 84, 156, 0.1)' : 'transparent',
+                                  textAlign: 'center',
+                                  transition: 'all 0.3s'
+                                }}
+                              >
+                                <div style={{ fontWeight: '600', fontSize: '0.9rem', color: '#fff' }}>{p.title}</div>
+                                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>{p.desc}</div>
+                              </div>
+                            )) : [
+                              { id: 'small', title: 'Table Basse', desc: '36" x 20" x 1.5"', dimensions: '36" x 20" x 1.5"' },
+                              { id: 'medium', title: 'Table de repas moyenne', desc: '60" x 36" x 1.75" (4-6 pers.)', dimensions: '60" x 36" x 1.75"' },
+                              { id: 'large', title: 'Table de repas grande', desc: '84" x 40" x 2.0" (6-8 pers.)', dimensions: '84" x 40" x 2.0"' },
+                              { id: 'custom', title: 'Sur mesure', desc: 'Définissez vos propres dimensions', dimensions: 'custom' }
+                            ].map(p => (
+                              <div 
+                                key={p.id}
+                                className={`preset-card glass ${projectData.presetSize === p.id ? 'active' : ''}`}
+                                onClick={() => handleSelectPreset(p.id, p.dimensions)}
+                                style={{
+                                  padding: '12px',
+                                  borderRadius: '12px',
+                                  border: projectData.presetSize === p.id ? '2px solid var(--accent-epoxy)' : '1px solid var(--border-color)',
+                                  cursor: 'pointer',
+                                  background: projectData.presetSize === p.id ? 'rgba(176, 84, 156, 0.1)' : 'transparent',
+                                  textAlign: 'center',
+                                  transition: 'all 0.3s'
+                                }}
+                              >
+                                <div style={{ fontWeight: '600', fontSize: '0.9rem', color: '#fff' }}>{p.title}</div>
+                                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>{p.desc}</div>
+                              </div>
+                            ))}
+                          </div>
+
+                          {projectData.presetSize === 'custom' && (
+                            <div className="custom-dimensions-inputs" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '15px' }}>
+                              <div className="builder-form-group">
+                                <label style={{ fontSize: '0.8rem' }}>Longueur (L - pouces)</label>
+                                <input 
+                                  type="number" 
+                                  className="builder-input" 
+                                  placeholder='ex: 18'
+                                  value={projectData.length || ''}
+                                  onChange={(e) => handleCustomDimensionChange('length', e.target.value)}
+                                />
+                              </div>
+                              <div className="builder-form-group">
+                                <label style={{ fontSize: '0.8rem' }}>Largeur (W - pouces)</label>
+                                <input 
+                                  type="number" 
+                                  className="builder-input" 
+                                  placeholder='ex: 12'
+                                  value={projectData.width || ''}
+                                  onChange={(e) => handleCustomDimensionChange('width', e.target.value)}
+                                />
+                              </div>
+                              <div className="builder-form-group">
+                                <label style={{ fontSize: '0.8rem' }}>Épaisseur (T - pouces)</label>
+                                <input 
+                                  type="number" 
+                                  step="0.25"
+                                  className="builder-input" 
+                                  placeholder='ex: 1'
+                                  value={projectData.thickness || ''}
+                                  onChange={(e) => handleCustomDimensionChange('thickness', e.target.value)}
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="builder-form-group">
+                          <label htmlFor="input-dimensions">Dimensions approximatives (ex: 30" x 60" ou en mm)</label>
+                          <input 
+                            type="text" 
+                            id="input-dimensions"
+                            className="builder-input" 
+                            placeholder="Entrez les dimensions souhaitées"
+                            value={projectData.dimensions}
+                            onChange={(e) => setProjectData(prev => ({ ...prev, dimensions: e.target.value }))}
+                          />
+                        </div>
+                      )}
 
                       <div className="builder-form-group">
                         <label htmlFor="textarea-notes">Détails ou instructions spécifiques</label>
@@ -1748,6 +2191,42 @@ de commande en temps réel sur evanpatruno.art.
                         )}
                       </div>
 
+                      {/* Client live pricing estimate card */}
+                      {(() => {
+                        const est = calculateLiveEstimate(projectData);
+                        if (!est) return null;
+                        return (
+                          <div className="estimate-card glass" style={{
+                            marginTop: '25px',
+                            padding: '20px',
+                            borderRadius: '16px',
+                            border: '1px solid rgba(176, 84, 156, 0.3)',
+                            background: 'linear-gradient(135deg, rgba(30, 10, 25, 0.9) 0%, rgba(18, 0, 16, 0.95) 100%)',
+                            boxShadow: '0 8px 32px 0 rgba(176, 84, 156, 0.15)'
+                          }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-epoxy)', fontWeight: '600', marginBottom: '10px' }}>
+                              <Sparkles size={18} />
+                              <span>Estimation de Devis en Temps Réel</span>
+                            </div>
+                            <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#fff', margin: '10px 0' }}>
+                              {est.min.toLocaleString('fr-CA')} $ - {est.max.toLocaleString('fr-CA')} $ CAD
+                            </div>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
+                              Cette estimation comprend :
+                              <ul style={{ paddingLeft: '20px', marginTop: '5px', listStyleType: 'circle' }}>
+                                {projectData.wood && <li>Essence : <strong>{projectData.wood.split(' ')[0]}</strong> {est.woodBF ? `(~${est.woodBF} BF)` : ''}</li>}
+                                {est.epoxyLiters > 0 && <li>Résine Époxy : <strong>{projectData.epoxy ? projectData.epoxy.split(' ')[0] : 'Inclus'}</strong> ({est.epoxyLiters} Litres)</li>}
+                                {projectData.legs && <li>Piétement : <strong>{projectData.legs}</strong></li>}
+                                <li>Main d'œuvre artisanale &amp; finition haut de gamme</li>
+                              </ul>
+                            </div>
+                            <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '12px', fontStyle: 'italic' }}>
+                              * Les prix sont indicatifs et dépendent de la complexité finale. Un devis officiel vous sera envoyé après validation de vos croquis.
+                            </p>
+                          </div>
+                        );
+                      })()}
+
                       <div className="builder-form-group">
                         <label htmlFor="input-cloud-link">Lien vers fichier de conception externe (ex: Google Drive, Dropbox, Thingiverse)</label>
                         <input 
@@ -1783,6 +2262,16 @@ de commande en temps réel sur evanpatruno.art.
                           <span className="summary-label">Taille :</span>
                           <span className="summary-value">{projectData.dimensions || 'Non spécifié'}</span>
                         </div>
+                        {(() => {
+                          const est = calculateLiveEstimate(projectData);
+                          if (!est) return null;
+                          return (
+                            <div className="summary-row" style={{ borderTop: '1px solid var(--border-color)', paddingTop: '10px', marginTop: '10px' }}>
+                              <span className="summary-label" style={{ color: 'var(--accent-epoxy)', fontWeight: 'bold' }}>Prix estimé :</span>
+                              <span className="summary-value" style={{ color: '#fff', fontWeight: 'bold', fontSize: '1.2rem' }}>{est.min.toLocaleString('fr-CA')} $ - {est.max.toLocaleString('fr-CA')} $ CAD</span>
+                            </div>
+                          );
+                        })()}
                       </div>
 
                       <div className="builder-form-group">
@@ -2168,324 +2657,771 @@ de commande en temps réel sur evanpatruno.art.
           </div>
         </section>
 
-        {/* ADMIN DASHBOARD SECTION */}
         {isAdminLoggedIn && (
           <section id="admin-dashboard" className="admin-dashboard">
             <div className="section-header">
               <h2 className="section-title">Tableau de bord Administrateur</h2>
               <p className="section-subtitle">
-                Gérez en direct les créations de votre catalogue public. Ajoutez de nouvelles pièces ou modifiez les prix et disponibilités.
+                Gérez vos créations, estimez les coûts de vos projets sur mesure et consultez l'historique de vos tarifs.
               </p>
             </div>
 
-            {/* ADMIN METRICS PANEL */}
-            {(() => {
-              const ordersCount = activityFeed.filter(act => act.type === 'order').length;
-              const totalRevenue = activityFeed
-                .filter(act => act.type === 'order')
-                .reduce((sum, act) => {
-                  const raw = act.priceCAD || act.convertedPrice || "0";
-                  const val = parseFloat(raw.replace(/[^0-9]/g, '')) || 0;
-                  return sum + val;
-                }, 0);
-              const leadsCount = activityFeed.filter(act => act.type === 'project' || act.type === 'inquiry' || act.type === 'chatbot').length;
-              const totalActs = activityFeed.length || 1;
-              const conversionRate = ((ordersCount / totalActs) * 100).toFixed(1);
-
-              return (
-                <div className="admin-metrics-grid" style={{ marginBottom: '30px' }}>
-                  <div className="metric-card glass" style={{ borderLeft: '4px solid var(--accent-epoxy)' }}>
-                    <span className="metric-title">Chiffre d'Affaires</span>
-                    <span className="metric-value">{totalRevenue.toLocaleString('fr-CA')} $ CAD</span>
-                    <span style={{ fontSize: '0.75rem', color: '#10b981' }}>📈 Ventes simulées Stripe</span>
-                  </div>
-                  <div className="metric-card glass" style={{ borderLeft: '4px solid var(--accent-wood)' }}>
-                    <span className="metric-title">Commandes Reçues</span>
-                    <span className="metric-value">{ordersCount}</span>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>🛒 Panier & Achat Direct</span>
-                  </div>
-                  <div className="metric-card glass" style={{ borderLeft: '4px solid var(--accent-voltage)' }}>
-                    <span className="metric-title">Prospects / Leads</span>
-                    <span className="metric-value">{leadsCount}</span>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>✉️ Formulaires & Chatbot</span>
-                  </div>
-                  <div className="metric-card glass" style={{ borderLeft: '4px solid var(--accent-laser)' }}>
-                    <span className="metric-title">Taux d'Engagement</span>
-                    <span className="metric-value">{conversionRate} %</span>
-                    <span style={{ fontSize: '0.75rem', color: '#3b82f6' }}>⚡ Taux de conversion</span>
-                  </div>
-                </div>
-              );
-            })()}
-
-            <div className="admin-dashboard-grid">
-              {/* Form Col */}
-              <div className="admin-form-container glass">
-                <h3 className="contact-info-title" style={{ marginBottom: '20px' }}>
-                  {editingCreation ? "Modifier l'œuvre" : "Ajouter une œuvre"}
-                </h3>
-                <form onSubmit={handleSaveCreation} className="contact-form">
-                  <div className="builder-form-group">
-                    <label htmlFor="form-title">Titre de l'œuvre *</label>
-                    <input 
-                      type="text" 
-                      id="form-title" 
-                      className="builder-input" 
-                      required 
-                      value={adminForm.title}
-                      onChange={(e) => setAdminForm(prev => ({ ...prev, title: e.target.value }))}
-                    />
-                  </div>
-
-                  <div className="form-row">
-                    <div className="builder-form-group">
-                      <label htmlFor="form-category">Catégorie *</label>
-                      <select 
-                        id="form-category" 
-                        className="builder-select" 
-                        value={adminForm.category}
-                        onChange={(e) => setAdminForm(prev => ({ ...prev, category: e.target.value }))}
-                      >
-                        <option value="table">🪵 Table &amp; Mobilier</option>
-                        <option value="jewelry">💎 Bijoux</option>
-                        <option value="lichtenberg">⚡ Fractale Lichtenberg</option>
-                        <option value="laser">🎨 Art Laser &amp; Acrylique</option>
-                      </select>
-                    </div>
-
-                    <div className="builder-form-group">
-                      <label htmlFor="form-status">Statut *</label>
-                      <select 
-                        id="form-status" 
-                        className="builder-select" 
-                        value={adminForm.status}
-                        onChange={(e) => setAdminForm(prev => ({ ...prev, status: e.target.value }))}
-                      >
-                        <option value="available">Disponible</option>
-                        <option value="sold">Vendu</option>
-                        <option value="custom-only">Sur commande</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="form-row">
-                    <div className="builder-form-group">
-                      <label htmlFor="form-price">Prix (ex: 1 850 $ ou Sur demande) *</label>
-                      <input 
-                        type="text" 
-                        id="form-price" 
-                        className="builder-input" 
-                        required 
-                        value={adminForm.price}
-                        onChange={(e) => setAdminForm(prev => ({ ...prev, price: e.target.value }))}
-                      />
-                    </div>
-
-                    <div className="builder-form-group">
-                      <label htmlFor="form-image">Nom du fichier image (ex: table.png) *</label>
-                      <input 
-                        type="text" 
-                        id="form-image" 
-                        className="builder-input" 
-                        placeholder="nom-fichier.png (déposé dans public/assets)"
-                        required 
-                        value={adminForm.image}
-                        onChange={(e) => setAdminForm(prev => ({ ...prev, image: e.target.value }))}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="form-row">
-                    <div className="builder-form-group">
-                      <label htmlFor="form-wood">Essence de bois</label>
-                      <input 
-                        type="text" 
-                        id="form-wood" 
-                        className="builder-input" 
-                        placeholder="Ex: Frêne, Noyer, N/A"
-                        value={adminForm.wood}
-                        onChange={(e) => setAdminForm(prev => ({ ...prev, wood: e.target.value }))}
-                      />
-                    </div>
-
-                    <div className="builder-form-group">
-                      <label htmlFor="form-dimensions">Dimensions</label>
-                      <input 
-                        type="text" 
-                        id="form-dimensions" 
-                        className="builder-input" 
-                        placeholder='Ex: 24" x 30", Diamètre 24"'
-                        value={adminForm.dimensions}
-                        onChange={(e) => setAdminForm(prev => ({ ...prev, dimensions: e.target.value }))}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="builder-form-group">
-                    <label htmlFor="form-mediums">Médiums / Résine / Matériaux</label>
-                    <input 
-                      type="text" 
-                      id="form-mediums" 
-                      className="builder-input" 
-                      placeholder="Ex: Résine turquoise, Acrylique pouring"
-                      value={adminForm.mediums}
-                      onChange={(e) => setAdminForm(prev => ({ ...prev, mediums: e.target.value }))}
-                    />
-                  </div>
-
-                  <div className="builder-form-group">
-                    <label htmlFor="form-desc">Description de l'œuvre *</label>
-                    <textarea 
-                      id="form-desc" 
-                      className="builder-textarea" 
-                      required 
-                      value={adminForm.desc}
-                      onChange={(e) => setAdminForm(prev => ({ ...prev, desc: e.target.value }))}
-                    ></textarea>
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '10px' }}>
-                    {editingCreation && (
-                      <button 
-                        type="button" 
-                        onClick={() => {
-                          setEditingCreation(null);
-                          setAdminForm({
-                            title: '',
-                            category: 'table',
-                            desc: '',
-                            price: '',
-                            status: 'available',
-                            image: ''
-                          });
-                        }} 
-                        className="btn-secondary" 
-                        style={{ flex: 1 }}
-                      >
-                        Annuler
-                      </button>
-                    )}
-                    <button type="submit" className="btn-form-submit" style={{ flex: 1, marginTop: 0 }}>
-                      {editingCreation ? "Enregistrer" : "Créer l'œuvre"}
-                    </button>
-                  </div>
-                </form>
-              </div>
-
-              {/* List Col */}
-              <div className="admin-list-container glass">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '15px' }}>
-                  <h3 className="contact-info-title" style={{ margin: 0 }}>Catalogue Actuel ({creations.length})</h3>
-                  <button onClick={() => setIsAdminLoggedIn(false)} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '0.8rem' }}>Déconnexion</button>
-                </div>
-                
-                <div className="admin-list-scroll">
-                  {creations.map((item) => (
-                    <div key={item.id} className="admin-item-row">
-                      <div className="admin-item-meta">
-                        <img src={item.image} alt={item.title} className="admin-item-thumb" />
-                        <div className="admin-item-info">
-                          <h4>{item.title}</h4>
-                          <p>{item.price} • {item.statusText}</p>
-                        </div>
-                      </div>
-                      <div className="admin-item-actions">
-                        <button onClick={() => handleSelectEdit(item)} className="btn-admin-edit">Modifier</button>
-                        <button onClick={() => handleDeleteCreation(item.id)} className="btn-admin-delete">Supprimer</button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+            {/* ADMIN NAVIGATION TABS */}
+            <div className="admin-tabs" style={{ display: 'flex', gap: '15px', marginBottom: '25px', borderBottom: '1px solid var(--border-color)', paddingBottom: '15px', flexWrap: 'wrap' }}>
+              <button 
+                onClick={() => setAdminActiveTab('boutique')} 
+                className={`btn-tab ${adminActiveTab === 'boutique' ? 'active' : ''}`}
+                style={{
+                  background: adminActiveTab === 'boutique' ? 'var(--accent-epoxy)' : 'transparent',
+                  color: '#fff',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: '12px',
+                  padding: '10px 20px',
+                  cursor: 'pointer',
+                  fontWeight: '600',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  transition: 'all 0.3s'
+                }}
+              >
+                <Hammer size={18} />
+                Boutique &amp; Catalogue
+              </button>
+              <button 
+                onClick={() => setAdminActiveTab('calculator')} 
+                className={`btn-tab ${adminActiveTab === 'calculator' ? 'active' : ''}`}
+                style={{
+                  background: adminActiveTab === 'calculator' ? 'var(--accent-epoxy)' : 'transparent',
+                  color: '#fff',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: '12px',
+                  padding: '10px 20px',
+                  cursor: 'pointer',
+                  fontWeight: '600',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  transition: 'all 0.3s'
+                }}
+              >
+                <Calculator size={18} />
+                Calculateur de Prix Artisan
+              </button>
+              <button 
+                onClick={() => setAdminActiveTab('feed')} 
+                className={`btn-tab ${adminActiveTab === 'feed' ? 'active' : ''}`}
+                style={{
+                  background: adminActiveTab === 'feed' ? 'var(--accent-epoxy)' : 'transparent',
+                  color: '#fff',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: '12px',
+                  padding: '10px 20px',
+                  cursor: 'pointer',
+                  fontWeight: '600',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  transition: 'all 0.3s'
+                }}
+              >
+                <History size={18} />
+                Flux d'Activité &amp; Devis ({activityFeed.length})
+              </button>
             </div>
-          </div>
 
-          {/* Activity Feed Section */}
-            <div className="activity-feed-section glass" style={{ marginTop: '30px', padding: '30px', borderRadius: '24px' }}>
-              <h3 className="contact-info-title" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '15px', marginBottom: '20px' }}>
-                Flux d'Activité en Direct
-              </h3>
-              
-              {activityFeed.length === 0 ? (
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', textAlign: 'center', padding: '20px' }}>
-                  Aucune activité récente détectée.
-                </p>
-              ) : (
-                <div className="activity-feed-list" style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                  {activityFeed.map((act) => (
-                    <div key={act.id} className="activity-feed-item glass" style={{ padding: '20px', display: 'flex', gap: '15px' }}>
-                      <div className="activity-icon" style={{ fontSize: '1.5rem' }}>
-                        {act.type === 'order' && '🛒'}
-                        {act.type === 'project' && '🪵'}
-                        {act.type === 'inquiry' && '✉️'}
-                        {act.type === 'chatbot' && '🤖'}
+            {/* TAB 1: BOUTIQUE & CATALOGUE */}
+            {adminActiveTab === 'boutique' && (
+              <div className="admin-boutique-tab animate-fade-in">
+                {/* ADMIN METRICS PANEL */}
+                {(() => {
+                  const ordersCount = activityFeed.filter(act => act.type === 'order').length;
+                  const totalRevenue = activityFeed
+                    .filter(act => act.type === 'order')
+                    .reduce((sum, act) => {
+                      const raw = act.priceCAD || act.convertedPrice || "0";
+                      const val = parseFloat(raw.replace(/[^0-9]/g, '')) || 0;
+                      return sum + val;
+                    }, 0);
+                  const leadsCount = activityFeed.filter(act => act.type === 'project' || act.type === 'inquiry' || act.type === 'chatbot').length;
+                  const totalActs = activityFeed.length || 1;
+                  const conversionRate = ((ordersCount / totalActs) * 100).toFixed(1);
+
+                  return (
+                    <div className="admin-metrics-grid" style={{ marginBottom: '30px' }}>
+                      <div className="metric-card glass" style={{ borderLeft: '4px solid var(--accent-epoxy)' }}>
+                        <span className="metric-title">Chiffre d'Affaires</span>
+                        <span className="metric-value">{totalRevenue.toLocaleString('fr-CA')} $ CAD</span>
+                        <span style={{ fontSize: '0.75rem', color: '#10b981' }}>📈 Ventes simulées Stripe</span>
                       </div>
-                      <div className="activity-content" style={{ flex: 1 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '20px', flexWrap: 'wrap' }}>
-                          <strong style={{ fontSize: '0.95rem', color: '#fff' }}>{act.title}</strong>
-                          <span className="activity-date">{act.date.toLocaleString('fr-CA')}</span>
-                        </div>
-                        <p style={{ color: 'var(--text-secondary)', marginTop: '5px', fontSize: '0.9rem', lineHeight: '1.4' }}>{act.details}</p>
-                        
-                        {act.type === 'order' && (
-                          <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Numéro de suivi : <code>{act.id}</code></span>
-                            <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginLeft: '10px' }}>Statut :</span>
-                            <select
-                              value={act.status || 'received'}
-                              onChange={(e) => updateOrderStatus(act.id, e.target.value)}
-                              style={{
-                                background: '#1e0a19',
-                                color: '#fff',
-                                border: '1px solid rgba(255,255,255,0.15)',
-                                borderRadius: '6px',
-                                padding: '4px 8px',
-                                fontSize: '0.8rem',
-                                cursor: 'pointer',
-                                outline: 'none'
-                              }}
-                            >
-                              <option value="received">📦 Commande Reçue</option>
-                              <option value="production">⚙️ En fabrication</option>
-                              <option value="finishing">🎨 Finition &amp; Laser</option>
-                              <option value="shipped">🚚 Prêt / Expédié</option>
-                            </select>
-                          </div>
-                        )}
+                      <div className="metric-card glass" style={{ borderLeft: '4px solid var(--accent-wood)' }}>
+                        <span className="metric-title">Commandes Reçues</span>
+                        <span className="metric-value">{ordersCount}</span>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>🛒 Panier &amp; Achat Direct</span>
+                      </div>
+                      <div className="metric-card glass" style={{ borderLeft: '4px solid var(--accent-voltage)' }}>
+                        <span className="metric-title">Prospects / Leads</span>
+                        <span className="metric-value">{leadsCount}</span>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>✉️ Formulaires &amp; Chatbot</span>
+                      </div>
+                      <div className="metric-card glass" style={{ borderLeft: '4px solid var(--accent-laser)' }}>
+                        <span className="metric-title">Taux d'Engagement</span>
+                        <span className="metric-value">{conversionRate} %</span>
+                        <span style={{ fontSize: '0.75rem', color: '#3b82f6' }}>⚡ Taux de conversion</span>
+                      </div>
+                    </div>
+                  );
+                })()}
 
-                        {act.type === 'project' && (act.fileBase64 || act.cloudLink) && (
-                          <div style={{ marginTop: '12px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '10px' }}>
-                            {act.fileBase64 && (
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                                {act.fileBase64.startsWith('data:image/') ? (
-                                  <img src={act.fileBase64} alt="Sketch Preview" style={{ width: '70px', height: '70px', objectFit: 'cover', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)' }} />
-                                ) : (
-                                  <div style={{ width: '70px', height: '70px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.8rem', border: '1px solid rgba(255,255,255,0.1)' }}>📄</div>
+                <div className="admin-dashboard-grid">
+                  {/* Form Col */}
+                  <div className="admin-form-container glass">
+                    <h3 className="contact-info-title" style={{ marginBottom: '20px' }}>
+                      {editingCreation ? "Modifier l'œuvre" : "Ajouter une œuvre"}
+                    </h3>
+                    <form onSubmit={handleSaveCreation} className="contact-form">
+                      <div className="builder-form-group">
+                        <label htmlFor="form-title">Titre de l'œuvre *</label>
+                        <input 
+                          type="text" 
+                          id="form-title" 
+                          className="builder-input" 
+                          required 
+                          value={adminForm.title}
+                          onChange={(e) => setAdminForm(prev => ({ ...prev, title: e.target.value }))}
+                        />
+                      </div>
+
+                      <div className="form-row">
+                        <div className="builder-form-group">
+                          <label htmlFor="form-category">Catégorie *</label>
+                          <select 
+                            id="form-category" 
+                            className="builder-select" 
+                            value={adminForm.category}
+                            onChange={(e) => setAdminForm(prev => ({ ...prev, category: e.target.value }))}
+                          >
+                            <option value="table">🪵 Table &amp; Mobilier</option>
+                            <option value="jewelry">💎 Bijoux</option>
+                            <option value="lichtenberg">⚡ Fractale Lichtenberg</option>
+                            <option value="laser">🎨 Art Laser &amp; Acrylique</option>
+                          </select>
+                        </div>
+
+                        <div className="builder-form-group">
+                          <label htmlFor="form-status">Statut *</label>
+                          <select 
+                            id="form-status" 
+                            className="builder-select" 
+                            value={adminForm.status}
+                            onChange={(e) => setAdminForm(prev => ({ ...prev, status: e.target.value }))}
+                          >
+                            <option value="available">Disponible</option>
+                            <option value="sold">Vendu</option>
+                            <option value="custom-only">Sur commande</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="form-row">
+                        <div className="builder-form-group">
+                          <label htmlFor="form-price">Prix (ex: 1 850 $ ou Sur demande) *</label>
+                          <input 
+                            type="text" 
+                            id="form-price" 
+                            className="builder-input" 
+                            required 
+                            value={adminForm.price}
+                            onChange={(e) => setAdminForm(prev => ({ ...prev, price: e.target.value }))}
+                          />
+                        </div>
+
+                        <div className="builder-form-group">
+                          <label htmlFor="form-image">Nom du fichier image (ex: table.png) *</label>
+                          <input 
+                            type="text" 
+                            id="form-image" 
+                            className="builder-input" 
+                            placeholder="nom-fichier.png (déposé dans public/assets)"
+                            required 
+                            value={adminForm.image}
+                            onChange={(e) => setAdminForm(prev => ({ ...prev, image: e.target.value }))}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="form-row">
+                        <div className="builder-form-group">
+                          <label htmlFor="form-wood">Essence de bois</label>
+                          <input 
+                            type="text" 
+                            id="form-wood" 
+                            className="builder-input" 
+                            placeholder="Ex: Frêne, Noyer, N/A"
+                            value={adminForm.wood}
+                            onChange={(e) => setAdminForm(prev => ({ ...prev, wood: e.target.value }))}
+                          />
+                        </div>
+
+                        <div className="builder-form-group">
+                          <label htmlFor="form-dimensions">Dimensions</label>
+                          <input 
+                            type="text" 
+                            id="form-dimensions" 
+                            className="builder-input" 
+                            placeholder='Ex: 24" x 30", Diamètre 24"'
+                            value={adminForm.dimensions}
+                            onChange={(e) => setAdminForm(prev => ({ ...prev, dimensions: e.target.value }))}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="builder-form-group">
+                        <label htmlFor="form-mediums">Médiums / Résine / Matériaux</label>
+                        <input 
+                          type="text" 
+                          id="form-mediums" 
+                          className="builder-input" 
+                          placeholder="Ex: Résine turquoise, Acrylique pouring"
+                          value={adminForm.mediums}
+                          onChange={(e) => setAdminForm(prev => ({ ...prev, mediums: e.target.value }))}
+                        />
+                      </div>
+
+                      <div className="builder-form-group">
+                        <label htmlFor="form-desc">Description de l'œuvre *</label>
+                        <textarea 
+                          id="form-desc" 
+                          className="builder-textarea" 
+                          required 
+                          value={adminForm.desc}
+                          onChange={(e) => setAdminForm(prev => ({ ...prev, desc: e.target.value }))}
+                        ></textarea>
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '10px' }}>
+                        {editingCreation && (
+                          <button 
+                            type="button" 
+                            onClick={() => {
+                              setEditingCreation(null);
+                              setAdminForm({
+                                title: '',
+                                category: 'table',
+                                desc: '',
+                                price: '',
+                                status: 'available',
+                                image: '',
+                                wood: '',
+                                dimensions: '',
+                                mediums: ''
+                              });
+                            }} 
+                            className="btn-secondary" 
+                            style={{ flex: 1 }}
+                          >
+                            Annuler
+                          </button>
+                        )}
+                        <button type="submit" className="btn-form-submit" style={{ flex: 1, marginTop: 0 }}>
+                          {editingCreation ? "Enregistrer" : "Créer l'œuvre"}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+
+                  {/* List Col */}
+                  <div className="admin-list-container glass">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '15px' }}>
+                      <h3 className="contact-info-title" style={{ margin: 0 }}>Catalogue Actuel ({creations.length})</h3>
+                      <button onClick={() => setIsAdminLoggedIn(false)} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '0.8rem' }}>Déconnexion</button>
+                    </div>
+                    
+                    <div className="admin-list-scroll">
+                      {creations.map((item) => (
+                        <div key={item.id} className="admin-item-row">
+                          <div className="admin-item-meta">
+                            <img src={item.image} alt={item.title} className="admin-item-thumb" />
+                            <div className="admin-item-info">
+                              <h4>{item.title}</h4>
+                              <p>{item.price} • {item.statusText}</p>
+                            </div>
+                          </div>
+                          <div className="admin-item-actions">
+                            <button onClick={() => handleSelectEdit(item)} className="btn-admin-edit">Modifier</button>
+                            <button onClick={() => handleDeleteCreation(item.id)} className="btn-admin-delete">Supprimer</button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 2: ARTISAN PRICING CALCULATOR */}
+            {adminActiveTab === 'calculator' && (
+              <div className="admin-calculator-tab animate-fade-in">
+                <div className="admin-dashboard-grid">
+                  {/* Cost Simulator Form */}
+                  <div className="admin-form-container glass">
+                    <h3 className="contact-info-title" style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Calculator size={20} style={{ color: 'var(--accent-epoxy)' }} />
+                      Simulateur de Devis Artisan
+                    </h3>
+                    <form onSubmit={handleSaveEstimate} className="contact-form">
+                      <div className="builder-form-group">
+                        <label htmlFor="calc-title">Titre / Nom du client de la simulation *</label>
+                        <input 
+                          type="text" 
+                          id="calc-title" 
+                          className="builder-input" 
+                          placeholder="Ex: Planche apéro Sophie, Table Tremblay"
+                          required 
+                          value={calcForm.title}
+                          onChange={(e) => setCalcForm(prev => ({ ...prev, title: e.target.value }))}
+                        />
+                      </div>
+
+                      <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                        <div className="builder-form-group">
+                          <label htmlFor="calc-category">Catégorie *</label>
+                          <select 
+                            id="calc-category" 
+                            className="builder-select"
+                            value={calcForm.category}
+                            onChange={(e) => {
+                              const cat = e.target.value;
+                              let defaultEpoxy = '15';
+                              let defaultHours = '4';
+                              if (cat === 'table') { defaultEpoxy = '35'; defaultHours = '25'; }
+                              else if (cat === 'board') { defaultEpoxy = '15'; defaultHours = '4'; }
+                              else if (cat === 'jewelry') { defaultEpoxy = '70'; defaultHours = '2'; }
+                              else if (cat === 'lichtenberg') { defaultEpoxy = '20'; defaultHours = '3'; }
+                              else if (cat === 'laser') { defaultEpoxy = '0'; defaultHours = '1'; }
+                              
+                              setCalcForm(prev => ({ 
+                                ...prev, 
+                                category: cat,
+                                epoxyPercent: defaultEpoxy,
+                                laborHours: defaultHours
+                              }));
+                            }}
+                          >
+                            <option value="board">🍳 Planche de présentation</option>
+                            <option value="table">🪵 Table &amp; Mobilier</option>
+                            <option value="jewelry">💎 Bijoux</option>
+                            <option value="lichtenberg">⚡ Fractale Lichtenberg</option>
+                            <option value="laser">🎨 Gravure/Découpe Laser</option>
+                          </select>
+                        </div>
+
+                        <div className="builder-form-group">
+                          <label htmlFor="calc-wood">Essence de bois</label>
+                          <select 
+                            id="calc-wood" 
+                            className="builder-select"
+                            value={calcForm.woodSpecies}
+                            onChange={(e) => {
+                              const wood = e.target.value;
+                              const price = woodPriceMapping[wood] || 9;
+                              setCalcForm(prev => ({ 
+                                ...prev, 
+                                woodSpecies: wood,
+                                woodCostPerBF: String(price)
+                              }));
+                            }}
+                          >
+                            <option value="Noyer noir (Foncé, grain riche)">Noyer noir (Foncé)</option>
+                            <option value="Érable (Clair, très robuste)">Érable (Clair)</option>
+                            <option value="Cèdre (Chaud, excellent parfum, résistant)">Cèdre (Chaud)</option>
+                            <option value="Cerisier (Ambré, grain fin)">Cerisier (Ambré)</option>
+                            <option value="Autre / Je ne sais pas encore">Autre / Pin</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      {/* Dimensions Section */}
+                      <div style={{ padding: '15px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)', background: 'rgba(0,0,0,0.15)', marginBottom: '15px' }}>
+                        <h4 style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '10px' }}>Dimensions Brutes (pouces)</h4>
+                        <div className="form-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+                          <div className="builder-form-group">
+                            <label htmlFor="calc-length" style={{ fontSize: '0.75rem' }}>Longueur (L)</label>
+                            <input 
+                              type="number" 
+                              id="calc-length" 
+                              className="builder-input" 
+                              value={calcForm.length}
+                              onChange={(e) => setCalcForm(prev => ({ ...prev, length: e.target.value }))}
+                            />
+                          </div>
+                          <div className="builder-form-group">
+                            <label htmlFor="calc-width" style={{ fontSize: '0.75rem' }}>Largeur (W)</label>
+                            <input 
+                              type="number" 
+                              id="calc-width" 
+                              className="builder-input" 
+                              value={calcForm.width}
+                              onChange={(e) => setCalcForm(prev => ({ ...prev, width: e.target.value }))}
+                            />
+                          </div>
+                          <div className="builder-form-group">
+                            <label htmlFor="calc-thickness" style={{ fontSize: '0.75rem' }}>Épaisseur (T)</label>
+                            <input 
+                              type="number" 
+                              step="0.25"
+                              id="calc-thickness" 
+                              className="builder-input" 
+                              value={calcForm.thickness}
+                              onChange={(e) => setCalcForm(prev => ({ ...prev, thickness: e.target.value }))}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Advanced Settings Row */}
+                      <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                        <div className="builder-form-group">
+                          <label htmlFor="calc-epoxy-pct">Remplissage Époxy (%)</label>
+                          <input 
+                            type="number" 
+                            id="calc-epoxy-pct" 
+                            className="builder-input" 
+                            min="0" max="100"
+                            value={calcForm.epoxyPercent}
+                            onChange={(e) => setCalcForm(prev => ({ ...prev, epoxyPercent: e.target.value }))}
+                          />
+                        </div>
+
+                        <div className="builder-form-group">
+                          <label htmlFor="calc-hours">Heures de travail</label>
+                          <input 
+                            type="number" 
+                            id="calc-hours" 
+                            className="builder-input" 
+                            value={calcForm.laborHours}
+                            onChange={(e) => setCalcForm(prev => ({ ...prev, laborHours: e.target.value }))}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="form-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+                        <div className="builder-form-group">
+                          <label htmlFor="calc-wood-bf" style={{ fontSize: '0.75rem' }}>Bois ($ / BF)</label>
+                          <input 
+                            type="number" 
+                            id="calc-wood-bf" 
+                            className="builder-input" 
+                            value={calcForm.woodCostPerBF}
+                            onChange={(e) => setCalcForm(prev => ({ ...prev, woodCostPerBF: e.target.value }))}
+                          />
+                        </div>
+                        <div className="builder-form-group">
+                          <label htmlFor="calc-epoxy-l" style={{ fontSize: '0.75rem' }}>Époxy ($ / L)</label>
+                          <input 
+                            type="number" 
+                            id="calc-epoxy-l" 
+                            className="builder-input" 
+                            value={calcForm.epoxyCostPerL}
+                            onChange={(e) => setCalcForm(prev => ({ ...prev, epoxyCostPerL: e.target.value }))}
+                          />
+                        </div>
+                        <div className="builder-form-group">
+                          <label htmlFor="calc-margin" style={{ fontSize: '0.75rem' }}>Coeff. Marge</label>
+                          <input 
+                            type="number" 
+                            step="0.1"
+                            id="calc-margin" 
+                            className="builder-input" 
+                            value={calcForm.marginMultiplier}
+                            onChange={(e) => setCalcForm(prev => ({ ...prev, marginMultiplier: e.target.value }))}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="builder-form-group">
+                        <label htmlFor="calc-notes">Notes / Détails de fabrication</label>
+                        <textarea 
+                          id="calc-notes" 
+                          className="builder-textarea" 
+                          placeholder="Ex: Forme organique, pieds d'acier noir, huile Rubio..."
+                          value={calcForm.notes}
+                          onChange={(e) => setCalcForm(prev => ({ ...prev, notes: e.target.value }))}
+                        ></textarea>
+                      </div>
+
+                      {/* Live calculation preview */}
+                      {(() => {
+                        const len = parseFloat(calcForm.length) || 0;
+                        const wid = parseFloat(calcForm.width) || 0;
+                        const thick = parseFloat(calcForm.thickness) || 0;
+                        const epoxyPct = parseFloat(calcForm.epoxyPercent) || 0;
+                        const hours = parseFloat(calcForm.laborHours) || 0;
+                        const rate = parseFloat(calcForm.hourlyRate) || 40;
+                        const wCost = parseFloat(calcForm.woodCostPerBF) || 0;
+                        const eCost = parseFloat(calcForm.epoxyCostPerL) || 0;
+                        const finish = parseFloat(calcForm.finishingCost) || 20;
+                        const margin = parseFloat(calcForm.marginMultiplier) || 1.4;
+
+                        const totalVol = len * wid * thick;
+                        const epFrac = epoxyPct / 100;
+                        const wBF = (totalVol * (1 - epFrac)) / 12;
+                        const woodTot = wBF * wCost;
+                        const epoxyVolL = totalVol * epFrac * 0.0163871;
+                        const epoxyTot = epoxyVolL * eCost;
+                        const laborTot = hours * rate;
+                        const totalDirect = woodTot + epoxyTot + laborTot + finish;
+                        const retailSuggested = Math.round(totalDirect * margin);
+
+                        return (
+                          <div style={{ padding: '15px', borderRadius: '12px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', marginBottom: '20px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.85rem' }}>
+                              <span style={{ color: 'var(--text-secondary)' }}>Bois ({wBF.toFixed(1)} BF) :</span>
+                              <span style={{ fontWeight: '600' }}>{Math.round(woodTot)} $ CAD</span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.85rem' }}>
+                              <span style={{ color: 'var(--text-secondary)' }}>Époxy ({epoxyVolL.toFixed(2)} L) :</span>
+                              <span style={{ fontWeight: '600' }}>{Math.round(epoxyTot)} $ CAD</span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.85rem' }}>
+                              <span style={{ color: 'var(--text-secondary)' }}>Main d'œuvre ({hours}h @ {rate}$/h) :</span>
+                              <span style={{ fontWeight: '600' }}>{Math.round(laborTot)} $ CAD</span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '0.85rem', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '8px' }}>
+                              <span style={{ color: 'var(--text-secondary)' }}>Finition &amp; Consommables :</span>
+                              <span style={{ fontWeight: '600' }}>{finish} $ CAD</span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                              <span style={{ fontSize: '0.8rem', color: 'var(--accent-epoxy)', fontWeight: 'bold', textTransform: 'uppercase' }}>Prix suggéré (x{margin}) :</span>
+                              <span style={{ fontSize: '1.4rem', fontWeight: 'bold', color: '#10b981' }}>{retailSuggested} $ CAD</span>
+                            </div>
+                          </div>
+                        );
+                      })()}
+
+                      <button type="submit" className="btn-form-submit" style={{ width: '100%', marginTop: '0' }}>
+                        <Send size={16} /> Enregistrer comme référence historique
+                      </button>
+                    </form>
+                  </div>
+
+                  {/* References & History List */}
+                  <div className="admin-list-container glass" style={{ display: 'flex', flexDirection: 'column' }}>
+                    <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '15px', marginBottom: '15px' }}>
+                      <h3 className="contact-info-title" style={{ margin: '0 0 15px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <History size={20} style={{ color: 'var(--accent-wood)' }} />
+                        Références &amp; Historique ({savedEstimates.length})
+                      </h3>
+                      
+                      {/* Search and Filters */}
+                      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                        <div style={{ flex: 1, minWidth: '150px', position: 'relative' }}>
+                          <input 
+                            type="text" 
+                            placeholder="Rechercher une simulation..." 
+                            className="builder-input" 
+                            style={{ paddingLeft: '35px', margin: 0, fontSize: '0.85rem', height: '38px' }}
+                            value={estimateSearch}
+                            onChange={(e) => setEstimateSearch(e.target.value)}
+                          />
+                          <Search size={14} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-secondary)' }} />
+                        </div>
+                        
+                        <select
+                          className="builder-select"
+                          style={{ width: 'auto', minWidth: '130px', margin: 0, fontSize: '0.85rem', height: '38px' }}
+                          value={estimateCategoryFilter}
+                          onChange={(e) => setEstimateCategoryFilter(e.target.value)}
+                        >
+                          <option value="all">📁 Catégories (Tous)</option>
+                          <option value="board">🍳 Planches</option>
+                          <option value="table">🪵 Tables</option>
+                          <option value="jewelry">💎 Bijoux</option>
+                          <option value="lichtenberg">⚡ Lichtenberg</option>
+                          <option value="laser">🎨 Laser</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Estimates List */}
+                    <div className="admin-list-scroll" style={{ flex: 1 }}>
+                      {(() => {
+                        const filtered = savedEstimates.filter(est => {
+                          const matchSearch = est.title.toLowerCase().includes(estimateSearch.toLowerCase()) || 
+                                              (est.woodSpecies && est.woodSpecies.toLowerCase().includes(estimateSearch.toLowerCase())) ||
+                                              (est.notes && est.notes.toLowerCase().includes(estimateSearch.toLowerCase()));
+                          const matchCat = estimateCategoryFilter === 'all' || est.category === estimateCategoryFilter;
+                          return matchSearch && matchCat;
+                        });
+
+                        if (filtered.length === 0) {
+                          return (
+                            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', textAlign: 'center', padding: '30px' }}>
+                              Aucune simulation trouvée.
+                            </p>
+                          );
+                        }
+
+                        return filtered.map((est) => (
+                          <div key={est.id} className="admin-item-row" style={{ display: 'block', padding: '15px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px' }}>
+                              <div>
+                                <h4 style={{ margin: 0, fontSize: '0.95rem', color: '#fff' }}>{est.title}</h4>
+                                <p style={{ margin: '3px 0 0 0', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                                  {est.category === 'board' && '🍳 Planche de présentation'}
+                                  {est.category === 'table' && '🪵 Table rivière'}
+                                  {est.category === 'jewelry' && '💎 Bijou'}
+                                  {est.category === 'lichtenberg' && '⚡ Lichtenberg'}
+                                  {est.category === 'laser' && '🎨 Laser'}
+                                  {` • ${est.woodSpecies ? est.woodSpecies.split(' ')[0] : 'Bois non spécifié'} • ${est.dimensions}`}
+                                </p>
+                              </div>
+                              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                                <span style={{ fontWeight: 'bold', color: '#10b981', fontSize: '1rem' }}>{est.finalPrice} $ CAD</span>
+                                <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{est.date ? est.date.toLocaleDateString('fr-CA') : 'Récemment'}</span>
+                              </div>
+                            </div>
+                            
+                            {/* Breakdown expander toggle */}
+                            <div style={{ display: 'flex', gap: '10px', marginTop: '12px', justifyContent: 'flex-end', borderTop: '1px solid rgba(255,255,255,0.03)', paddingTop: '8px' }}>
+                              <button 
+                                onClick={() => setSelectedEstimateDetail(selectedEstimateDetail === est.id ? null : est.id)} 
+                                className="btn-admin-edit" 
+                                style={{ fontSize: '0.75rem', padding: '3px 8px' }}
+                              >
+                                {selectedEstimateDetail === est.id ? "Masquer détails" : "Voir détails"}
+                              </button>
+                              <button 
+                                onClick={() => handleDeleteEstimate(est.id)} 
+                                className="btn-admin-delete" 
+                                style={{ fontSize: '0.75rem', padding: '3px 8px' }}
+                              >
+                                Supprimer
+                              </button>
+                            </div>
+
+                            {/* Detailed Breakdown Panel */}
+                            {selectedEstimateDetail === est.id && (
+                              <div className="estimate-details-expanded" style={{
+                                marginTop: '12px',
+                                padding: '12px',
+                                borderRadius: '8px',
+                                background: 'rgba(0,0,0,0.25)',
+                                border: '1px solid rgba(255,255,255,0.05)',
+                                fontSize: '0.8rem',
+                                color: 'var(--text-secondary)'
+                              }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 15px' }}>
+                                  <div>Coût Bois : <strong style={{ color: '#fff' }}>{est.woodCost} $</strong></div>
+                                  <div>Volume Époxy : <strong style={{ color: '#fff' }}>{est.epoxyVolume} L</strong></div>
+                                  <div>Coût Époxy : <strong style={{ color: '#fff' }}>{est.epoxyCost} $</strong></div>
+                                  <div>Main d'œuvre : <strong style={{ color: '#fff' }}>{est.laborHours}h ({est.laborCost} $)</strong></div>
+                                  <div>Finition &amp; Cons. : <strong style={{ color: '#fff' }}>{est.otherCosts} $</strong></div>
+                                  <div>Coeff. Marge : <strong style={{ color: '#fff' }}>x{est.margin}</strong></div>
+                                </div>
+                                {est.notes && (
+                                  <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid rgba(255,255,255,0.05)', fontStyle: 'italic' }}>
+                                    Note : "{est.notes}"
+                                  </div>
                                 )}
-                                <div>
-                                  <div style={{ fontSize: '0.85rem', color: '#fff', fontWeight: '500' }}>{act.fileName} ({act.fileSize})</div>
-                                  <a href={act.fileBase64} download={act.fileName} className="btn-secondary" style={{ display: 'inline-block', fontSize: '0.75rem', padding: '4px 10px', marginTop: '6px', borderRadius: '4px', textDecoration: 'none' }}>
-                                    Télécharger le fichier
+                              </div>
+                            )}
+                          </div>
+                        ));
+                      })()}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 3: LIVE ACTIVITY FEED */}
+            {adminActiveTab === 'feed' && (
+              <div className="activity-feed-section glass" style={{ padding: '30px', borderRadius: '24px' }}>
+                <h3 className="contact-info-title" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '15px', marginBottom: '20px' }}>
+                  Flux d'Activité &amp; Devis clients
+                </h3>
+                
+                {activityFeed.length === 0 ? (
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', textAlign: 'center', padding: '20px' }}>
+                    Aucune activité récente détectée.
+                  </p>
+                ) : (
+                  <div className="activity-feed-list" style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                    {activityFeed.map((act) => (
+                      <div key={act.id} className="activity-feed-item glass" style={{ padding: '20px', display: 'flex', gap: '15px' }}>
+                        <div className="activity-icon" style={{ fontSize: '1.5rem' }}>
+                          {act.type === 'order' && '🛒'}
+                          {act.type === 'project' && '🪵'}
+                          {act.type === 'inquiry' && '✉️'}
+                          {act.type === 'chatbot' && '🤖'}
+                        </div>
+                        <div className="activity-content" style={{ flex: 1 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '20px', flexWrap: 'wrap' }}>
+                            <strong style={{ fontSize: '0.95rem', color: '#fff' }}>{act.title}</strong>
+                            <span className="activity-date">{act.date.toLocaleString('fr-CA')}</span>
+                          </div>
+                          <p style={{ color: 'var(--text-secondary)', marginTop: '5px', fontSize: '0.9rem', lineHeight: '1.4' }}>{act.details}</p>
+                          
+                          {act.type === 'order' && (
+                            <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                              <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Numéro de suivi : <code>{act.id}</code></span>
+                              <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginLeft: '10px' }}>Statut :</span>
+                              <select
+                                value={act.status || 'received'}
+                                onChange={(e) => updateOrderStatus(act.id, e.target.value)}
+                                style={{
+                                  background: '#1e0a19',
+                                  color: '#fff',
+                                  border: '1px solid rgba(255,255,255,0.15)',
+                                  borderRadius: '6px',
+                                  padding: '4px 8px',
+                                  fontSize: '0.8rem',
+                                  cursor: 'pointer',
+                                  outline: 'none'
+                                }}
+                              >
+                                <option value="received">📦 Commande Reçue</option>
+                                <option value="production">⚙️ En fabrication</option>
+                                <option value="finishing">🎨 Finition &amp; Laser</option>
+                                <option value="shipped">🚚 Prêt / Expédié</option>
+                              </select>
+                            </div>
+                          )}
+
+                          {act.type === 'project' && (act.fileBase64 || act.cloudLink) && (
+                            <div style={{ marginTop: '12px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '10px' }}>
+                              {act.fileBase64 && (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                  {act.fileBase64.startsWith('data:image/') ? (
+                                    <img src={act.fileBase64} alt="Sketch Preview" style={{ width: '70px', height: '70px', objectFit: 'cover', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)' }} />
+                                  ) : (
+                                    <div style={{ width: '70px', height: '70px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.8rem', border: '1px solid rgba(255,255,255,0.1)' }}>📄</div>
+                                  )}
+                                  <div>
+                                    <div style={{ fontSize: '0.85rem', color: '#fff', fontWeight: '500' }}>{act.fileName} ({act.fileSize})</div>
+                                    <a href={act.fileBase64} download={act.fileName} className="btn-secondary" style={{ display: 'inline-block', fontSize: '0.75rem', padding: '4px 10px', marginTop: '6px', borderRadius: '4px', textDecoration: 'none' }}>
+                                      Télécharger le fichier
+                                    </a>
+                                  </div>
+                                </div>
+                              )}
+                              {act.cloudLink && (
+                                <div style={{ marginTop: '10px' }}>
+                                  <a href={act.cloudLink} target="_blank" rel="noopener noreferrer" className="btn-primary" style={{ fontSize: '0.75rem', padding: '4px 10px', borderRadius: '4px', textDecoration: 'none' }}>
+                                    Voir dans le Cloud
                                   </a>
                                 </div>
-                              </div>
-                            )}
-
-                            {act.cloudLink && (
-                              <div style={{ marginTop: act.fileBase64 ? '8px' : '0' }}>
-                                <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Lien de conception : </span>
-                                <a href={act.cloudLink} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-epoxy)', fontSize: '0.85rem', textDecoration: 'underline' }}>
-                                  {act.cloudLink}
-                                </a>
-                              </div>
-                            )}
-                          </div>
-                        )}
+                              )}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </section>
         )}
       </main>
