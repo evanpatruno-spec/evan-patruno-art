@@ -219,7 +219,14 @@ const craftCapabilities = [
   { type: 'laser', name: 'Gravure & Découpe Laser 4\'x4\'', icon: '📐', desc: 'Marquage et découpe de précision grand format (jusqu\'à 4 pieds par 4 pieds) sur bois massif, acrylique et cuir pour enseignes, décors multicouches et logos.' },
   { type: 'peinture', name: 'Toiles d\'Art & Peinture Acrylique', icon: '🎨', desc: 'Création d\'œuvres abstraites et toiles Fluid Art (pouring) aux textures fluides et organiques évoquant le cosmos ou des textures minérales.' },
   { type: 'impression3d', name: 'Impression 3D Multicolore (Bambu P1S)', icon: '⚙️', desc: 'Fabrication additive haute vitesse et multicolore (jusqu\'à 4 couleurs par pièce) pour du prototypage fonctionnel, pièces de rechange ou décors personnalisés.' },
-  { type: 'kumihimo', name: 'Bracelets & Tressage Kumihimo', icon: '🧶', desc: 'Tissage artisanal traditionnel japonais réalisé entièrement à la main avec des cordons en soie, coton ciré ou polyester pour des bracelets uniques.' }
+  { type: 'kumihimo', name: 'Bracelets & Tressage Kumihimo', icon: '🧶', desc: 'Tissage artisanal traditionnel japonais réalisé entièrement à la main avec des cordons en soie, coton ciré ou polyester pour des bracelets uniques.' },
+  { type: 'drone', name: 'Production Média & Drone (DJI Mini 3 Pro)', icon: '🚁', desc: 'Captations aériennes haute résolution (photos 48 Mpx et vidéos 4K) pour suivis de chantiers, imagerie immobilière ou contenus artistiques.' }
+];
+
+const droneVideos = [
+  { id: 1, title: "Survol de l'Atelier & Forêt Sauvage", embedUrl: "https://www.youtube.com/embed/5vP9go4Jdxs", desc: "Vidéo aérienne cinématique capturant les grands espaces sauvages d'où proviennent nos essences de bois nobles." },
+  { id: 2, title: "Suivi de Chantier & Intégration Paysagère", embedUrl: "https://www.youtube.com/embed/1nf61dNdzPc", desc: "Démonstration d'imagerie drone DJI Mini 3 Pro pour le suivi d'une structure architecturale en bois massif." },
+  { id: 3, title: "L'Art sous un Autre Angle (Perspective vertical)", embedUrl: "https://www.youtube.com/embed/gS0N_W6-QeA", desc: "Vidéo artistique montrant le contraste entre le bois brut et la rivière d'époxy sous perspective aérienne." }
 ];
 
 const faqItems = [
@@ -228,7 +235,8 @@ const faqItems = [
   { category: "wood", question: "La résine époxy est-elle résistante à la chaleur et aux rayures ?", answer: "Nos résines sont traitées contre les rayons UV (jaunissement) et reçoivent un vernis de protection haute résistance. Cependant, pour préserver la brillance, il est fortement recommandé d'utiliser des sous-plats pour les plats chauds et d'éviter les rayures directes avec des objets tranchants." },
   { category: "3dprint", question: "Quels sont les formats de fichiers acceptés pour l'impression 3D ?", answer: "Nous acceptons principalement les fichiers de modèles 3D au format .STL, .OBJ ou .3MF. Vous pouvez téléverser votre fichier directement lors de votre demande de devis ou coller un lien Thingiverse/Printables." },
   { category: "3dprint", question: "Quels matériaux de filaments utilisez-vous sur votre Bambu P1S ?", answer: "Nous imprimons principalement en PLA (biodégradable, parfait pour la décoration et le multi-couleurs), en PETG (plus résistant, idéal pour l'extérieur) et en TPU (flexible et caoutchouteux)." },
-  { category: "laser", question: "Quelle est la taille maximale pour les gravures et découpes laser ?", answer: "Notre équipement laser professionnel dispose d'une surface de travail maximale de 4 pieds par 4 pieds (48\" x 48\"). Nous pouvons graver ou découper le bois massif, le contreplaqué, l'acrylique (plexiglas) et le cuir." }
+  { category: "laser", question: "Quelle est la taille maximale pour les gravures et découpes laser ?", answer: "Notre équipement laser professionnel dispose d'une surface de travail maximale de 4 pieds par 4 pieds (48\" x 48\"). Nous pouvons graver ou découper le bois massif, le contreplaqué, l'acrylique (plexiglas) et le cuir." },
+  { category: "drone", question: "Quelles sont les réglementations respectées lors de vos vols de drone ?", answer: "Nos opérations de drone DJI Mini 3 Pro respectent scrupuleusement la réglementation de Transports Canada pour les drones de moins de 250g. Les vols sont effectués en toute sécurité, hors des zones de restriction aérienne et dans le respect de la vie privée." }
 ];
 
 export default function App() {
@@ -1240,11 +1248,12 @@ export default function App() {
     '⚡ Laser & Lichtenberg': { key: 'laser_type', msg: '⚡ Quel type de travail souhaitez-vous ?', choices: ['Gravure Laser 4\'x4\'', 'Découpe de mandalas/logos', 'Fractale de Lichtenberg'] },
     '🎨 Peinture & Toiles': { key: 'art_notes', msg: '🖌️ Quel format de toile ou style recherchez-vous ?', choices: ['Toile Fluid Art (Pouring)', 'Peinture abstraite', 'Autre format'] },
     '⚙️ Impression 3D': { key: 'print3d_type', msg: '⚙️ Quel type d\'impression 3D souhaitez-vous réaliser sur la Bambu P1S ?', choices: ['Figurine / Déco multi-couleurs', 'Prototypage mécanique / Boîtier', 'Autre pièce sur mesure'] },
-    '🧶 Bracelet Kumihimo': { key: 'kumihimo_style', msg: '🧶 Quel style de tressage ou couleur préférez-vous ?', choices: ['Tons chauds (Rouge/Or)', 'Tons froids (Bleu/Argent)', 'Autre préférence'] }
+    '🧶 Bracelet Kumihimo': { key: 'kumihimo_style', msg: '🧶 Quel style de tressage ou couleur préférez-vous ?', choices: ['Tons chauds (Rouge/Or)', 'Tons froids (Bleu/Argent)', 'Autre préférence'] },
+    '🚁 Vidéo / Photo Drone': { key: 'drone_job', msg: '🚁 Quel type de prestation drone désirez-vous (DJI Mini 3 Pro) ?', choices: ['Photo Immobilière', 'Suivi de chantier / Paysage', 'Vidéo événementielle'] }
   };
 
   const chatbotFlow = [
-    { key: 'project', msg: '👋 Bonjour ! Je suis l\'assistant virtuel d\'Evan Patruno Art. Quel est votre projet ?', choices: ['🪵 Table sur mesure', '💎 Bijou unique', '⚡ Laser & Lichtenberg', '🎨 Peinture & Toiles', '⚙️ Impression 3D', '🧶 Bracelet Kumihimo'] },
+    { key: 'project', msg: '👋 Bonjour ! Je suis l\'assistant virtuel d\'Evan Patruno Art. Quel est votre projet ?', choices: ['🪵 Table sur mesure', '💎 Bijou unique', '⚡ Laser & Lichtenberg', '🎨 Peinture & Toiles', '⚙️ Impression 3D', '🧶 Bracelet Kumihimo', '🚁 Vidéo / Photo Drone'] },
     { key: 'delay', msg: 'Parfait ! Dans quel délai souhaitez-vous concrétiser ce projet ?', choices: ['🔥 Rapidement (0-3 mois)', '📅 Moyen terme (3-6 mois)', '🔭 Je planifie pour plus tard'] },
     { key: 'name', msg: '😊 Super ! Pour personnaliser votre demande, quel est votre prénom ?', input: true, placeholder: 'Votre prénom...' },
     { key: 'contact', msg: 'Comment peut-on vous contacter (courriel ou téléphone) ?', input: true, placeholder: 'Téléphone ou courriel...' }
@@ -1255,7 +1264,7 @@ export default function App() {
     setChatbotWidgetActive(false);
     if (chatMessages.length === 0) {
       setChatMessages([
-        { sender: 'bot', text: '👋 Bonjour ! Je suis l\'assistant virtuel d\'Evan Patruno Art. Quel est votre projet ?', choices: ['🪵 Table sur mesure', '💎 Bijou unique', '⚡ Laser & Lichtenberg', '🎨 Peinture & Toiles', '⚙️ Impression 3D', '🧶 Bracelet Kumihimo'] }
+        { sender: 'bot', text: '👋 Bonjour ! Je suis l\'assistant virtuel d\'Evan Patruno Art. Quel est votre projet ?', choices: ['🪵 Table sur mesure', '💎 Bijou unique', '⚡ Laser & Lichtenberg', '🎨 Peinture & Toiles', '⚙️ Impression 3D', '🧶 Bracelet Kumihimo', '🚁 Vidéo / Photo Drone'] }
       ]);
       setChatbotStep(0);
       setChatbotAnswers({});
@@ -1461,7 +1470,7 @@ de commande en temps réel sur evanpatruno.art.
             </h1>
             
             <p className="hero-description">
-              Ébénisterie d'art, résine époxy, gravure laser grand format (4'x4'), toiles de peinture, bijoux, bracelets Kumihimo &amp; impression 3D (Bambu P1S). Façonner la matière et la technologie sous toutes leurs formes pour donner vie à vos projets personnalisés.
+              Ébénisterie d'art, résine époxy, gravure laser grand format (4'x4'), toiles de peinture, bijoux, bracelets Kumihimo, impression 3D (Bambu P1S) &amp; imagerie drone (DJI). Façonner la matière et la technologie sous toutes leurs formes pour donner vie à vos projets personnalisés.
             </p>
             
             <div className="hero-ctas">
@@ -1686,7 +1695,8 @@ de commande en temps réel sur evanpatruno.art.
               { id: 'general', label: '📅 Général & Délais' },
               { id: 'wood', label: '🪵 Ébénisterie & Résine' },
               { id: '3dprint', label: '⚙️ Impression 3D' },
-              { id: 'laser', label: '📐 Découpe & Laser' }
+              { id: 'laser', label: '📐 Découpe & Laser' },
+              { id: 'drone', label: '🚁 Réglementation Drone' }
             ].map((cat) => (
               <button
                 key={cat.id}
@@ -1830,6 +1840,16 @@ de commande en temps réel sur evanpatruno.art.
                         <span className="choice-title">Bracelet Kumihimo</span>
                         <span className="choice-desc">Tissage traditionnel fait main</span>
                       </div>
+
+                      <div 
+                        className={`choice-card ${projectData.type === 'Photo/Vidéo Drone' ? 'selected' : ''}`}
+                        onClick={() => selectProjectType('Photo/Vidéo Drone')}
+                        id="choice-drone"
+                      >
+                        <div className="choice-icon"><Camera size={24} /></div>
+                        <span className="choice-title">Imagerie Drone</span>
+                        <span className="choice-desc">Photos/Vidéos 4K DJI Mini 3 Pro</span>
+                      </div>
                     </div>
                   )}
 
@@ -1951,7 +1971,41 @@ de commande en temps réel sur evanpatruno.art.
                         </>
                       )}
 
+                      {/* For Drone photography/videography */}
+                      {projectData.type === 'Photo/Vidéo Drone' && (
+                        <>
+                          <div className="builder-form-group" style={{ gridColumn: 'span 2' }}>
+                            <label htmlFor="drone-service">Type de service requis</label>
+                            <select 
+                              id="drone-service"
+                              className="builder-select" 
+                              value={projectData.wood}
+                              onChange={(e) => setProjectData(prev => ({ ...prev, wood: e.target.value }))}
+                            >
+                              <option value="">Sélectionnez un service...</option>
+                              <option value="Prises de vue Immobilières (Vente/Promotion)">Immobilier (Photos &amp; Vidéos)</option>
+                              <option value="Inspection de toiture / structures">Inspection de structures</option>
+                              <option value="Paysage / Suivi de chantier de construction">Suivi de chantier / Paysage</option>
+                              <option value="Événementiel / Créatif">Événementiel / Créatif</option>
+                            </select>
+                          </div>
 
+                          <div className="builder-form-group" style={{ gridColumn: 'span 2' }}>
+                            <label htmlFor="drone-format">Format &amp; Résolution de livraison</label>
+                            <select 
+                              id="drone-format"
+                              className="builder-select" 
+                              value={projectData.epoxy}
+                              onChange={(e) => setProjectData(prev => ({ ...prev, epoxy: e.target.value }))}
+                            >
+                              <option value="">Sélectionnez un format...</option>
+                              <option value="4K Horizontal standard (YouTube, Web, TV)">4K Horizontal (Standard)</option>
+                              <option value="9:16 Vertical (Idéal TikTok, Instagram Reels)">9:16 Vertical (Réseaux sociaux)</option>
+                              <option value="Les deux formats (Optimisation complète)">Les deux formats (Complet)</option>
+                            </select>
+                          </div>
+                        </>
+                      )}
 
                       {/* Table legs configurator (Only for tables) */}
                       {projectData.type === 'Table rivière' && (
