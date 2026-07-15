@@ -2580,3 +2580,15 @@ section {
     width: calc(100% - 32px) !important;
   }
 }
+
+/* Public Project History Cards */
+.card-history {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+}
+
+.card-history:hover {
+  transform: translateY(-5px) !important;
+  border-color: rgba(176, 84, 156, 0.35) !important;
+  box-shadow: 0 12px 30px rgba(176, 84, 156, 0.18) !important;
+}
+

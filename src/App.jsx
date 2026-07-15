@@ -128,8 +128,8 @@ const portfolioItems = [
     desc: "Table basse fabriquée à partir de bois de récupération, brûlé à la torche pour une finition noire délicate et moderne.",
     image: "/assets/table-basse-brulee.jpg",
     images: ["/assets/table-basse-brulee.jpg", "/assets/table-basse-chambre.jpg"],
-    status: "custom-only",
-    statusText: "Sur commande uniquement",
+    status: "sold",
+    statusText: "Vendu",
     price: "Sur demande",
     wood: "Bois de récupération (pin/épinette)",
     dimensions: "40\" x 20\" x 18\"",
@@ -174,8 +174,8 @@ const portfolioItems = [
     desc: "Brûlage fractal Lichtenberg par décharge électrique de haute tension (10 000V) sur bois.",
     image: "/assets/lichtenberg-real.jpg",
     images: ["/assets/lichtenberg-real.jpg", "/assets/table-ronde-noir-argent.jpg"],
-    status: "custom-only",
-    statusText: "Sur commande uniquement",
+    status: "sold",
+    statusText: "Vendu",
     price: "Sur demande",
     wood: "Cèdre / Frêne",
     dimensions: "Dimensions variables",
@@ -319,8 +319,13 @@ export default function App() {
   const [estimateSearch, setEstimateSearch] = useState('');
   const [estimateCategoryFilter, setEstimateCategoryFilter] = useState('all');
   const [selectedEstimateDetail, setSelectedEstimateDetail] = useState(null);
+  const [adminHistorySearch, setAdminHistorySearch] = useState('');
+  const [adminHistoryTab, setAdminHistoryTab] = useState('all'); // 'all', 'devis', 'orders'
 
   // Custom Project Builder State
+  const [devisActiveTab, setDevisActiveTab] = useState('configurator'); // 'configurator', 'history'
+  const [devisHistorySearch, setDevisHistorySearch] = useState('');
+  const [devisHistoryFilter, setDevisHistoryFilter] = useState('all');
   const [builderStep, setBuilderStep] = useState(1);
   const [projectData, setProjectData] = useState({
     type: '',
@@ -540,7 +545,22 @@ export default function App() {
       setCreations(portfolioItems);
     });
 
-    return () => unsubscribe();
+    // Fetch saved estimates publicly on mount
+    const unsubEstimates = onSnapshot(collection(db, 'saved_estimates'), (snap) => {
+      const ests = snap.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        date: doc.data().createdAt?.toDate() || new Date()
+      }));
+      setSavedEstimates(ests.sort((a, b) => b.date - a.date));
+    }, (err) => {
+      console.error("Err feed estimates:", err);
+    });
+
+    return () => {
+      unsubscribe();
+      unsubEstimates();
+    };
   }, []);
 
   // Fetch orders, projects, inquiries, chatbot leads for Admin Activity Feed
@@ -608,30 +628,17 @@ export default function App() {
       updateFeed('chatbot', c);
     }, (err) => console.error("Err feed chatbot:", err));
 
-    // Fetch saved calculations/estimates
-    const unsubEstimates = onSnapshot(collection(db, 'saved_estimates'), (snap) => {
-      const ests = snap.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        date: doc.data().createdAt?.toDate() || new Date()
-      }));
-      setSavedEstimates(ests.sort((a, b) => b.date - a.date));
-    }, (err) => {
-      console.error("Err feed estimates:", err);
-    });
-
     return () => {
       unsubOrders();
       unsubProjects();
       unsubInquiries();
       unsubChatbot();
-      unsubEstimates();
     };
   }, [isAdminLoggedIn]);
 
   // Set mock saved estimates if firebase is absent (fallback for local mock mode)
   useEffect(() => {
-    if (!db && isAdminLoggedIn && savedEstimates.length === 0) {
+    if (!db && savedEstimates.length === 0) {
       setSavedEstimates([
         {
           id: 'mock-est-1',
@@ -695,7 +702,7 @@ export default function App() {
         }
       ]);
     }
-  }, [isAdminLoggedIn, db]);
+  }, [db]);
 
   const handleAdminLogin = (e) => {
     e.preventDefault();
@@ -817,7 +824,9 @@ export default function App() {
 
   const filteredPortfolio = galleryFilter === 'all' 
     ? creations 
-    : creations.filter(item => item.category === galleryFilter);
+    : galleryFilter === 'sold'
+      ? creations.filter(item => item.status === 'sold')
+      : creations.filter(item => item.category === galleryFilter);
 
   // Custom Builder Next/Prev handlers
   const handleNextStep = () => {
@@ -1516,6 +1525,13 @@ de commande en temps réel sur evanpatruno.art.
             >
               🎨 Gravure &amp; Laser
             </button>
+            <button 
+              className={`filter-btn ${galleryFilter === 'sold' ? 'active' : ''}`}
+              onClick={() => setGalleryFilter('sold')}
+              id="filter-sold"
+            >
+              📜 Projets Réalisés
+            </button>
           </div>
 
           {/* Gallery Grid */}
@@ -1761,7 +1777,26 @@ de commande en temps réel sur evanpatruno.art.
             </p>
           </div>
 
-          <div className="builder-card glass" id="custom-builder-container">
+          {/* Public tabs to switch between Configurator and History references */}
+          <div className="devis-tabs" style={{ display: 'flex', justifyContent: 'center', gap: '15px', marginBottom: '35px' }}>
+            <button 
+              onClick={() => setDevisActiveTab('configurator')}
+              className={`faq-filter-btn ${devisActiveTab === 'configurator' ? 'active' : ''}`}
+              style={{ padding: '12px 24px', fontSize: '0.95rem' }}
+            >
+              🛠️ Configurer mon Projet
+            </button>
+            <button 
+              onClick={() => setDevisActiveTab('history')}
+              className={`faq-filter-btn ${devisActiveTab === 'history' ? 'active' : ''}`}
+              style={{ padding: '12px 24px', fontSize: '0.95rem' }}
+            >
+              📜 Historique des Projets &amp; Tarifs ({savedEstimates.length})
+            </button>
+          </div>
+
+          {devisActiveTab === 'configurator' && (
+            <div className="builder-card glass" id="custom-builder-container">
             <div className="builder-header">
               <span className="builder-title-step">
                 {builderStep === 1 && "Étape 1 : Type de création"}
@@ -2385,6 +2420,181 @@ de commande en temps réel sur evanpatruno.art.
               </div>
             )}
           </div>
+          )}
+
+          {devisActiveTab === 'history' && (
+            <div className="devis-history-wrapper animate-fade-in" style={{ maxWidth: '1000px', margin: '0 auto' }}>
+              <div className="glass" style={{ padding: '30px', borderRadius: '24px', marginBottom: '30px' }}>
+                <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ flex: 1, minWidth: '250px', position: 'relative' }}>
+                    <input 
+                      type="text" 
+                      placeholder="Rechercher une réalisation (ex: noyer, planche, Tremblay)..." 
+                      className="builder-input" 
+                      style={{ paddingLeft: '35px', margin: 0, fontSize: '0.9rem', height: '42px', width: '100%' }}
+                      value={devisHistorySearch}
+                      onChange={(e) => setDevisHistorySearch(e.target.value)}
+                    />
+                    <span style={{ position: 'absolute', left: '12px', top: '13px', color: 'var(--text-secondary)' }}>🔍</span>
+                  </div>
+                  
+                  <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                    {[
+                      { id: 'all', label: 'Toutes les créations' },
+                      { id: 'board', label: '🍳 Planches' },
+                      { id: 'table', label: '🪵 Tables' },
+                      { id: 'jewelry', label: '💎 Bijoux' },
+                      { id: 'lichtenberg', label: '⚡ Lichtenberg' },
+                      { id: 'laser', label: '🎨 Laser' }
+                    ].map(btn => (
+                      <button
+                        key={btn.id}
+                        onClick={() => setDevisHistoryFilter(btn.id)}
+                        className={`btn-tab ${devisHistoryFilter === btn.id ? 'active' : ''}`}
+                        style={{
+                          background: devisHistoryFilter === btn.id ? 'var(--accent-epoxy)' : 'rgba(255,255,255,0.02)',
+                          color: '#fff',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          borderRadius: '8px',
+                          padding: '6px 12px',
+                          fontSize: '0.85rem',
+                          cursor: 'pointer',
+                          transition: 'all 0.3s'
+                        }}
+                      >
+                        {btn.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {(() => {
+                const filtered = savedEstimates.filter(est => {
+                  const matchSearch = est.title.toLowerCase().includes(devisHistorySearch.toLowerCase()) || 
+                                      (est.woodSpecies && est.woodSpecies.toLowerCase().includes(devisHistorySearch.toLowerCase())) ||
+                                      (est.notes && est.notes.toLowerCase().includes(devisHistorySearch.toLowerCase()));
+                  const matchCat = devisHistoryFilter === 'all' || est.category === devisHistoryFilter;
+                  return matchSearch && matchCat;
+                });
+
+                if (filtered.length === 0) {
+                  return (
+                    <div className="glass" style={{ padding: '40px', borderRadius: '24px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                      Aucun projet historique ne correspond à votre recherche actuelle.
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className="devis-history-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(310px, 1fr))', gap: '20px' }}>
+                    {filtered.map((est) => (
+                      <div key={est.id} className="glass card-history" style={{ 
+                        padding: '24px', 
+                        borderRadius: '20px', 
+                        border: '1px solid rgba(255,255,255,0.06)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        transition: 'all 0.3s ease',
+                        background: 'linear-gradient(135deg, rgba(20, 10, 20, 0.4) 0%, rgba(10, 0, 10, 0.6) 100%)'
+                      }}>
+                        <div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                            <span style={{ 
+                              fontSize: '0.75rem', 
+                              padding: '4px 10px', 
+                              borderRadius: '20px', 
+                              background: 'rgba(176, 84, 156, 0.15)',
+                              color: 'var(--accent-epoxy-glow)',
+                              fontWeight: '600',
+                              border: '1px solid rgba(176, 84, 156, 0.25)'
+                            }}>
+                              {est.category === 'board' && '🍳 Planche de service'}
+                              {est.category === 'table' && '🪵 Table rivière'}
+                              {est.category === 'jewelry' && '💎 Bijou'}
+                              {est.category === 'lichtenberg' && '⚡ Lichtenberg'}
+                              {est.category === 'laser' && '🎨 Laser'}
+                            </span>
+                            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                              {est.date ? new Date(est.date).toLocaleDateString('fr-CA', { year: 'numeric', month: 'long' }) : 'Référence'}
+                            </span>
+                          </div>
+                          
+                          <h3 style={{ fontSize: '1.05rem', fontWeight: 'bold', color: '#fff', margin: '0 0 10px 0', lineHeight: '1.3' }}>
+                            {est.title}
+                          </h3>
+
+                          <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '5px', marginBottom: '15px' }}>
+                            <div>📏 Dimensions : <strong style={{ color: '#fff' }}>{est.dimensions || 'Non spécifiées'}</strong></div>
+                            {est.woodSpecies && <div>🪵 Essence : <strong style={{ color: '#fff' }}>{est.woodSpecies.split(' ')[0]}</strong></div>}
+                            {est.epoxyVolume > 0 && <div>💧 Époxy utilisé : <strong style={{ color: '#fff' }}>{est.epoxyVolume} L</strong></div>}
+                            {est.laborHours && <div>⏳ Temps requis : <strong style={{ color: '#fff' }}>{est.laborHours} heures</strong></div>}
+                          </div>
+
+                          {est.notes && (
+                            <p style={{ 
+                              fontSize: '0.8rem', 
+                              color: 'var(--text-muted)', 
+                              fontStyle: 'italic', 
+                              background: 'rgba(0,0,0,0.15)', 
+                              padding: '10px 14px', 
+                              borderRadius: '10px', 
+                              margin: '0 0 20px 0',
+                              borderLeft: '3px solid var(--accent-epoxy)'
+                            }}>
+                              "{est.notes}"
+                            </p>
+                          )}
+                        </div>
+
+                        <div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '15px', marginTop: '10px' }}>
+                            <div>
+                              <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Tarif de référence</div>
+                              <div style={{ fontSize: '1.35rem', fontWeight: 'bold', color: '#10b981' }}>{est.finalPrice} $ CAD</div>
+                            </div>
+                            
+                            <button
+                              onClick={() => {
+                                setProjectData({
+                                  type: est.category === 'board' ? 'Planche de présentation' : est.category === 'table' ? 'Table rivière' : est.category === 'jewelry' ? 'Bijou en bois/époxy' : est.category === 'lichtenberg' ? 'Fractale de Lichtenberg' : 'Découpe & Gravure laser',
+                                  wood: est.woodSpecies || '',
+                                  epoxy: est.epoxyVolume > 0 ? "Bleu océan translucide / Turquoise" : "Pas d'époxy (Bois brut ou gravure seule)",
+                                  legs: est.category === 'table' ? 'Pieds en X' : '',
+                                  dimensions: est.dimensions || '',
+                                  length: est.length || '',
+                                  width: est.width || '',
+                                  thickness: est.thickness || '',
+                                  presetSize: est.length ? 'custom' : '',
+                                  notes: `Inspiré par la référence historique : "${est.title}".`,
+                                  name: '',
+                                  email: '',
+                                  phone: '',
+                                  fileBase64: '',
+                                  fileName: '',
+                                  fileSize: '',
+                                  cloudLink: ''
+                                });
+                                setBuilderStep(3);
+                                setDevisActiveTab('configurator');
+                                setBuilderSubmitted(false);
+                                document.getElementById('devis')?.scrollIntoView({ behavior: 'smooth' });
+                              }}
+                              className="btn-primary"
+                              style={{ padding: '8px 12px', fontSize: '0.75rem', borderRadius: '8px', cursor: 'pointer' }}
+                            >
+                              Utiliser comme base
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
+            </div>
+          )}
         </section>
 
         {/* L'ATELIER & BIO */}
@@ -2754,6 +2964,26 @@ de commande en temps réel sur evanpatruno.art.
               >
                 <History size={18} />
                 Flux d'Activité &amp; Devis ({activityFeed.length})
+              </button>
+              <button 
+                onClick={() => setAdminActiveTab('history_records')} 
+                className={`btn-tab ${adminActiveTab === 'history_records' ? 'active' : ''}`}
+                style={{
+                  background: adminActiveTab === 'history_records' ? 'var(--accent-epoxy)' : 'transparent',
+                  color: '#fff',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: '12px',
+                  padding: '10px 20px',
+                  cursor: 'pointer',
+                  fontWeight: '600',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  transition: 'all 0.3s'
+                }}
+              >
+                <Search size={18} />
+                Historique Devis &amp; Commandes
               </button>
             </div>
 
@@ -3447,6 +3677,195 @@ de commande en temps réel sur evanpatruno.art.
                     ))}
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* TAB 4: HISTORY RECORDS */}
+            {adminActiveTab === 'history_records' && (
+              <div className="activity-feed-section glass" style={{ padding: '30px', borderRadius: '24px' }}>
+                <h3 className="contact-info-title" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '15px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <Search size={20} style={{ color: 'var(--accent-epoxy)' }} />
+                  Historique des Devis &amp; Commandes
+                </h3>
+
+                {/* Filters & Search */}
+                <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap', justifyContent: 'space-between', marginBottom: '25px', alignItems: 'center' }}>
+                  <div style={{ flex: 1, minWidth: '280px', position: 'relative' }}>
+                    <input 
+                      type="text" 
+                      placeholder="Rechercher par client, courriel, détails, commande..." 
+                      className="builder-input" 
+                      style={{ paddingLeft: '38px', margin: 0, fontSize: '0.9rem', height: '42px', width: '100%' }}
+                      value={adminHistorySearch}
+                      onChange={(e) => setAdminHistorySearch(e.target.value)}
+                    />
+                    <span style={{ position: 'absolute', left: '12px', top: '13px', color: 'var(--text-secondary)' }}>🔍</span>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                    {[
+                      { id: 'all', label: 'Tout' },
+                      { id: 'devis', label: '🪵 Devis sur Mesure' },
+                      { id: 'orders', label: '🛒 Commandes Boutique' }
+                    ].map(tab => (
+                      <button
+                        key={tab.id}
+                        onClick={() => setAdminHistoryTab(tab.id)}
+                        className={`btn-tab ${adminHistoryTab === tab.id ? 'active' : ''}`}
+                        style={{
+                          background: adminHistoryTab === tab.id ? 'var(--accent-epoxy)' : 'rgba(255,255,255,0.02)',
+                          color: '#fff',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          borderRadius: '8px',
+                          padding: '8px 16px',
+                          fontSize: '0.85rem',
+                          cursor: 'pointer',
+                          transition: 'all 0.3s'
+                        }}
+                      >
+                        {tab.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* History Grid/List */}
+                {(() => {
+                  const filtered = activityFeed.filter(act => {
+                    const matchType = adminHistoryTab === 'all'
+                      ? (act.type === 'project' || act.type === 'order')
+                      : adminHistoryTab === 'devis'
+                        ? act.type === 'project'
+                        : act.type === 'order';
+
+                    if (!matchType) return false;
+
+                    const searchLower = adminHistorySearch.toLowerCase();
+                    return (
+                      act.id.toLowerCase().includes(searchLower) ||
+                      act.title.toLowerCase().includes(searchLower) ||
+                      act.details.toLowerCase().includes(searchLower)
+                    );
+                  });
+
+                  if (filtered.length === 0) {
+                    return (
+                      <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', textAlign: 'center', padding: '30px' }}>
+                        Aucun enregistrement historique trouvé.
+                      </p>
+                    );
+                  }
+
+                  return (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                      {filtered.map((act) => {
+                        const isOrder = act.type === 'order';
+                        const creation = creations.find(c => String(c.id) === String(act.creationId));
+                        
+                        const certData = {
+                          orderId: act.id,
+                          creationTitle: act.creationTitle || (creation && creation.title) || 'Projet personnalisé',
+                          priceCAD: act.priceCAD || act.convertedPrice || '0 $',
+                          customerName: act.customerName || (isOrder ? act.details.split(' (')[0] : 'N/A'),
+                          customerEmail: act.customerEmail || (isOrder ? act.details.match(/\(([^)]+)\)/)?.[1] : 'N/A'),
+                          customerAddress: act.customerAddress || 'N/A',
+                          wood: (creation && creation.wood) || 'N/A',
+                          dimensions: (creation && creation.dimensions) || 'N/A',
+                          mediums: (creation && creation.mediums) || 'N/A',
+                          date: act.date ? act.date.toLocaleDateString('fr-FR') : new Date().toLocaleDateString('fr-FR')
+                        };
+
+                        return (
+                          <div key={act.id} className="activity-feed-item glass" style={{ padding: '20px', display: 'flex', gap: '15px', borderLeft: `4px solid ${isOrder ? '#10b981' : 'var(--accent-epoxy)'}` }}>
+                            <div className="activity-icon" style={{ fontSize: '1.5rem' }}>
+                              {isOrder ? '🛒' : '🪵'}
+                            </div>
+                            <div className="activity-content" style={{ flex: 1 }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '20px', flexWrap: 'wrap' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <strong style={{ fontSize: '0.95rem', color: '#fff' }}>{act.title}</strong>
+                                  <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: '12px', background: 'rgba(255,255,255,0.06)', color: 'var(--text-secondary)' }}>ID: {act.id}</span>
+                                </div>
+                                <span className="activity-date" style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{act.date.toLocaleString('fr-CA')}</span>
+                              </div>
+                              <p style={{ color: 'var(--text-secondary)', marginTop: '8px', fontSize: '0.9rem', lineHeight: '1.4' }}>{act.details}</p>
+                              
+                              {isOrder && (
+                                <div style={{ marginTop: '15px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '15px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '12px' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Statut :</span>
+                                    <select
+                                      value={act.status || 'received'}
+                                      onChange={(e) => updateOrderStatus(act.id, e.target.value)}
+                                      style={{
+                                        background: '#1e0a19',
+                                        color: '#fff',
+                                        border: '1px solid rgba(255,255,255,0.15)',
+                                        borderRadius: '6px',
+                                        padding: '4px 8px',
+                                        fontSize: '0.8rem',
+                                        cursor: 'pointer',
+                                        outline: 'none'
+                                      }}
+                                    >
+                                      <option value="received">📦 Reçue</option>
+                                      <option value="production">⚙️ En fabrication</option>
+                                      <option value="finishing">🎨 Finition &amp; Laser</option>
+                                      <option value="shipped">🚚 Expédiée</option>
+                                    </select>
+                                  </div>
+                                  <div style={{ display: 'flex', gap: '8px' }}>
+                                    <button 
+                                      onClick={() => downloadCertificate(certData)} 
+                                      className="btn-secondary" 
+                                      style={{ padding: '4px 10px', fontSize: '0.75rem', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                                    >
+                                      📜 Certificat
+                                    </button>
+                                    <button 
+                                      onClick={() => downloadInvoice(certData)} 
+                                      className="btn-secondary" 
+                                      style={{ padding: '4px 10px', fontSize: '0.75rem', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                                    >
+                                      🧾 Facture
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+
+                              {!isOrder && (act.fileBase64 || act.cloudLink) && (
+                                <div style={{ marginTop: '15px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '12px' }}>
+                                  {act.fileBase64 && (
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                      {act.fileBase64.startsWith('data:image/') ? (
+                                        <img src={act.fileBase64} alt="Sketch Preview" style={{ width: '70px', height: '70px', objectFit: 'cover', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)' }} />
+                                      ) : (
+                                        <div style={{ width: '70px', height: '70px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.8rem', border: '1px solid rgba(255,255,255,0.1)' }}>📄</div>
+                                      )}
+                                      <div>
+                                        <div style={{ fontSize: '0.85rem', color: '#fff', fontWeight: '500' }}>{act.fileName} ({act.fileSize})</div>
+                                        <a href={act.fileBase64} download={act.fileName} className="btn-secondary" style={{ display: 'inline-block', fontSize: '0.75rem', padding: '4px 10px', marginTop: '6px', borderRadius: '4px', textDecoration: 'none' }}>
+                                          Télécharger le fichier
+                                        </a>
+                                      </div>
+                                    </div>
+                                  )}
+                                  {act.cloudLink && (
+                                    <div style={{ marginTop: '10px' }}>
+                                      <a href={act.cloudLink} target="_blank" rel="noopener noreferrer" className="btn-primary" style={{ fontSize: '0.75rem', padding: '4px 10px', borderRadius: '4px', textDecoration: 'none' }}>
+                                        Voir dans le Cloud
+                                      </a>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
               </div>
             )}
           </section>
