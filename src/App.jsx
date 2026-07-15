@@ -406,6 +406,212 @@ export default function App() {
   const [faqActiveCategory, setFaqActiveCategory] = useState('all');
   const [faqActiveAccordion, setFaqActiveAccordion] = useState(null);
 
+  // Shopping Cart & Shipping & Certificate & Review Summary States
+  const [cart, setCart] = useState(() => {
+    try {
+      const saved = localStorage.getItem('evan_art_cart');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [reviewsSummary, setReviewsSummary] = useState({});
+  const [postalCode, setPostalCode] = useState('');
+  const [shippingFee, setShippingFee] = useState(0);
+  const [shippingEstimated, setShippingEstimated] = useState(false);
+
+  // Verification Certificate States
+  const [certData, setCertData] = useState(null);
+  const [certLoading, setCertLoading] = useState(false);
+  const [certError, setCertError] = useState(null);
+
+  // Sync Cart to localStorage
+  useEffect(() => {
+    localStorage.setItem('evan_art_cart', JSON.stringify(cart));
+  }, [cart]);
+
+  // Load reviews aggregate summary
+  useEffect(() => {
+    if (!db) return;
+    const unsubscribe = onSnapshot(collection(db, 'reviews'), (snapshot) => {
+      const summary = {};
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const cId = data.creationId;
+        if (cId) {
+          if (!summary[cId]) {
+            summary[cId] = { sum: 0, count: 0 };
+          }
+          summary[cId].sum += data.rating || 5;
+          summary[cId].count += 1;
+        }
+      });
+      const processed = {};
+      Object.keys(summary).forEach(cId => {
+        processed[cId] = {
+          avgRating: (summary[cId].sum / summary[cId].count).toFixed(1),
+          count: summary[cId].count
+        };
+      });
+      setReviewsSummary(processed);
+    }, (err) => {
+      console.error("Error subscribing to reviews summary:", err);
+    });
+    return () => unsubscribe();
+  }, [db]);
+
+  // Check URL query parameters for Certificate Authenticity
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const certId = params.get('certId');
+    if (certId) {
+      setCertLoading(true);
+      if (db) {
+        const docRef = doc(db, 'orders', certId);
+        getDoc(docRef).then((docSnap) => {
+          if (docSnap.exists()) {
+            setCertData({ id: docSnap.id, ...docSnap.data() });
+          } else {
+            setCertError("Certificat d'Authenticité introuvable dans notre registre d'œuvres.");
+          }
+          setCertLoading(false);
+        }).catch((err) => {
+          console.error("Error fetching certificate:", err);
+          setCertError("Une erreur est survenue lors de la récupération du certificat.");
+          setCertLoading(false);
+        });
+      } else {
+        setCertError("Base de données indisponible.");
+        setCertLoading(false);
+      }
+    }
+  }, [db]);
+
+  // IntersectionObserver scroll reveal setup
+  useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.08 });
+
+    const elements = document.querySelectorAll('.scroll-reveal');
+    elements.forEach((el) => observer.observe(el));
+
+    return () => {
+      elements.forEach((el) => observer.unobserve(el));
+    };
+  }, []);
+
+  // Weight and price helper functions
+  const calculateEstimatedWeight = () => {
+    const l = parseFloat(projectData.length) || 0;
+    const w = parseFloat(projectData.width) || 0;
+    const t = parseFloat(projectData.thickness) || 0;
+    if (l <= 0 || w <= 0 || t <= 0) return null;
+
+    const volumeCuIn = l * w * t;
+    const volumeCm3 = volumeCuIn * 16.3871;
+    
+    // Average density of wood/resin composite: ~0.72 g/cm3 for boards, ~0.85 g/cm3 for river tables
+    const density = projectData.type === 'Table rivière' ? 0.85 : 0.72;
+    const weightKg = (volumeCm3 * density) / 1000;
+    const weightLbs = weightKg * 2.20462;
+    
+    return {
+      kg: weightKg.toFixed(1),
+      lbs: weightLbs.toFixed(1)
+    };
+  };
+
+  const getPriceNumber = (priceStr) => {
+    if (!priceStr || priceStr.toLowerCase().includes('demande')) {
+      return 0;
+    }
+    const match = priceStr.replace(/\s/g, '').match(/\d+/);
+    if (!match) return 0;
+    return parseFloat(match[0]);
+  };
+
+  const formatPriceNum = (amountCAD) => {
+    let rate = 1;
+    let symbol = ' $ CAD';
+    if (currency === 'USD') {
+      rate = 0.74;
+      symbol = ' $ USD';
+    } else if (currency === 'EUR') {
+      rate = 0.68;
+      symbol = ' €';
+    }
+    const converted = Math.round(amountCAD * rate);
+    return `${converted.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ")}${symbol}`;
+  };
+
+  const getCartSubtotalCAD = () => {
+    return cart.reduce((sum, item) => sum + getPriceNumber(item.price) * item.quantity, 0);
+  };
+
+  const getCartTotalCAD = () => {
+    return getCartSubtotalCAD() + shippingFee;
+  };
+
+  // Cart action handlers
+  const handleAddToCart = (item) => {
+    setCart(prev => {
+      const existing = prev.find(i => i.id === item.id);
+      if (existing) {
+        return prev.map(i => i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i);
+      }
+      return [...prev, { ...item, quantity: 1 }];
+    });
+    setIsCartOpen(true);
+  };
+
+  const handleRemoveFromCart = (itemId) => {
+    setCart(prev => prev.filter(i => i.id !== itemId));
+  };
+
+  const handleUpdateCartQty = (itemId, change) => {
+    setCart(prev => prev.map(i => {
+      if (i.id === itemId) {
+        const newQty = i.quantity + change;
+        return newQty > 0 ? { ...i, quantity: newQty } : i;
+      }
+      return i;
+    }));
+  };
+
+  const handleEstimateShipping = (e) => {
+    e.preventDefault();
+    const code = postalCode.replace(/\s+/g, '').toUpperCase();
+    if (!code) return;
+
+    const canadaRegex = /^[A-Z]\d[A-Z]\d[A-Z]\d$/;
+    const usaRegex = /^\d{5}(-\d{4})?$/;
+    const franceRegex = /^(0[1-9]|[1-9]\d)\d{3}$/;
+
+    let fee = 20;
+    if (canadaRegex.test(code)) {
+      if (/^[GHJ]/.test(code)) {
+        fee = 15;
+      } else {
+        fee = 28;
+      }
+    } else if (usaRegex.test(code)) {
+      fee = 45;
+    } else if (franceRegex.test(code)) {
+      fee = 95;
+    } else {
+      fee = 50;
+    }
+
+    setShippingFee(fee);
+    setShippingEstimated(true);
+  };
+
   // Track scroll position to add class to header
   useEffect(() => {
     const handleScroll = () => {
@@ -1150,20 +1356,41 @@ export default function App() {
     await new Promise(resolve => setTimeout(resolve, 2000));
     
     let docId = "EPA-" + Math.floor(Math.random() * 900000 + 100000);
+    const isCart = checkoutItem.isCart;
+    const finalPriceCAD = isCart ? getCartSubtotalCAD() : getPriceNumber(checkoutItem.price);
+    
     if (db) {
       try {
-        const docRef = await addDoc(collection(db, 'orders'), {
-          creationId: checkoutItem.id,
-          creationTitle: checkoutItem.title,
-          priceCAD: checkoutItem.price,
-          currency: currency,
-          convertedPrice: formatPrice(checkoutItem.price),
+        const orderPayload = {
           customerName: checkoutForm.name,
           customerEmail: checkoutForm.email,
           customerAddress: `${checkoutForm.address}, ${checkoutForm.city}, ${checkoutForm.zip}`,
           status: 'received',
-          createdAt: serverTimestamp()
-        });
+          createdAt: serverTimestamp(),
+          currency: currency,
+          shippingCAD: isCart ? shippingFee : 0,
+          priceCAD: finalPriceCAD,
+          convertedPrice: formatPriceNum(finalPriceCAD + (isCart ? shippingFee : 0))
+        };
+
+        if (isCart) {
+          orderPayload.items = cart.map(i => ({
+            id: i.id,
+            title: i.title,
+            price: i.price,
+            quantity: i.quantity,
+            wood: i.wood || "N/A",
+            dimensions: i.dimensions || "N/A",
+            mediums: i.mediums || "N/A"
+          }));
+          orderPayload.creationTitle = cart.map(i => `${i.title} (x${i.quantity})`).join(', ');
+          orderPayload.creationId = "cart-" + Date.now();
+        } else {
+          orderPayload.creationId = checkoutItem.id;
+          orderPayload.creationTitle = checkoutItem.title;
+        }
+
+        const docRef = await addDoc(collection(db, 'orders'), orderPayload);
         docId = docRef.id;
       } catch (err) {
         console.error("Erreur lors de la sauvegarde de la commande :", err);
@@ -1172,20 +1399,23 @@ export default function App() {
     
     const orderData = {
       orderId: docId,
-      creationTitle: checkoutItem.title,
-      priceCAD: checkoutItem.price,
+      creationTitle: isCart ? cart.map(i => `${i.title} (x${i.quantity})`).join(', ') : checkoutItem.title,
+      priceCAD: finalPriceCAD + (isCart ? shippingFee : 0),
       customerName: checkoutForm.name,
       customerEmail: checkoutForm.email,
       customerAddress: `${checkoutForm.address}, ${checkoutForm.city}, ${checkoutForm.zip}`,
-      wood: checkoutItem.wood || "N/A",
-      dimensions: checkoutItem.dimensions || "N/A",
-      mediums: checkoutItem.mediums || "N/A",
+      wood: isCart ? (cart[0]?.wood || "N/A") : (checkoutItem.wood || "N/A"),
+      dimensions: isCart ? (cart[0]?.dimensions || "N/A") : (checkoutItem.dimensions || "N/A"),
+      mediums: isCart ? (cart[0]?.mediums || "N/A") : (checkoutItem.mediums || "N/A"),
       date: new Date().toLocaleDateString('fr-FR')
     };
 
     setCheckoutSubmitting(false);
     setPurchaseCertificate(orderData);
     setCheckoutItem(null);
+    if (isCart) {
+      setCart([]); // Vider le panier après paiement réussi
+    }
   };
 
   const handleTrackOrder = async (e) => {
@@ -1400,6 +1630,98 @@ de commande en temps réel sur evanpatruno.art.
     link.click();
   };
 
+  const params = new URLSearchParams(window.location.search);
+  const queryCertId = params.get('certId');
+  if (queryCertId) {
+    return (
+      <div className="cert-verify-page">
+        <div className="cert-card-glass scroll-reveal visible">
+          {certLoading ? (
+            <div style={{ padding: '40px' }}>
+              <div className="payment-loader" style={{ width: '40px', height: '40px', borderWidth: '4px' }}></div>
+              <h3 style={{ color: '#fff', marginTop: '20px' }}>Vérification du certificat d'authenticité...</h3>
+            </div>
+          ) : certError ? (
+            <div style={{ padding: '40px' }}>
+              <span style={{ fontSize: '3rem' }}>❌</span>
+              <h2 style={{ color: '#fff', marginTop: '15px', fontFamily: 'var(--font-heading)' }}>Erreur de Vérification</h2>
+              <p style={{ color: 'var(--text-secondary)', margin: '15px 0' }}>{certError}</p>
+              <a href="/" className="btn-primary" style={{ display: 'inline-block', marginTop: '10px' }}>Retourner au site</a>
+            </div>
+          ) : certData ? (
+            <div>
+              <div className="cert-seal-gold">
+                ★ CERTIFIE ★
+              </div>
+              <h1 style={{ color: '#fff', fontSize: '1.8rem', fontFamily: 'var(--font-heading)', marginBottom: '5px' }}>
+                Certificat d'Authenticité
+              </h1>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '25px' }}>
+                Enregistrement Numérique Officiel
+              </p>
+              
+              <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.05)', borderRadius: '16px', padding: '25px', textAlign: 'left', marginBottom: '30px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div>
+                  <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', display: 'block' }}>Artiste :</span>
+                  <strong style={{ color: '#fff', fontSize: '1.05rem' }}>Evan Patruno</strong>
+                </div>
+                
+                <div>
+                  <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', display: 'block' }}>Œuvre(s) certifiée(s) :</span>
+                  <strong style={{ color: '#fff', fontSize: '1.05rem' }}>
+                    {certData.items ? certData.items.map(i => `${i.title} (x${i.quantity})`).join(', ') : certData.creationTitle}
+                  </strong>
+                </div>
+
+                {certData.items && certData.items[0] && (
+                  <div>
+                    <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', display: 'block' }}>Détails techniques :</span>
+                    <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                      Bois : {certData.items[0].wood || 'N/A'} • Dimensions : {certData.items[0].dimensions || 'N/A'} • Médiums : {certData.items[0].mediums || 'N/A'}
+                    </span>
+                  </div>
+                )}
+
+                <div>
+                  <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', display: 'block' }}>Acquéreur :</span>
+                  <strong style={{ color: '#fff', fontSize: '0.95rem' }}>{certData.customerName}</strong>
+                </div>
+
+                <div>
+                  <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', display: 'block' }}>Date d'enregistrement :</span>
+                  <strong style={{ color: '#fff', fontSize: '0.95rem' }}>
+                    {certData.createdAt ? new Date(certData.createdAt.seconds * 1000).toLocaleDateString('fr-FR') : new Date().toLocaleDateString('fr-FR')}
+                  </strong>
+                </div>
+
+                <div>
+                  <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', display: 'block' }}>Identifiant du registre :</span>
+                  <code style={{ color: '#d4af37', fontWeight: 'bold' }}>{certData.id}</code>
+                </div>
+              </div>
+
+              <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: '20px' }}>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', fontStyle: 'italic', margin: 0 }}>
+                  Cette œuvre d'art est certifiée originale, façonnée à la main à l'atelier d'art Evan Patruno au Québec.
+                </p>
+                <div className="cert-signature-name">Evan Patruno</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Signature de l'Artiste</div>
+              </div>
+              
+              <a href="/" className="btn-secondary" style={{ display: 'inline-block', marginTop: '30px', padding: '10px 20px', borderRadius: '10px' }}>
+                Retourner sur evanpatruno.art
+              </a>
+            </div>
+          ) : (
+            <div>
+              <p style={{ color: 'var(--text-secondary)' }}>Chargement...</p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div id="root">
       {/* Background Decorative Glow Blurs */}
@@ -1427,6 +1749,26 @@ de commande en temps réel sur evanpatruno.art.
         </ul>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+          <button 
+            onClick={() => setIsCartOpen(true)}
+            className="btn-tab"
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px', 
+              padding: '10px 16px', 
+              background: 'rgba(176, 84, 156, 0.12)', 
+              border: '1px solid rgba(176, 84, 156, 0.4)', 
+              borderRadius: '10px', 
+              color: '#fff', 
+              cursor: 'pointer',
+              fontWeight: '600',
+              transition: 'all 0.3s'
+            }}
+            id="nav-cart-btn"
+          >
+            🛒 Panier ({cart.reduce((sum, i) => sum + i.quantity, 0)})
+          </button>
           <a href="#devis" className="btn-cta-nav" id="nav-cta-btn">Créer un Devis</a>
           <div className="currency-dropdown-container">
             <select 
@@ -1481,7 +1823,7 @@ de commande en temps réel sur evanpatruno.art.
         </section>
 
         {/* PORTFOLIO GALLERY */}
-        <section id="portfolio">
+        <section id="portfolio" className="scroll-reveal">
           <div className="section-header animate-fade-in">
             <h2 className="section-title">Mes Créations</h2>
             <p className="section-subtitle">
@@ -1550,9 +1892,16 @@ de commande en temps réel sur evanpatruno.art.
                   <img src={item.image} alt={item.title} className="art-image" loading="lazy" />
                 </div>
                 
-                <div className="art-info">
+                 <div className="art-info">
                   <div>
                     <h3 className="art-title">{item.title}</h3>
+                    {reviewsSummary[item.id] && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.8rem', color: '#fbbf24', marginTop: '4px' }}>
+                        <span>★</span>
+                        <strong>{reviewsSummary[item.id].avgRating}</strong>
+                        <span style={{ color: 'var(--text-muted)' }}>({reviewsSummary[item.id].count} avis)</span>
+                      </div>
+                    )}
                     <p className="art-desc">{item.desc}</p>
                   </div>
                   
@@ -1576,12 +1925,12 @@ de commande en temps réel sur evanpatruno.art.
                       <button 
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleStartCheckout(item);
+                          handleAddToCart(item);
                         }}
                         className="btn-primary" 
-                        style={{ padding: '8px 16px', fontSize: '0.85rem', width: '100%', marginTop: '5px' }}
+                        style={{ padding: '8px 16px', fontSize: '0.85rem', width: '100%', marginTop: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
                       >
-                        Commander
+                        <span>🛒</span> Ajouter au panier
                       </button>
                     ) : (
                       <button 
@@ -1606,7 +1955,7 @@ de commande en temps réel sur evanpatruno.art.
         </section>
 
         {/* MATERIALS & TECH SECTION */}
-        <section id="materials" className="rounded-section">
+        <section id="materials" className="rounded-section scroll-reveal">
           <div className="section-header">
             <h2 className="section-title">Ce que je peux produire</h2>
             <p className="section-subtitle">
@@ -1630,7 +1979,7 @@ de commande en temps réel sur evanpatruno.art.
 
 
         {/* CARE GUIDE SECTION */}
-        <section id="entretien">
+        <section id="entretien" className="scroll-reveal">
           <div className="section-header">
             <h2 className="section-title">Guide d'Entretien &amp; de Durabilité</h2>
             <p className="section-subtitle">
@@ -1670,7 +2019,7 @@ de commande en temps réel sur evanpatruno.art.
         </section>
 
         {/* FAQ SECTION */}
-        <section id="faq" className="rounded-section">
+        <section id="faq" className="rounded-section scroll-reveal">
           <div className="section-header">
             <h2 className="section-title">Foire Aux Questions (FAQ)</h2>
             <p className="section-subtitle">
@@ -1740,7 +2089,7 @@ de commande en temps réel sur evanpatruno.art.
         </section>
 
         {/* CUSTOM INQUIRY BUILDER */}
-        <section id="devis" style={{ borderBottom: '1px solid var(--border-color)' }}>
+        <section id="devis" className="scroll-reveal" style={{ borderBottom: '1px solid var(--border-color)' }}>
           <div className="section-header">
             <h2 className="section-title">Créez votre Projet Personnalisé</h2>
             <p className="section-subtitle">
@@ -2126,6 +2475,21 @@ de commande en temps réel sur evanpatruno.art.
                               </div>
                             </div>
                           )}
+                          {(() => {
+                            const weight = calculateEstimatedWeight();
+                            if (!weight) return null;
+                            return (
+                              <div className="weight-calculator-badge glass scroll-reveal" style={{ marginTop: '10px', padding: '12px 18px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(176, 84, 156, 0.08)', border: '1px solid rgba(176, 84, 156, 0.25)' }}>
+                                <span style={{ fontSize: '1.2rem' }}>⚖️</span>
+                                <div>
+                                  <div style={{ fontSize: '0.85rem', color: '#fff', fontWeight: '600' }}>Poids théorique estimé :</div>
+                                  <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                                    Environ <strong>{weight.kg} kg</strong> ({weight.lbs} lbs) <span style={{ color: 'var(--text-muted)' }}>(pour le plateau seul)</span>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })()}
                         </div>
                       ) : (
                         <div className="builder-form-group">
@@ -2382,7 +2746,7 @@ de commande en temps réel sur evanpatruno.art.
         </section>
 
         {/* HISTORIQUE DE PROJETS SECTION */}
-        <section id="historique" style={{ borderBottom: '1px solid var(--border-color)' }}>
+        <section id="historique" className="scroll-reveal" style={{ borderBottom: '1px solid var(--border-color)' }}>
           <div className="section-header animate-fade-in">
             <h2 className="section-title">Historique des Projets &amp; Tarifs</h2>
             <p className="section-subtitle">
@@ -2563,7 +2927,7 @@ de commande en temps réel sur evanpatruno.art.
         </section>
 
         {/* L'ATELIER & BIO */}
-        <section id="atelier">
+        <section id="atelier" className="scroll-reveal">
           <div className="about-grid">
             <div className="about-text-col">
               <h2 className="section-title" style={{ textAlign: 'left' }}>L'Artiste derrière le Bois</h2>
@@ -2618,7 +2982,7 @@ de commande en temps réel sur evanpatruno.art.
         </section>
 
         {/* INSTAGRAM FEED SECTION */}
-        <section className="instagram-feed-section">
+        <section className="instagram-feed-section scroll-reveal">
           <div className="section-header" style={{ marginBottom: '40px' }}>
             <h2 className="section-title">Suivez mon travail sur Instagram</h2>
             <p className="section-subtitle">
@@ -2650,7 +3014,7 @@ de commande en temps réel sur evanpatruno.art.
         </section>
 
         {/* ORDER TRACKING SECTION */}
-        <section id="suivi-commande" style={{ borderBottom: '1px solid var(--border-color)' }}>
+        <section id="suivi-commande" className="scroll-reveal" style={{ borderBottom: '1px solid var(--border-color)' }}>
           <div className="section-header">
             <h2 className="section-title">Suivi de Commande en Direct</h2>
             <p className="section-subtitle">
@@ -2729,7 +3093,7 @@ de commande en temps réel sur evanpatruno.art.
         </section>
 
         {/* CONTACT SECTION */}
-        <section id="contact">
+        <section id="contact" className="scroll-reveal">
           <div className="section-header">
             <h2 className="section-title">Discutons de votre projet</h2>
             <p className="section-subtitle">
@@ -3902,17 +4266,43 @@ de commande en temps réel sur evanpatruno.art.
       {/* SIMULATED STRIPE CHECKOUT OVERLAY */}
       {checkoutItem && (
         <div className="checkout-overlay">
-          <div className="checkout-card glass animate-fade-in">
+          <div className="checkout-card glass animate-fade-in" style={{ position: 'relative' }}>
             <div className="checkout-header">
-              <h3 className="checkout-title">Finaliser votre commande</h3>
+              <h3 className="checkout-title" style={{ fontFamily: 'var(--font-heading)' }}>Finaliser votre commande</h3>
               <button className="checkout-close" onClick={() => setCheckoutItem(null)}>&times;</button>
             </div>
             
             <form onSubmit={handleCheckoutSubmit} className="contact-form">
-              <div className="checkout-summary-row">
-                <span>Produit : <strong>{checkoutItem.title}</strong></span>
-                <span>Prix : <strong>{formatPrice(checkoutItem.price)}</strong></span>
-              </div>
+              {checkoutItem.isCart ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px', background: 'rgba(255, 255, 255, 0.03)', padding: '15px', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                  <div style={{ fontWeight: '600', color: '#fff', fontSize: '0.9rem', marginBottom: '5px' }}>Détails du panier :</div>
+                  {cart.map((item) => (
+                    <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                      <span>{item.title} (x{item.quantity})</span>
+                      <strong>{formatPrice(item.price)}</strong>
+                    </div>
+                  ))}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--text-secondary)', borderTop: '1px dashed rgba(255,255,255,0.08)', paddingTop: '8px', marginTop: '4px' }}>
+                    <span>Sous-total :</span>
+                    <strong>{formatPriceNum(getCartSubtotalCAD())}</strong>
+                  </div>
+                  {shippingEstimated && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                      <span>Livraison :</span>
+                      <strong>{formatPriceNum(shippingFee)}</strong>
+                    </div>
+                  )}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem', fontWeight: '700', color: '#fff', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '8px', marginTop: '4px' }}>
+                    <span>Total :</span>
+                    <strong>{formatPriceNum(getCartTotalCAD())}</strong>
+                  </div>
+                </div>
+              ) : (
+                <div className="checkout-summary-row" style={{ marginBottom: '20px' }}>
+                  <span>Produit : <strong>{checkoutItem.title}</strong></span>
+                  <span>Prix : <strong>{formatPrice(checkoutItem.price)}</strong></span>
+                </div>
+              )}
               
               <div className="stripe-form-group">
                 <label>Nom complet</label>
@@ -3922,17 +4312,6 @@ de commande en temps réel sur evanpatruno.art.
                   required 
                   value={checkoutForm.name}
                   onChange={(e) => setCheckoutForm(prev => ({ ...prev, name: e.target.value }))}
-                />
-              </div>
-
-              <div className="stripe-form-group">
-                <label>Adresse courriel</label>
-                <input 
-                  type="email" 
-                  className="builder-input" 
-                  required 
-                  value={checkoutForm.email}
-                  onChange={(e) => setCheckoutForm(prev => ({ ...prev, email: e.target.value }))}
                 />
               </div>
 
@@ -3948,7 +4327,7 @@ de commande en temps réel sur evanpatruno.art.
                 />
               </div>
 
-              <div className="form-row">
+              <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                 <div className="stripe-form-group">
                   <label>Ville</label>
                   <input 
@@ -3971,55 +4350,84 @@ de commande en temps réel sur evanpatruno.art.
                 </div>
               </div>
 
-              <div className="stripe-form-group" style={{ marginTop: '10px', borderTop: '1px solid var(--border-color)', paddingTop: '15px' }}>
-                <label>Détails du paiement (Sécurisé par Stripe)</label>
-                <div className="stripe-card-input-wrapper">
-                  <span style={{ fontSize: '1.2rem' }}>💳</span>
+              {/* Luxury Credit Card Mockup */}
+              <div style={{ marginTop: '20px' }}>
+                <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '10px' }}>Détails de la Carte (Sécurisé par Stripe)</label>
+                <div className="stripe-preview-card">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div className="stripe-card-chip"></div>
+                    <span style={{ fontSize: '0.9rem', fontWeight: '800', fontStyle: 'italic', opacity: 0.8 }}>STRIPE PAY</span>
+                  </div>
+                  <div className="stripe-card-number">
+                    {checkoutForm.cardNumber ? checkoutForm.cardNumber.replace(/\s?/g, '').replace(/(\d{4})/g, '$1 ').trim() : '•••• •••• •••• ••••'}
+                  </div>
+                  <div className="stripe-card-meta">
+                    <div>
+                      <span style={{ fontSize: '0.6rem', display: 'block', opacity: 0.7 }}>Titulaire</span>
+                      <strong>{checkoutForm.name || 'VOTRE NOM'}</strong>
+                    </div>
+                    <div>
+                      <span style={{ fontSize: '0.6rem', display: 'block', opacity: 0.7 }}>Expire</span>
+                      <strong>{checkoutForm.expiry || 'MM/AA'}</strong>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="stripe-form-group" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '15px' }}>
+                <div>
+                  <label>Numéro de carte</label>
                   <input 
                     type="text" 
-                    className="stripe-card-input" 
-                    required 
+                    className="builder-input"
+                    required
                     placeholder="4242 4242 4242 4242"
-                    maxLength="19"
                     value={checkoutForm.cardNumber}
                     onChange={(e) => setCheckoutForm(prev => ({ ...prev, cardNumber: e.target.value }))}
                   />
                 </div>
-              </div>
-
-              <div className="form-row">
-                <div className="stripe-form-group">
-                  <label>Date d'expiration</label>
-                  <input 
-                    type="text" 
-                    className="builder-input" 
-                    required 
-                    placeholder="MM/AA"
-                    maxLength="5"
-                    value={checkoutForm.expiry}
-                    onChange={(e) => setCheckoutForm(prev => ({ ...prev, expiry: e.target.value }))}
-                  />
-                </div>
-                <div className="stripe-form-group">
-                  <label>Code CVC</label>
-                  <input 
-                    type="text" 
-                    className="builder-input" 
-                    required 
-                    placeholder="123"
-                    maxLength="3"
-                    value={checkoutForm.cvc}
-                    onChange={(e) => setCheckoutForm(prev => ({ ...prev, cvc: e.target.value }))}
-                  />
+                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div className="stripe-form-group">
+                    <label>Expiration</label>
+                    <input 
+                      type="text" 
+                      className="builder-input" 
+                      required 
+                      placeholder="MM/AA"
+                      maxLength="5"
+                      value={checkoutForm.expiry}
+                      onChange={(e) => setCheckoutForm(prev => ({ ...prev, expiry: e.target.value }))}
+                    />
+                  </div>
+                  <div className="stripe-form-group">
+                    <label>CVC</label>
+                    <input 
+                      type="text" 
+                      className="builder-input" 
+                      required 
+                      placeholder="123"
+                      maxLength="3"
+                      value={checkoutForm.cvc}
+                      onChange={(e) => setCheckoutForm(prev => ({ ...prev, cvc: e.target.value }))}
+                    />
+                  </div>
                 </div>
               </div>
 
               <button 
                 type="submit" 
                 className="btn-checkout-submit"
+                style={{ marginTop: '20px', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}
                 disabled={checkoutSubmitting}
               >
-                {checkoutSubmitting ? 'Traitement en cours...' : `Payer ${formatPrice(checkoutItem.price)}`}
+                {checkoutSubmitting ? (
+                  <>
+                    <span className="payment-loader"></span>
+                    <span>Traitement sécurisé Stripe...</span>
+                  </>
+                ) : (
+                  `Payer ${checkoutItem.isCart ? formatPriceNum(getCartTotalCAD()) : formatPrice(checkoutItem.price)}`
+                )}
               </button>
             </form>
           </div>
@@ -4274,11 +4682,11 @@ de commande en temps réel sur evanpatruno.art.
               Utilisez cet identifiant dans notre module de suivi de commande en direct pour suivre la préparation !
             </p>
 
-            <div className="qr-code-box">
+            <div className="qr-code-box" style={{ margin: '15px 0' }}>
               <img 
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=https://evanpatruno.art/track?id=${purchaseCertificate.orderId}`} 
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(window.location.origin + '/?certId=' + purchaseCertificate.orderId)}`} 
                 alt="Code QR Certificat"
-                style={{ width: '100px', height: '100px' }}
+                style={{ width: '150px', height: '150px', border: '4px solid #fff', borderRadius: '8px' }}
               />
             </div>
 
@@ -4309,6 +4717,100 @@ de commande en temps réel sur evanpatruno.art.
           </div>
         </div>
       )}
+
+      {/* SHOPPING CART DRAWER OVERLAY */}
+      <div className={`cart-drawer-overlay ${isCartOpen ? 'open' : ''}`} onClick={() => setIsCartOpen(false)}>
+        <div className="cart-drawer" onClick={(e) => e.stopPropagation()}>
+          <div className="cart-header">
+            <h3 style={{ margin: 0, color: '#fff', fontSize: '1.2rem', fontFamily: 'var(--font-heading)' }}>Votre Panier</h3>
+            <button className="cart-close-btn" onClick={() => setIsCartOpen(false)}>&times;</button>
+          </div>
+
+          <div className="cart-items-list">
+            {cart.length === 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '15px' }}>
+                <span style={{ fontSize: '3rem' }}>🛒</span>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>Votre panier est vide pour le moment.</p>
+                <button className="btn-primary" onClick={() => setIsCartOpen(false)} style={{ padding: '8px 20px', fontSize: '0.85rem' }}>Continuer mes achats</button>
+              </div>
+            ) : (
+              <>
+                {cart.map((item) => (
+                  <div key={item.id} className="cart-item-row">
+                    <img src={item.image} alt={item.title} className="cart-item-thumb" />
+                    <div className="cart-item-info">
+                      <div className="cart-item-title">{item.title}</div>
+                      <div className="cart-item-price">{formatPrice(item.price)} (l'unité)</div>
+                      
+                      <div className="cart-item-qty">
+                        <button className="qty-btn" onClick={() => handleUpdateCartQty(item.id, -1)}>-</button>
+                        <span style={{ color: '#fff', fontWeight: '600', fontSize: '0.9rem' }}>{item.quantity}</span>
+                        <button className="qty-btn" onClick={() => handleUpdateCartQty(item.id, 1)}>+</button>
+                      </div>
+                    </div>
+                    <button className="cart-remove-btn" onClick={() => handleRemoveFromCart(item.id)}>Supprimer</button>
+                  </div>
+                ))}
+
+                {/* Shipping Estimator (Idea 22) */}
+                <div className="shipping-estimator" style={{ marginTop: '20px' }}>
+                  <div className="shipping-estimator-header">
+                    <span>🚚</span> <span>Estimer les frais de livraison</span>
+                  </div>
+                  <form onSubmit={handleEstimateShipping} className="shipping-input-group">
+                    <input 
+                      type="text" 
+                      className="builder-input" 
+                      style={{ margin: 0, height: '36px', fontSize: '0.8rem' }}
+                      placeholder="Code Postal (ex: G1A 1A1, 90210, 75001)"
+                      value={postalCode}
+                      onChange={(e) => setPostalCode(e.target.value)}
+                    />
+                    <button type="submit" className="btn-primary" style={{ padding: '0 15px', height: '36px', fontSize: '0.8rem', borderRadius: '8px' }}>
+                      Calculer
+                    </button>
+                  </form>
+                  {shippingEstimated && (
+                    <div style={{ marginTop: '10px', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                      Frais de livraison estimés : <strong>{formatPriceNum(shippingFee)}</strong>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+
+          {cart.length > 0 && (
+            <div className="cart-footer">
+              <div className="cart-summary-line">
+                <span>Sous-total</span>
+                <span>{formatPriceNum(getCartSubtotalCAD())}</span>
+              </div>
+              {shippingEstimated && (
+                <div className="cart-summary-line">
+                  <span>Livraison</span>
+                  <span>{formatPriceNum(shippingFee)}</span>
+                </div>
+              )}
+              <div className="cart-summary-line total">
+                <span>Total</span>
+                <span>{formatPriceNum(getCartTotalCAD())}</span>
+              </div>
+              
+              <button 
+                className="btn-primary animate-fade-in" 
+                style={{ width: '100%', padding: '14px', borderRadius: '12px', fontSize: '0.95rem', fontWeight: '700', marginTop: '10px' }}
+                onClick={() => {
+                  setIsCartOpen(false);
+                  setCheckoutItem({ isCart: true, title: "Votre Panier" });
+                }}
+              >
+                Passer la commande
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* FLOATING MULTI-CHANNEL CHAT WIDGET */}
       <div className={`chat-widget-container no-print ${chatbotWidgetActive ? 'active' : ''}`}>
