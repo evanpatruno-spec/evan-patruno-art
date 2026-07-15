@@ -11,6 +11,7 @@ import {
   onSnapshot, 
   query, 
   orderBy,
+  getDocs,
   serverTimestamp 
 } from 'firebase/firestore';
 import { 
@@ -210,6 +211,21 @@ const portfolioItems = [
     wood: "Support toile sur châssis de bois",
     dimensions: "24\" x 24\"",
     mediums: "Acrylique pouring, illustration numérique, technique mixte"
+  },
+  {
+    id: 10,
+    title: "TEST - Article de Démonstration Stripe",
+    category: "table",
+    categoryName: "Table & Mobilier",
+    desc: "Un plateau test en noyer et résine epoxy bleue nacrée destiné à la validation du tunnel de paiement Stripe et de l'authentification.",
+    image: "/assets/table-ronde-turquoise.jpg",
+    images: ["/assets/table-ronde-turquoise.jpg"],
+    status: "available",
+    statusText: "Disponible",
+    price: "125 $",
+    wood: "Noyer",
+    dimensions: "12\" x 12\" x 1\"",
+    mediums: "Résine bleue nacrée"
   }
 ];
 
@@ -733,6 +749,34 @@ export default function App() {
       setCreations(portfolioItems);
       return;
     }
+
+    // S'assurer que l'article de démonstration Stripe existe en base de données
+    const ensureTestCreation = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, 'creations'));
+        const exists = querySnapshot.docs.some(doc => doc.data().title === "TEST - Article de Démonstration Stripe");
+        if (!exists) {
+          await addDoc(collection(db, 'creations'), {
+            title: "TEST - Article de Démonstration Stripe",
+            category: "table",
+            categoryName: "Table & Mobilier",
+            desc: "Un plateau de test en noyer et résine epoxy bleue nacrée destiné à la validation du tunnel de paiement Stripe et de l'authentification.",
+            image: "/assets/table-ronde-turquoise.jpg",
+            images: ["/assets/table-ronde-turquoise.jpg"],
+            status: "available",
+            statusText: "Disponible",
+            price: "125 $",
+            wood: "Noyer",
+            dimensions: "12\" x 12\" x 1\"",
+            mediums: "Résine bleue nacrée",
+            createdAt: serverTimestamp()
+          });
+        }
+      } catch (e) {
+        console.error("Erreur lors de l'initialisation de l'article test:", e);
+      }
+    };
+    ensureTestCreation();
 
     const q = query(collection(db, 'creations'), orderBy('createdAt', 'desc'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
