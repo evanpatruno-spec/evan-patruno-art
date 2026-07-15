@@ -1420,6 +1420,7 @@ de commande en temps réel sur evanpatruno.art.
           <li><a href="#accueil" className="nav-link">Accueil</a></li>
           <li><a href="#portfolio" className="nav-link">Portfolio</a></li>
           <li><a href="#devis" className="nav-link">Projet sur Mesure</a></li>
+          <li><a href="#historique" className="nav-link">Historique</a></li>
           <li><a href="#atelier" className="nav-link">L'Atelier</a></li>
           <li><a href="#contact" className="nav-link">Contact</a></li>
           {isAdminLoggedIn && <li><a href="#admin-dashboard" className="nav-link" style={{ color: 'var(--accent-epoxy)' }}>Tableau de bord</a></li>}
@@ -1626,37 +1627,7 @@ de commande en temps réel sur evanpatruno.art.
           </div>
         </section>
 
-        {/* DRONE VIDEO PORTFOLIO SECTION */}
-        <section id="drone-portfolio" style={{ borderBottom: '1px solid var(--border-color)' }}>
-          <div className="section-header">
-            <h2 className="section-title">Production Média &amp; Drone</h2>
-            <p className="section-subtitle">
-              Perspectives aériennes uniques capturées au drone DJI Mini 3 Pro. Suivis de chantiers, mise en valeur immobilière et réalisations artistiques.
-            </p>
-          </div>
 
-          <div className="drone-video-grid">
-            {droneVideos.map((video) => (
-              <div key={video.id} className="drone-video-card glass">
-                <div className="drone-video-wrapper">
-                  <iframe 
-                    className="drone-video-element"
-                    src={video.embedUrl}
-                    title={video.title}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  ></iframe>
-                </div>
-                <div className="drone-video-info">
-                  <div>
-                    <h3 className="drone-video-title">{video.title}</h3>
-                    <p className="drone-video-desc">{video.desc}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
 
         {/* CARE GUIDE SECTION */}
         <section id="entretien">
@@ -1769,7 +1740,7 @@ de commande en temps réel sur evanpatruno.art.
         </section>
 
         {/* CUSTOM INQUIRY BUILDER */}
-        <section id="devis">
+        <section id="devis" style={{ borderBottom: '1px solid var(--border-color)' }}>
           <div className="section-header">
             <h2 className="section-title">Créez votre Projet Personnalisé</h2>
             <p className="section-subtitle">
@@ -1777,26 +1748,7 @@ de commande en temps réel sur evanpatruno.art.
             </p>
           </div>
 
-          {/* Public tabs to switch between Configurator and History references */}
-          <div className="devis-tabs" style={{ display: 'flex', justifyContent: 'center', gap: '15px', marginBottom: '35px' }}>
-            <button 
-              onClick={() => setDevisActiveTab('configurator')}
-              className={`faq-filter-btn ${devisActiveTab === 'configurator' ? 'active' : ''}`}
-              style={{ padding: '12px 24px', fontSize: '0.95rem' }}
-            >
-              🛠️ Configurer mon Projet
-            </button>
-            <button 
-              onClick={() => setDevisActiveTab('history')}
-              className={`faq-filter-btn ${devisActiveTab === 'history' ? 'active' : ''}`}
-              style={{ padding: '12px 24px', fontSize: '0.95rem' }}
-            >
-              📜 Historique des Projets &amp; Tarifs ({savedEstimates.length})
-            </button>
-          </div>
-
-          {devisActiveTab === 'configurator' && (
-            <div className="builder-card glass" id="custom-builder-container">
+          <div className="builder-card glass" id="custom-builder-container">
             <div className="builder-header">
               <span className="builder-title-step">
                 {builderStep === 1 && "Étape 1 : Type de création"}
@@ -2420,10 +2372,18 @@ de commande en temps réel sur evanpatruno.art.
               </div>
             )}
           </div>
-          )}
+        </section>
 
-          {devisActiveTab === 'history' && (
-            <div className="devis-history-wrapper animate-fade-in" style={{ maxWidth: '1000px', margin: '0 auto' }}>
+        {/* HISTORIQUE DE PROJETS SECTION */}
+        <section id="historique" style={{ borderBottom: '1px solid var(--border-color)' }}>
+          <div className="section-header animate-fade-in">
+            <h2 className="section-title">Historique des Projets &amp; Tarifs</h2>
+            <p className="section-subtitle">
+              Découvrez nos réalisations passées pour vous inspirer et estimer les tarifs de vos futurs projets sur mesure.
+            </p>
+          </div>
+
+          <div className="devis-history-wrapper animate-fade-in" style={{ maxWidth: '1000px', margin: '0 auto' }}>
               <div className="glass" style={{ padding: '30px', borderRadius: '24px', marginBottom: '30px' }}>
                 <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div style={{ flex: 1, minWidth: '250px', position: 'relative' }}>
@@ -2577,7 +2537,6 @@ de commande en temps réel sur evanpatruno.art.
                                   cloudLink: ''
                                 });
                                 setBuilderStep(3);
-                                setDevisActiveTab('configurator');
                                 setBuilderSubmitted(false);
                                 document.getElementById('devis')?.scrollIntoView({ behavior: 'smooth' });
                               }}
@@ -2594,7 +2553,6 @@ de commande en temps réel sur evanpatruno.art.
                 );
               })()}
             </div>
-          )}
         </section>
 
         {/* L'ATELIER & BIO */}
