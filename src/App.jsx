@@ -1074,6 +1074,33 @@ export default function App() {
         console.error("Erreur lors de la soumission du projet :", err);
       }
     }
+
+    // Envoi de la notification par courriel à evan.patruno@gmail.com via FormSubmit
+    const emailPayload = {
+      _subject: `Nouveau devis reçu - ${projectData.type || 'Projet sur mesure'}`,
+      Nom: projectData.name || 'Anonyme',
+      Courriel: projectData.email || 'Pas de courriel',
+      Téléphone: projectData.phone || 'Pas de téléphone',
+      Type: projectData.type || 'Non spécifié',
+      Bois: projectData.wood || 'Non spécifié',
+      Époxy: projectData.epoxy || 'Non spécifié',
+      Piétement: projectData.legs || 'Non spécifié',
+      Dimensions: projectData.dimensions || 'Non spécifié',
+      Estimation: calculatedPrice,
+      Notes: projectData.notes || 'Aucune',
+      Fichier: projectData.fileName ? `${projectData.fileName} (${projectData.fileSize})` : 'Aucun',
+      Lien_Conception: projectData.cloudLink || 'Aucun'
+    };
+
+    fetch("https://formsubmit.co/ajax/evan.patruno@gmail.com", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
+      body: JSON.stringify(emailPayload)
+    }).catch(err => console.error("Erreur lors de l'envoi de l'email :", err));
+
     setBuilderSubmitted(true);
   };
 
@@ -1562,7 +1589,7 @@ de commande en temps réel sur evanpatruno.art.
         </section>
 
         {/* MATERIALS & TECH SECTION */}
-        <section id="materials" style={{ background: 'var(--bg-secondary)', borderTop: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
+        <section id="materials" className="rounded-section">
           <div className="section-header">
             <h2 className="section-title">Ce que je peux produire</h2>
             <p className="section-subtitle">
@@ -1656,7 +1683,7 @@ de commande en temps réel sur evanpatruno.art.
         </section>
 
         {/* FAQ SECTION */}
-        <section id="faq" style={{ background: 'var(--bg-secondary)', borderTop: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
+        <section id="faq" className="rounded-section">
           <div className="section-header">
             <h2 className="section-title">Foire Aux Questions (FAQ)</h2>
             <p className="section-subtitle">

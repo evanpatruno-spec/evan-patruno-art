@@ -2563,5 +2563,20 @@ section {
   background-color: rgba(255, 255, 255, 0.02) !important;
 }
 
+/* Floating Rounded Sections */
+.rounded-section {
+  background: var(--bg-secondary) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 24px !important;
+  margin-top: 40px !important;
+  margin-bottom: 40px !important;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2) !important;
+}
 
-
+@media (max-width: 1248px) {
+  .rounded-section {
+    margin-left: 16px !important;
+    margin-right: 16px !important;
+    width: calc(100% - 32px) !important;
+  }
+}
