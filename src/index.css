@@ -2,8 +2,8 @@
 
 /* Fonts & Core Reset */
 :root {
-  --font-heading: 'Syne', sans-serif;
-  --font-body: 'Outfit', sans-serif;
+  --font-heading: 'Outfit', sans-serif;
+  --font-body: 'Inter', sans-serif;
 
   /* Colors matching evanpatruno.ca */
   --bg-primary: #1e0a19;
