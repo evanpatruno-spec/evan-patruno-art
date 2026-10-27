@@ -1,5 +1,5 @@
 // src/App.jsx
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { db } from './firebase';
 import { 
   collection, 
@@ -27,16 +27,13 @@ import {
   Phone, 
   MapPin, 
   Send,
-  MessageSquare,
   Scissors,
   Printer,
   Camera,
   ChefHat,
   Calculator,
   History,
-  Search,
-  DollarSign,
-  Info
+  Search
 } from 'lucide-react';
 
 const Instagram = ({ size = 24, ...props }) => (
@@ -239,10 +236,67 @@ const craftCapabilities = [
   { type: 'drone', name: 'Production Média & Drone (DJI Mini 3 Pro)', icon: '🚁', desc: 'Captations aériennes haute résolution (photos 48 Mpx et vidéos 4K) pour suivis de chantiers, imagerie immobilière ou contenus artistiques.' }
 ];
 
-const droneVideos = [
-  { id: 1, title: "Survol de l'Atelier & Forêt Sauvage", embedUrl: "https://www.youtube.com/embed/5vP9go4Jdxs", desc: "Vidéo aérienne cinématique capturant les grands espaces sauvages d'où proviennent nos essences de bois nobles." },
-  { id: 2, title: "Suivi de Chantier & Intégration Paysagère", embedUrl: "https://www.youtube.com/embed/1nf61dNdzPc", desc: "Démonstration d'imagerie drone DJI Mini 3 Pro pour le suivi d'une structure architecturale en bois massif." },
-  { id: 3, title: "L'Art sous un Autre Angle (Perspective vertical)", embedUrl: "https://www.youtube.com/embed/gS0N_W6-QeA", desc: "Vidéo artistique montrant le contraste entre le bois brut et la rivière d'époxy sous perspective aérienne." }
+const defaultMockEstimates = [
+  {
+    id: 'mock-est-1',
+    title: "Planche apéro en noyer pour Sophie",
+    category: "board",
+    woodSpecies: "Noyer noir (Foncé, grain riche)",
+    dimensions: "10\" x 14\" x 0.75\"",
+    length: 14,
+    width: 10,
+    thickness: 0.75,
+    woodCost: 18,
+    epoxyVolume: 0.35,
+    epoxyCost: 10,
+    laborHours: 4,
+    laborCost: 160,
+    otherCosts: 15,
+    margin: 1.4,
+    finalPrice: 284,
+    notes: "Poignées intégrées et gravure au laser d'un logo de famille.",
+    date: new Date(Date.now() - 3600000 * 24 * 3)
+  },
+  {
+    id: 'mock-est-2',
+    title: "Table rivière en érable pour Tremblay",
+    category: "table",
+    woodSpecies: "Érable (Clair, très robuste)",
+    dimensions: "36\" x 72\" x 1.75\"",
+    length: 72,
+    width: 36,
+    thickness: 1.75,
+    woodCost: 350,
+    epoxyVolume: 12.5,
+    epoxyCost: 350,
+    laborHours: 25,
+    laborCost: 1000,
+    otherCosts: 120,
+    margin: 1.4,
+    finalPrice: 2548,
+    notes: "Pieds en X, rivière bleu océan translucide.",
+    date: new Date(Date.now() - 3600000 * 24 * 10)
+  },
+  {
+    id: 'mock-est-3',
+    title: "Planche charcuterie géante - Le Cargo",
+    category: "board",
+    woodSpecies: "Cerisier (Ambré, grain fin)",
+    dimensions: "18\" x 36\" x 1.25\"",
+    length: 36,
+    width: 18,
+    thickness: 1.25,
+    woodCost: 75,
+    epoxyVolume: 1.8,
+    epoxyCost: 50,
+    laborHours: 6,
+    laborCost: 240,
+    otherCosts: 25,
+    margin: 1.3,
+    finalPrice: 507,
+    notes: "Série de 3 planches pour le service du bar à vin.",
+    date: new Date(Date.now() - 3600000 * 24 * 15)
+  }
 ];
 
 const faqItems = [
@@ -315,7 +369,7 @@ export default function App() {
 
   // Admin Pricing Calculator & References States
   const [adminActiveTab, setAdminActiveTab] = useState('boutique'); // 'boutique', 'calculator', 'feed'
-  const [savedEstimates, setSavedEstimates] = useState([]);
+  const [savedEstimates, setSavedEstimates] = useState(() => db ? [] : defaultMockEstimates);
   const [calcForm, setCalcForm] = useState({
     title: '',
     category: 'board',
@@ -339,7 +393,6 @@ export default function App() {
   const [adminHistoryTab, setAdminHistoryTab] = useState('all'); // 'all', 'devis', 'orders'
 
   // Custom Project Builder State
-  const [devisActiveTab, setDevisActiveTab] = useState('configurator'); // 'configurator', 'history'
   const [devisHistorySearch, setDevisHistorySearch] = useState('');
   const [devisHistoryFilter, setDevisHistoryFilter] = useState('all');
   const [builderStep, setBuilderStep] = useState(1);
@@ -374,7 +427,6 @@ export default function App() {
   });
 
   // Premium Features States
-  const [pigmentTab, setPigmentTab] = useState('all');
   const [activeAccordion, setActiveAccordion] = useState(null);
   
   // Checkout Modal State
@@ -427,7 +479,7 @@ export default function App() {
     try {
       const saved = localStorage.getItem('evan_art_cart');
       return saved ? JSON.parse(saved) : [];
-    } catch (e) {
+    } catch {
       return [];
     }
   });
@@ -438,9 +490,10 @@ export default function App() {
   const [shippingEstimated, setShippingEstimated] = useState(false);
 
   // Verification Certificate States
+  const initialCertId = new URLSearchParams(window.location.search).get('certId');
   const [certData, setCertData] = useState(null);
-  const [certLoading, setCertLoading] = useState(false);
-  const [certError, setCertError] = useState(null);
+  const [certLoading, setCertLoading] = useState(() => Boolean(initialCertId && db));
+  const [certError, setCertError] = useState(() => (initialCertId && !db) ? "Base de données indisponible." : null);
 
   // Sync Cart to localStorage
   useEffect(() => {
@@ -475,34 +528,28 @@ export default function App() {
       console.error("Error subscribing to reviews summary:", err);
     });
     return () => unsubscribe();
-  }, [db]);
+  }, []);
 
   // Check URL query parameters for Certificate Authenticity
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const certId = params.get('certId');
-    if (certId) {
-      setCertLoading(true);
-      if (db) {
-        const docRef = doc(db, 'orders', certId);
-        getDoc(docRef).then((docSnap) => {
-          if (docSnap.exists()) {
-            setCertData({ id: docSnap.id, ...docSnap.data() });
-          } else {
-            setCertError("Certificat d'Authenticité introuvable dans notre registre d'œuvres.");
-          }
-          setCertLoading(false);
-        }).catch((err) => {
-          console.error("Error fetching certificate:", err);
-          setCertError("Une erreur est survenue lors de la récupération du certificat.");
-          setCertLoading(false);
-        });
-      } else {
-        setCertError("Base de données indisponible.");
+    if (certId && db) {
+      const docRef = doc(db, 'orders', certId);
+      getDoc(docRef).then((docSnap) => {
+        if (docSnap.exists()) {
+          setCertData({ id: docSnap.id, ...docSnap.data() });
+        } else {
+          setCertError("Certificat d'Authenticité introuvable dans notre registre d'œuvres.");
+        }
         setCertLoading(false);
-      }
+      }).catch((err) => {
+        console.error("Error fetching certificate:", err);
+        setCertError("Une erreur est survenue lors de la récupération du certificat.");
+        setCertLoading(false);
+      });
     }
-  }, [db]);
+  }, []);
 
   // IntersectionObserver scroll reveal setup
   useEffect(() => {
@@ -609,7 +656,7 @@ export default function App() {
     const usaRegex = /^\d{5}(-\d{4})?$/;
     const franceRegex = /^(0[1-9]|[1-9]\d)\d{3}$/;
 
-    let fee = 20;
+    let fee;
     if (canadaRegex.test(code)) {
       if (/^[GHJ]/.test(code)) {
         fee = 15;
@@ -644,13 +691,8 @@ export default function App() {
   // Fetch reviews when selectedItemDetails changes
   useEffect(() => {
     if (!db || !selectedItemDetails) {
-      setCurrentReviews([]);
       return;
     }
-    
-    // Reset index & view states
-    setActiveImageIdx(0);
-    setView3DActive(false);
 
     const q = query(
       collection(db, 'reviews'),
@@ -746,7 +788,6 @@ export default function App() {
   // Load data from Firestore or fallback to mock
   useEffect(() => {
     if (!db) {
-      setCreations(portfolioItems);
       return;
     }
 
@@ -886,74 +927,6 @@ export default function App() {
     };
   }, [isAdminLoggedIn]);
 
-  // Set mock saved estimates if firebase is absent (fallback for local mock mode)
-  useEffect(() => {
-    if (!db && savedEstimates.length === 0) {
-      setSavedEstimates([
-        {
-          id: 'mock-est-1',
-          title: "Planche apéro en noyer pour Sophie",
-          category: "board",
-          woodSpecies: "Noyer noir (Foncé, grain riche)",
-          dimensions: "10\" x 14\" x 0.75\"",
-          length: 14,
-          width: 10,
-          thickness: 0.75,
-          woodCost: 18,
-          epoxyVolume: 0.35,
-          epoxyCost: 10,
-          laborHours: 4,
-          laborCost: 160,
-          otherCosts: 15,
-          margin: 1.4,
-          finalPrice: 284,
-          notes: "Poignées intégrées et gravure au laser d'un logo de famille.",
-          date: new Date(Date.now() - 3600000 * 24 * 3)
-        },
-        {
-          id: 'mock-est-2',
-          title: "Table rivière en érable pour Tremblay",
-          category: "table",
-          woodSpecies: "Érable (Clair, très robuste)",
-          dimensions: "36\" x 72\" x 1.75\"",
-          length: 72,
-          width: 36,
-          thickness: 1.75,
-          woodCost: 350,
-          epoxyVolume: 12.5,
-          epoxyCost: 350,
-          laborHours: 25,
-          laborCost: 1000,
-          otherCosts: 120,
-          margin: 1.4,
-          finalPrice: 2548,
-          notes: "Pieds en X, rivière bleu océan translucide.",
-          date: new Date(Date.now() - 3600000 * 24 * 10)
-        },
-        {
-          id: 'mock-est-3',
-          title: "Planche charcuterie géante - Le Cargo",
-          category: "board",
-          woodSpecies: "Cerisier (Ambré, grain fin)",
-          dimensions: "18\" x 36\" x 1.25\"",
-          length: 36,
-          width: 18,
-          thickness: 1.25,
-          woodCost: 75,
-          epoxyVolume: 1.8,
-          epoxyCost: 50,
-          laborHours: 6,
-          laborCost: 240,
-          otherCosts: 25,
-          margin: 1.3,
-          finalPrice: 507,
-          notes: "Série de 3 planches pour le service du bar à vin.",
-          date: new Date(Date.now() - 3600000 * 24 * 15)
-        }
-      ]);
-    }
-  }, [db]);
-
   const handleAdminLogin = (e) => {
     e.preventDefault();
     const envPassword = import.meta.env.VITE_ADMIN_PASSWORD || "admin123";
@@ -1092,14 +1065,28 @@ export default function App() {
     handleNextStep();
   };
 
-  const selectWoodType = (wood) => {
-    setProjectData(prev => ({ ...prev, wood }));
-    handleNextStep();
+  const handleOpenItemDetails = (item) => {
+    setActiveImageIdx(0);
+    setView3DActive(false);
+    setCurrentReviews([]);
+    setSelectedItemDetails(item);
   };
 
-  const selectEpoxyColor = (epoxy) => {
-    setProjectData(prev => ({ ...prev, epoxy }));
-    handleNextStep();
+  const openCustomBuilderForItem = (item) => {
+    const typeMap = {
+      table: 'Table rivière',
+      jewelry: 'Bijou en bois/époxy',
+      lichtenberg: 'Fractale de Lichtenberg',
+      laser: 'Découpe & Gravure laser'
+    };
+    setProjectData(prev => ({
+      ...prev,
+      type: typeMap[item.category] || 'Table rivière',
+      notes: `Inspiré par l'œuvre : "${item.title}"`
+    }));
+    setBuilderStep(2);
+    setBuilderSubmitted(false);
+    document.getElementById('devis')?.scrollIntoView({ behavior: 'smooth' });
   };
 
   const handleSelectPreset = (preset, dims) => {
@@ -1375,6 +1362,22 @@ export default function App() {
         console.error("Erreur lors de l'envoi du message :", err);
       }
     }
+
+    fetch("https://formsubmit.co/ajax/evan.patruno@gmail.com", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
+      body: JSON.stringify({
+        _subject: `Nouveau message de contact - ${contactData.subject || 'Site Evan Patruno Art'}`,
+        Nom: contactData.name,
+        Courriel: contactData.email,
+        Sujet: contactData.subject || 'Sans sujet',
+        Message: contactData.message
+      })
+    }).catch(err => console.error("Erreur lors de l'envoi de l'email de contact :", err));
+
     setContactSubmitted(true);
   };
 
@@ -1767,7 +1770,7 @@ de commande en temps réel sur evanpatruno.art.
   }
 
   return (
-    <div id="root">
+    <div className="app-shell">
       {/* Background Decorative Glow Blurs */}
       <div className="glow-blur" style={{ top: '5%', left: '10%', width: '450px', height: '450px', background: 'var(--accent-wood-glow)' }}></div>
       <div className="glow-blur" style={{ top: '25%', right: '5%', width: '500px', height: '500px', background: 'var(--accent-epoxy-glow)' }}></div>
@@ -1777,19 +1780,19 @@ de commande en temps réel sur evanpatruno.art.
 
       {/* Header/Navigation */}
       <nav id="navbar" className={`header-nav glass ${scrolled ? 'scrolled' : ''}`}>
-        <a href="#accueil" className="logo-brand" id="nav-logo" style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+        <a href="#accueil" className="logo-brand" id="nav-logo" style={{ display: 'flex', alignItems: 'center', height: '100%' }} onClick={() => setMobileMenuOpen(false)}>
           <img src="/assets/logo.png" alt="Evan Patruno Art" style={{ height: '40px', width: 'auto', objectFit: 'contain' }} />
         </a>
 
-        {/* Desktop links */}
-        <ul className="nav-links">
-          <li><a href="#accueil" className="nav-link">Accueil</a></li>
-          <li><a href="#portfolio" className="nav-link">Portfolio</a></li>
-          <li><a href="#devis" className="nav-link">Projet sur Mesure</a></li>
-          <li><a href="#historique" className="nav-link">Historique</a></li>
-          <li><a href="#atelier" className="nav-link">L'Atelier</a></li>
-          <li><a href="#contact" className="nav-link">Contact</a></li>
-          {isAdminLoggedIn && <li><a href="#admin-dashboard" className="nav-link" style={{ color: 'var(--accent-epoxy)' }}>Tableau de bord</a></li>}
+        {/* Desktop & Mobile links */}
+        <ul className={`nav-links ${mobileMenuOpen ? 'mobile-open' : ''}`}>
+          <li><a href="#accueil" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Accueil</a></li>
+          <li><a href="#portfolio" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Portfolio</a></li>
+          <li><a href="#devis" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Projet sur Mesure</a></li>
+          <li><a href="#historique" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Historique</a></li>
+          <li><a href="#atelier" className="nav-link" onClick={() => setMobileMenuOpen(false)}>L'Atelier</a></li>
+          <li><a href="#contact" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Contact</a></li>
+          {isAdminLoggedIn && <li><a href="#admin-dashboard" className="nav-link" style={{ color: 'var(--accent-epoxy)' }} onClick={() => setMobileMenuOpen(false)}>Tableau de bord</a></li>}
         </ul>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
@@ -1929,7 +1932,7 @@ de commande en temps réel sur evanpatruno.art.
                 className="art-card glass" 
                 id={`portfolio-item-${item.id}`}
                 style={{ cursor: 'pointer' }}
-                onClick={() => setSelectedItemDetails(item)}
+                onClick={() => handleOpenItemDetails(item)}
               >
                 <div className="art-image-wrapper">
                   <span className={`art-badge ${item.category}`}>{item.categoryName}</span>
@@ -1980,10 +1983,7 @@ de commande en temps réel sur evanpatruno.art.
                       <button 
                         onClick={(e) => {
                           e.stopPropagation();
-                          // Pre-populate custom builder with this item category and open it
-                          setProjectData(prev => ({ ...prev, type: item.category === 'table' ? '🪵 Table sur mesure' : item.category === 'jewelry' ? '💎 Bijou unique' : '🎨 Autre projet d\'art' }));
-                          setBuilderStep(1);
-                          window.location.hash = 'devis';
+                          openCustomBuilderForItem(item);
                         }}
                         className="btn-secondary" 
                         style={{ padding: '8px 16px', fontSize: '0.85rem', width: '100%', marginTop: '5px' }}
@@ -2769,7 +2769,8 @@ de commande en temps réel sur evanpatruno.art.
                   <button 
                     onClick={handleNextStep} 
                     className="btn-primary"
-                    style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                    disabled={builderStep === 1 && !projectData.type}
+                    style={{ opacity: builderStep === 1 && !projectData.type ? 0.45 : 1, cursor: builderStep === 1 && !projectData.type ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
                     id="btn-builder-next"
                   >
                     Suivant <ChevronRight size={16} />
@@ -4607,11 +4608,9 @@ de commande en temps réel sur evanpatruno.art.
                     <button 
                       type="button" 
                       onClick={() => {
-                        const cat = selectedItemDetails.category;
+                        const item = selectedItemDetails;
                         setSelectedItemDetails(null);
-                        setProjectData(prev => ({ ...prev, type: cat === 'table' ? '🪵 Table sur mesure' : cat === 'jewelry' ? '💎 Bijou unique' : '🎨 Autre projet d\'art' }));
-                        setBuilderStep(1);
-                        window.location.hash = 'devis';
+                        openCustomBuilderForItem(item);
                       }} 
                       className="btn-primary" 
                       style={{ flex: 1.5, padding: '12px' }}
@@ -4886,7 +4885,7 @@ de commande en temps réel sur evanpatruno.art.
             className="chat-item ci-instagram" 
             data-label="Instagram"
           >
-            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
           </a>
           
           <a 
@@ -4904,7 +4903,7 @@ de commande en temps réel sur evanpatruno.art.
             className="chat-item ci-phone" 
             data-label="Appel direct"
           >
-            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8a19.79 19.79 0 01-3.07-8.68A2 2 0 012 0h3a2 2 0 012 1.72c.127 1.01.36 2 .7 2.95a2 2 0 01-.45 2.11L6.91 7.91a16 16 0 006.16 6.16l1.13-1.34a2 2 0 012.11-.45c.95.34 1.94.573 2.95.7A2 2 0 0122 16.92z"/></svg>
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8a19.79 19.79 0 01-3.07-8.68A2 2 0 012 0h3a2 2 0 012 1.72c.127 1.01.36 2 .7 2.95a2 2 0 01-.45 2.11L6.91 7.91a16 16 0 006.16 6.16l1.13-1.34a2 2 0 012.11-.45c.95.34 1.94.573 2.95.7A2 2 0 0122 16.92z"/></svg>
           </a>
         </div>
         

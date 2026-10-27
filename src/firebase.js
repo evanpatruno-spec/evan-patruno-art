@@ -26,17 +26,12 @@ if (firebaseConfig.projectId === "van-patruno-art") {
 // Vérifie si la configuration minimale est présente (API Key et Project ID)
 const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.projectId;
 
-let app = null;
 let db = null;
 
 if (isFirebaseConfigured) {
   try {
     // Évite la double initialisation
-    if (getApps().length === 0) {
-      app = initializeApp(firebaseConfig);
-    } else {
-      app = getApps()[0];
-    }
+    const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
     db = getFirestore(app);
     console.log("Firebase Firestore initialisé avec succès !");
   } catch (error) {

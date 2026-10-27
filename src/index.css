@@ -1118,16 +1118,53 @@ section {
 
 @media (max-width: 768px) {
   .header-nav {
-    padding: 0 20px;
+    padding: 0 16px;
   }
   
   .nav-links {
-    display: none; /* Can add dropdown logic if needed, keeping simple for SPA */
+    display: none;
+    position: absolute;
+    top: 80px;
+    left: 0;
+    width: 100%;
+    flex-direction: column;
+    gap: 0;
+    background: rgba(18, 0, 16, 0.96);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(176, 84, 156, 0.25);
+    border-radius: 18px;
+    padding: 12px 20px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+    animation: fadeIn 0.25s ease;
+  }
+
+  .nav-links.mobile-open {
+    display: flex;
+  }
+
+  .nav-links li {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .nav-links li:last-child {
+    border-bottom: none;
+  }
+
+  .nav-link {
+    display: block;
+    padding: 12px 4px;
+    font-size: 1rem;
+  }
+
+  .btn-cta-nav {
+    display: none;
   }
   
   .mobile-nav-toggle {
     display: block;
     color: var(--text-primary);
+    padding: 6px;
   }
   
   .hero-title {
