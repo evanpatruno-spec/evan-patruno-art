@@ -3099,4 +3099,176 @@ section {
   box-shadow: 0 15px 40px rgba(0, 0, 0, 0.65), 0 0 20px rgba(239, 68, 68, 0.25);
 }
 
+/* ==========================================================================
+   IDEA #1: LICHTENBERG 10,000V FRACTAL CANVAS & CONTROLS
+   ========================================================================== */
+.lichtenberg-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 9998;
+}
+
+.hero-interactive-bar {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 28px;
+  padding: 8px 14px;
+  border-radius: 100px;
+  background: rgba(18, 0, 16, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+}
+
+.btn-interactive-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 100px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  background: rgba(168, 85, 247, 0.12);
+  color: #f8fafc;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-interactive-pill:hover {
+  background: rgba(168, 85, 247, 0.28);
+  border-color: #a855f7;
+  box-shadow: 0 0 18px rgba(168, 85, 247, 0.45);
+  transform: translateY(-1px);
+}
+
+.btn-interactive-pill.active-uv {
+  border-color: #00f5d4;
+  background: rgba(0, 245, 212, 0.16);
+  color: #00f5d4;
+  box-shadow: 0 0 22px rgba(0, 245, 212, 0.4);
+}
+
+/* ==========================================================================
+   IDEA #4: BLACKLIGHT / PHOSPHORESCENT & LED BACKLIT MODE
+   ========================================================================== */
+body.blacklight-mode {
+  --bg-primary: #030008;
+  --bg-secondary: #010004;
+  --bg-tertiary: #060112;
+  --accent-wood: #00f5d4;
+  --accent-wood-glow: rgba(0, 245, 212, 0.32);
+  --accent-epoxy: #00bbf9;
+  --accent-epoxy-glow: rgba(0, 187, 249, 0.35);
+  --accent-voltage: #f72585;
+  --accent-voltage-glow: rgba(247, 37, 133, 0.3);
+  background-color: #030008;
+  transition: background-color 0.6s ease, color 0.4s ease;
+}
+
+body.blacklight-mode .glass {
+  background: linear-gradient(135deg, rgba(6, 2, 18, 0.85) 0%, rgba(2, 0, 8, 0.92) 100%);
+  border-color: rgba(0, 245, 212, 0.22);
+  box-shadow: 0 8px 36px rgba(0, 245, 212, 0.08), inset 0 0 20px rgba(0, 187, 249, 0.05);
+}
+
+body.blacklight-mode .glass:hover {
+  border-color: rgba(0, 245, 212, 0.55);
+  box-shadow: 0 14px 45px rgba(0, 245, 212, 0.22), 0 0 25px rgba(247, 37, 133, 0.15);
+}
+
+body.blacklight-mode .hero-title span.wood {
+  background: linear-gradient(135deg, #00f5d4 0%, #00bbf9 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 22px rgba(0, 245, 212, 0.65));
+}
+
+body.blacklight-mode .hero-title span.epoxy {
+  background: linear-gradient(135deg, #f72585 0%, #7209b7 50%, #00f5d4 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 22px rgba(247, 37, 133, 0.65));
+}
+
+body.blacklight-mode .section-title {
+  background: linear-gradient(135deg, #ffffff 20%, #00f5d4 65%, #00bbf9 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 15px rgba(0, 245, 212, 0.3));
+}
+
+body.blacklight-mode .art-card {
+  border-color: rgba(0, 245, 212, 0.28);
+  box-shadow: 0 10px 35px rgba(0, 245, 212, 0.12), inset 0 0 25px rgba(0, 187, 249, 0.06);
+}
+
+body.blacklight-mode .art-card:hover {
+  border-color: #00f5d4;
+  box-shadow: 0 16px 50px rgba(0, 245, 212, 0.32), 0 0 30px rgba(247, 37, 133, 0.2);
+}
+
+body.blacklight-mode .art-image-wrapper::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 55%, rgba(0, 245, 212, 0.24) 0%, rgba(168, 85, 247, 0.18) 45%, rgba(3, 0, 8, 0.55) 100%);
+  mix-blend-mode: screen;
+  pointer-events: none;
+  animation: uvPulse 4s infinite ease-in-out;
+}
+
+body.blacklight-mode .art-image {
+  filter: contrast(1.22) saturate(1.55) brightness(1.05) hue-rotate(-8deg);
+}
+
+@keyframes uvPulse {
+  0%, 100% { opacity: 0.65; }
+  50% { opacity: 1; }
+}
+
+.uv-gallery-banner {
+  max-width: 780px;
+  margin: 0 auto 32px;
+  padding: 16px 24px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  background: rgba(18, 0, 16, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.4s ease;
+}
+
+body.blacklight-mode .uv-gallery-banner {
+  background: linear-gradient(135deg, rgba(0, 245, 212, 0.1) 0%, rgba(114, 9, 183, 0.18) 100%);
+  border-color: rgba(0, 245, 212, 0.5);
+  box-shadow: 0 0 30px rgba(0, 245, 212, 0.2);
+}
+
+.uv-glow-tag {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  padding: 5px 11px;
+  border-radius: 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: rgba(3, 0, 8, 0.85);
+  border: 1px solid #00f5d4;
+  color: #00f5d4;
+  box-shadow: 0 0 14px rgba(0, 245, 212, 0.5);
+  z-index: 11;
+  letter-spacing: 0.03em;
+}
+
+
 

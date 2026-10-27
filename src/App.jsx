@@ -1,5 +1,5 @@
 // src/App.jsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { db } from './firebase';
 import { 
   collection, 
@@ -428,6 +428,10 @@ export default function App() {
   // Premium Features States
   const [activeAccordion, setActiveAccordion] = useState(null);
   const [toast, setToast] = useState(null);
+  const [blacklightMode, setBlacklightMode] = useState(false);
+  const [lichtenbergEnabled, setLichtenbergEnabled] = useState(true);
+  const lichtenbergCanvasRef = useRef(null);
+  const lichtenbergBoltsRef = useRef([]);
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
@@ -435,6 +439,139 @@ export default function App() {
       setToast(null);
     }, 3800);
   };
+
+  // Sync Blacklight / UV Mode with document.body
+  useEffect(() => {
+    document.body.classList.toggle('blacklight-mode', blacklightMode);
+    return () => document.body.classList.remove('blacklight-mode');
+  }, [blacklightMode]);
+
+  // Procedural 10,000V Lichtenberg Fractal Generator
+  const triggerLichtenbergBurst = (originX, originY, intensity = 1) => {
+    const segments = [];
+    const buildBranch = (x1, y1, angle, length, depth, thickness) => {
+      if (depth <= 0 || length < 4) return;
+      const steps = Math.max(3, Math.floor(length / 9));
+      let cx = x1;
+      let cy = y1;
+      for (let i = 0; i < steps; i++) {
+        const jitter = (Math.random() - 0.5) * 0.65;
+        const stepLen = (length / steps) * (0.75 + Math.random() * 0.5);
+        const nx = cx + Math.cos(angle + jitter) * stepLen;
+        const ny = cy + Math.sin(angle + jitter) * stepLen;
+        segments.push({ x1: cx, y1: cy, x2: nx, y2: ny, thickness, depth });
+        cx = nx;
+        cy = ny;
+        if (Math.random() < 0.38 && depth > 1) {
+          const branchAngle = angle + (Math.random() < 0.5 ? -1 : 1) * (0.35 + Math.random() * 0.55);
+          buildBranch(cx, cy, branchAngle, length * (0.52 + Math.random() * 0.2), depth - 1, thickness * 0.68);
+        }
+      }
+    };
+
+    const mainBranches = Math.floor(5 * intensity) + 2;
+    for (let b = 0; b < mainBranches; b++) {
+      const baseAngle = (Math.PI * 2 * b) / mainBranches + (Math.random() - 0.5) * 0.5;
+      const baseLen = (65 + Math.random() * 75) * intensity;
+      buildBranch(originX, originY, baseAngle, baseLen, 5, 2.6 * intensity);
+    }
+
+    lichtenbergBoltsRef.current.push({
+      createdAt: performance.now(),
+      duration: 1850,
+      uv: document.body.classList.contains('blacklight-mode'),
+      segments
+    });
+  };
+
+  // Setup Canvas Animation & Click/Cursor Listeners for Lichtenberg 10,000V
+  useEffect(() => {
+    const canvas = lichtenbergCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let animId;
+
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    resize();
+    window.addEventListener('resize', resize);
+
+    const handleWindowClick = (e) => {
+      if (!lichtenbergEnabled) return;
+      triggerLichtenbergBurst(e.clientX, e.clientY, 1);
+    };
+
+    let lastSpark = 0;
+    const handleMouseMove = (e) => {
+      if (!lichtenbergEnabled) return;
+      const now = performance.now();
+      if (now - lastSpark > 95 && Math.random() < 0.35) {
+        lastSpark = now;
+        triggerLichtenbergBurst(e.clientX, e.clientY, 0.28);
+      }
+    };
+
+    window.addEventListener('pointerdown', handleWindowClick);
+    window.addEventListener('mousemove', handleMouseMove);
+
+    const render = (now) => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const activeBolts = [];
+
+      for (const bolt of lichtenbergBoltsRef.current) {
+        const elapsed = now - bolt.createdAt;
+        if (elapsed >= bolt.duration) continue;
+        activeBolts.push(bolt);
+
+        const progress = elapsed / bolt.duration;
+        const alpha = Math.pow(1 - progress, 1.5);
+
+        ctx.save();
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        for (const seg of bolt.segments) {
+          ctx.beginPath();
+          ctx.moveTo(seg.x1, seg.y1);
+          ctx.lineTo(seg.x2, seg.y2);
+
+          if (progress < 0.18) {
+            // High-voltage 10,000V electric arc phase
+            ctx.strokeStyle = bolt.uv
+              ? `rgba(0, 245, 212, ${alpha})`
+              : `rgba(233, 213, 255, ${alpha})`;
+            ctx.shadowColor = bolt.uv ? '#00f5d4' : '#a855f7';
+            ctx.shadowBlur = 16;
+            ctx.lineWidth = seg.thickness * 1.15;
+          } else {
+            // Glowing wood ember / fractal burn phase
+            ctx.strokeStyle = bolt.uv
+              ? `rgba(247, 37, 133, ${alpha * 0.9})`
+              : `rgba(245, 158, 11, ${alpha * 0.9})`;
+            ctx.shadowColor = bolt.uv ? '#00bbf9' : '#ea580c';
+            ctx.shadowBlur = 10 * alpha;
+            ctx.lineWidth = seg.thickness * 0.85;
+          }
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      lichtenbergBoltsRef.current = activeBolts;
+      animId = requestAnimationFrame(render);
+    };
+
+    animId = requestAnimationFrame(render);
+
+    return () => {
+      window.removeEventListener('resize', resize);
+      window.removeEventListener('pointerdown', handleWindowClick);
+      window.removeEventListener('mousemove', handleMouseMove);
+      cancelAnimationFrame(animId);
+    };
+  }, [lichtenbergEnabled]);
   
   // Checkout Modal State
   const [checkoutItem, setCheckoutItem] = useState(null);
@@ -1839,6 +1976,9 @@ export default function App() {
 
   return (
     <div className="app-shell">
+      {/* Idea #1: 10,000V Lichtenberg Fractal Interactive Canvas */}
+      <canvas ref={lichtenbergCanvasRef} className="lichtenberg-canvas" aria-hidden="true" />
+
       {/* Background Decorative Glow Blurs */}
       <div className="glow-blur" style={{ top: '5%', left: '10%', width: '450px', height: '450px', background: 'var(--accent-wood-glow)' }}></div>
       <div className="glow-blur" style={{ top: '25%', right: '5%', width: '500px', height: '500px', background: 'var(--accent-epoxy-glow)' }}></div>
@@ -1863,7 +2003,24 @@ export default function App() {
           {isAdminLoggedIn && <li><a href="#admin-dashboard" className="nav-link" style={{ color: 'var(--accent-epoxy)' }} onClick={() => setMobileMenuOpen(false)}>Tableau de bord</a></li>}
         </ul>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <button
+            type="button"
+            onClick={() => {
+              const next = !blacklightMode;
+              setBlacklightMode(next);
+              showToast(
+                next
+                  ? "🔦 Mode Lumière Noire (UV & Phosphorescent) activé !"
+                  : "☀️ Éclairage d'atelier standard rétabli."
+              );
+            }}
+            className={`btn-interactive-pill ${blacklightMode ? 'active-uv' : ''}`}
+            title="Activer/Désactiver le mode Lumière Noire UV & Rétroéclairage LED"
+            id="nav-blacklight-btn"
+          >
+            <span>{blacklightMode ? '✨ UV Actif' : '🔦 Mode UV'}</span>
+          </button>
           <button 
             onClick={() => setIsCartOpen(true)}
             className="btn-tab"
@@ -1934,6 +2091,52 @@ export default function App() {
               <a href="#portfolio" className="btn-primary">Découvrir le Portfolio</a>
               <a href="#devis" className="btn-secondary">Concevoir ma Pièce</a>
             </div>
+
+            {/* Interactive Artistic Controls (Ideas #1 & #4) */}
+            <div className="hero-interactive-bar">
+              <button
+                type="button"
+                className="btn-interactive-pill"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  triggerLichtenbergBurst(window.innerWidth / 2, window.innerHeight * 0.42, 1.5);
+                }}
+              >
+                <Zap size={15} />
+                <span>Décharge Fractale 10 000 V</span>
+              </button>
+
+              <button
+                type="button"
+                className={`btn-interactive-pill ${lichtenbergEnabled ? 'active-uv' : ''}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const next = !lichtenbergEnabled;
+                  setLichtenbergEnabled(next);
+                  showToast(next ? "⚡ Curseur & Clic Lichtenberg 10 000 V activés" : "Curseur Lichtenberg mis en pause");
+                }}
+              >
+                <span>{lichtenbergEnabled ? '⚡ Arc au clic : ON' : '⚡ Arc au clic : OFF'}</span>
+              </button>
+
+              <button
+                type="button"
+                className={`btn-interactive-pill ${blacklightMode ? 'active-uv' : ''}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const next = !blacklightMode;
+                  setBlacklightMode(next);
+                  showToast(
+                    next
+                      ? "🔦 Mode Lumière Noire : pigments phosphorescents & LED révélés !"
+                      : "☀️ Retour à l'éclairage d'atelier naturel."
+                  );
+                }}
+              >
+                <Sparkles size={15} />
+                <span>{blacklightMode ? 'Allumer les lumières' : 'Éteindre les lumières (Mode UV)'}</span>
+              </button>
+            </div>
           </div>
         </section>
 
@@ -1944,6 +2147,33 @@ export default function App() {
             <p className="section-subtitle">
               Explorez mon travail à travers les différents domaines d'artisanat. Chaque pièce est entièrement unique et fabriquée dans mon atelier.
             </p>
+          </div>
+
+          {/* Idea #4: Interactive Blacklight / UV & Backlit LED Banner */}
+          <div className="uv-gallery-banner glass">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', textAlign: 'left' }}>
+              <span style={{ fontSize: '1.8rem' }}>{blacklightMode ? '🌌' : '🔦'}</span>
+              <div>
+                <div style={{ fontWeight: '700', fontSize: '0.98rem', color: '#fff' }}>
+                  {blacklightMode
+                    ? "Mode Lumière Noire & Rétroéclairage LED Actif"
+                    : "Expérience Immersive : Pigments Phosphorescents & Rétroéclairage LED"}
+                </div>
+                <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+                  {blacklightMode
+                    ? "Observez la bioluminescence des rivières d'époxy, des fractales 10 000 V et des toiles cosmiques dans l'obscurité."
+                    : "Éteignez les lumières de l'atelier pour révéler l'éclat nocturne des résines et pigments sous lumière UV."}
+                </div>
+              </div>
+            </div>
+            <button
+              type="button"
+              className={`btn-interactive-pill ${blacklightMode ? 'active-uv' : ''}`}
+              onClick={() => setBlacklightMode(!blacklightMode)}
+              id="gallery-blacklight-toggle"
+            >
+              <span>{blacklightMode ? '☀️ Rallumer l\'atelier' : '🔦 Éteindre les lumières (UV)'}</span>
+            </button>
           </div>
 
           {/* Filter Bar */}
@@ -2004,6 +2234,9 @@ export default function App() {
               >
                 <div className="art-image-wrapper">
                   <span className={`art-badge ${item.category}`}>{item.categoryName}</span>
+                  {blacklightMode && (
+                    <span className="uv-glow-tag">✨ Éclat UV &amp; Rétroéclairage LED</span>
+                  )}
                   <img src={item.image} alt={item.title} className="art-image" loading="lazy" />
                 </div>
                 
