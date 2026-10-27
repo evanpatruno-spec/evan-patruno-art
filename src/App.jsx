@@ -11,7 +11,6 @@ import {
   onSnapshot, 
   query, 
   orderBy,
-  getDocs,
   serverTimestamp 
 } from 'firebase/firestore';
 import { 
@@ -428,6 +427,14 @@ export default function App() {
 
   // Premium Features States
   const [activeAccordion, setActiveAccordion] = useState(null);
+  const [toast, setToast] = useState(null);
+
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => {
+      setToast(null);
+    }, 3800);
+  };
   
   // Checkout Modal State
   const [checkoutItem, setCheckoutItem] = useState(null);
@@ -713,7 +720,7 @@ export default function App() {
   const handleSubmitReview = async (e) => {
     e.preventDefault();
     if (!newReviewName.trim() || !newReviewComment.trim()) {
-      alert("Veuillez remplir votre nom et votre commentaire.");
+      showToast("Veuillez remplir votre nom et votre commentaire.", "error");
       return;
     }
     if (!db) return;
@@ -728,9 +735,10 @@ export default function App() {
       setNewReviewName('');
       setNewReviewComment('');
       setNewReviewRating(5);
+      showToast("Merci ! Votre évaluation a été publiée.");
     } catch (err) {
       console.error("Error submitting review:", err);
-      alert("Une erreur est survenue lors de l'enregistrement de l'avis.");
+      showToast("Une erreur est survenue lors de l'enregistrement de l'avis.", "error");
     }
   };
 
@@ -790,34 +798,6 @@ export default function App() {
     if (!db) {
       return;
     }
-
-    // S'assurer que l'article de démonstration Stripe existe en base de données
-    const ensureTestCreation = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, 'creations'));
-        const exists = querySnapshot.docs.some(doc => doc.data().title === "TEST - Article de Démonstration Stripe");
-        if (!exists) {
-          await addDoc(collection(db, 'creations'), {
-            title: "TEST - Article de Démonstration Stripe",
-            category: "table",
-            categoryName: "Table & Mobilier",
-            desc: "Un plateau de test en noyer et résine epoxy bleue nacrée destiné à la validation du tunnel de paiement Stripe et de l'authentification.",
-            image: "/assets/table-ronde-turquoise.jpg",
-            images: ["/assets/table-ronde-turquoise.jpg"],
-            status: "available",
-            statusText: "Disponible",
-            price: "125 $",
-            wood: "Noyer",
-            dimensions: "12\" x 12\" x 1\"",
-            mediums: "Résine bleue nacrée",
-            createdAt: serverTimestamp()
-          });
-        }
-      } catch (e) {
-        console.error("Erreur lors de l'initialisation de l'article test:", e);
-      }
-    };
-    ensureTestCreation();
 
     const q = query(collection(db, 'creations'), orderBy('createdAt', 'desc'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -946,7 +926,7 @@ export default function App() {
   const handleSaveCreation = async (e) => {
     e.preventDefault();
     if (!db) {
-      alert("Firebase n'est pas configuré. Impossible d'enregistrer.");
+      showToast("Firebase n'est pas configuré. Impossible d'enregistrer.", "error");
       return;
     }
 
@@ -999,10 +979,10 @@ export default function App() {
         mediums: ''
       });
       setEditingCreation(null);
-      alert("Œuvre enregistrée avec succès !");
+      showToast("Œuvre enregistrée avec succès !");
     } catch (error) {
       console.error("Erreur lors de l'enregistrement :", error);
-      alert("Erreur lors de l'enregistrement dans la base de données.");
+      showToast("Erreur lors de l'enregistrement dans la base de données.", "error");
     }
   };
 
@@ -1032,24 +1012,28 @@ export default function App() {
     setCreations(prev => prev.filter(item => item.id !== id));
 
     if (!db) {
-      alert("Œuvre supprimée localement.");
+      showToast("Œuvre supprimée localement.");
       return;
     }
     try {
       // Cast the ID to a string to prevent Firestore type errors (e.g. for numeric fallback IDs)
       await deleteDoc(doc(db, 'creations', String(id)));
-      alert("Œuvre supprimée avec succès !");
+      showToast("Œuvre supprimée avec succès !");
     } catch (error) {
       console.error("Erreur lors de la suppression :", error);
-      alert("Erreur lors de la suppression dans la base de données.");
+      showToast("Erreur lors de la suppression dans la base de données.", "error");
     }
   };
 
+  const visibleCreations = isAdminLoggedIn
+    ? creations
+    : creations.filter(item => !item.title?.startsWith('TEST -'));
+
   const filteredPortfolio = galleryFilter === 'all' 
-    ? creations 
+    ? visibleCreations 
     : galleryFilter === 'sold'
-      ? creations.filter(item => item.status === 'sold')
-      : creations.filter(item => item.category === galleryFilter);
+      ? visibleCreations.filter(item => item.status === 'sold')
+      : visibleCreations.filter(item => item.category === galleryFilter);
 
   // Custom Builder Next/Prev handlers
   const handleNextStep = () => {
@@ -1262,10 +1246,10 @@ export default function App() {
           ...estimateData,
           createdAt: serverTimestamp()
         });
-        alert("Simulation enregistrée avec succès comme référence !");
+        showToast("Simulation enregistrée avec succès comme référence !");
       } catch (err) {
         console.error("Erreur lors de l'enregistrement de l'estimation :", err);
-        alert("Erreur lors de l'enregistrement dans Firestore.");
+        showToast("Erreur lors de l'enregistrement dans Firestore.", "error");
       }
     } else {
       const newEst = {
@@ -1274,7 +1258,7 @@ export default function App() {
         date: new Date()
       };
       setSavedEstimates(prev => [newEst, ...prev]);
-      alert("Firebase n'est pas configuré. L'estimation a été enregistrée en mode local (mémoire).");
+      showToast("Estimation enregistrée en mode local (mémoire).");
     }
 
     setCalcForm(prev => ({
@@ -1290,16 +1274,16 @@ export default function App() {
     setSavedEstimates(prev => prev.filter(item => item.id !== id));
     
     if (!db) {
-      alert("Simulation supprimée localement.");
+      showToast("Simulation supprimée localement.");
       return;
     }
     
     try {
       await deleteDoc(doc(db, 'saved_estimates', String(id)));
-      alert("Simulation supprimée avec succès !");
+      showToast("Simulation supprimée avec succès !");
     } catch (error) {
       console.error("Erreur lors de la suppression de l'estimation :", error);
-      alert("Erreur de suppression dans Firestore.");
+      showToast("Erreur de suppression dans Firestore.", "error");
     }
   };
 
@@ -1491,10 +1475,10 @@ export default function App() {
     if (!db) return;
     try {
       await setDoc(doc(db, 'orders', orderId), { status: newStatus }, { merge: true });
-      alert("✅ Statut de la commande mis à jour avec succès !");
+      showToast("✅ Statut de la commande mis à jour avec succès !");
     } catch (err) {
       console.error("Erreur lors de la mise à jour du statut :", err);
-      alert("Une erreur est survenue lors de la mise à jour.");
+      showToast("Une erreur est survenue lors de la mise à jour.", "error");
     }
   };
 
@@ -1618,63 +1602,147 @@ export default function App() {
     handleBotChoice(val);
   };
   const downloadInvoice = (cert) => {
-    const text = `==================================================
-                 EVAN PATRUNO ART
-               FACTURE DE COMMANDE
-==================================================
-No. Commande  : ${cert.orderId}
-Date          : ${cert.date}
-Client        : ${cert.customerName}
-Courriel      : ${cert.customerEmail}
-Adresse       : ${cert.customerAddress}
---------------------------------------------------
-Produit       : ${cert.creationTitle}
-Bois          : ${cert.wood}
-Dimensions    : ${cert.dimensions}
-Médiums       : ${cert.mediums}
---------------------------------------------------
-Total Payé    : ${cert.priceCAD} (Sécurisé via Stripe)
-==================================================
-Merci pour votre confiance et votre achat d'art !
-`;
-    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `Facture_${cert.orderId}.txt`;
-    link.click();
+    const printWin = window.open('', '_blank', 'width=850,height=900');
+    if (!printWin) {
+      showToast("Veuillez autoriser les fenêtres pop-up pour générer le PDF.", "error");
+      return;
+    }
+    const html = `<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Facture ${cert.orderId} - Evan Patruno Art</title>
+  <style>
+    body { font-family: 'Segoe UI', Arial, sans-serif; color: #1e0a19; margin: 0; padding: 48px; background: #fff; }
+    .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #873276; padding-bottom: 24px; margin-bottom: 32px; }
+    .brand { font-size: 26px; font-weight: 800; color: #1e0a19; letter-spacing: -0.5px; }
+    .brand span { color: #b0549c; }
+    .doc-title { font-size: 22px; font-weight: 700; color: #873276; text-transform: uppercase; letter-spacing: 2px; text-align: right; }
+    .meta { font-size: 13px; color: #555; margin-top: 6px; text-align: right; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px; }
+    .box { background: #fdf8fc; border: 1px solid #ead6e6; border-radius: 10px; padding: 18px; }
+    .box h4 { margin: 0 0 8px; color: #873276; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
+    .box p { margin: 4px 0; font-size: 14px; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 32px; }
+    th { background: #1e0a19; color: #fff; text-align: left; padding: 12px 16px; font-size: 13px; text-transform: uppercase; }
+    td { padding: 16px; border-bottom: 1px solid #eee; font-size: 14px; }
+    .total-box { margin-left: auto; width: 280px; background: #1e0a19; color: #fff; padding: 18px 22px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 18px; font-weight: 700; }
+    .footer { margin-top: 50px; text-align: center; font-size: 12px; color: #777; border-top: 1px solid #eee; padding-top: 20px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <div class="brand">EVAN PATRUNO <span>ART</span></div>
+      <div style="font-size:13px;color:#555;margin-top:4px;">Atelier d'Ébénisterie &amp; Résine Époxy • Saint-Jean-sur-Richelieu, QC</div>
+      <div style="font-size:13px;color:#555;">info@evanpatruno.ca • 514-567-3249</div>
+    </div>
+    <div>
+      <div class="doc-title">Facture Officielle</div>
+      <div class="meta">No. Commande : <strong>${cert.orderId}</strong><br/>Date : ${cert.date}</div>
+    </div>
+  </div>
+  <div class="grid">
+    <div class="box">
+      <h4>Facturé à</h4>
+      <p><strong>${cert.customerName}</strong></p>
+      <p>${cert.customerEmail}</p>
+      <p>${cert.customerAddress}</p>
+    </div>
+    <div class="box">
+      <h4>Spécifications Techniques</h4>
+      <p><strong>Essence de bois :</strong> ${cert.wood}</p>
+      <p><strong>Dimensions :</strong> ${cert.dimensions}</p>
+      <p><strong>Médiums / Finition :</strong> ${cert.mediums}</p>
+    </div>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Description de l'œuvre</th>
+        <th style="text-align:right;">Montant</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>${cert.creationTitle}</strong><br/><span style="font-size:12px;color:#666;">Création originale façonnée à la main • Certificat CERT-${cert.orderId}</span></td>
+        <td style="text-align:right;font-weight:700;">${cert.priceCAD} $ CAD</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="total-box">
+    <span>TOTAL PAYÉ</span>
+    <span style="color:#d4af37;">${cert.priceCAD} $ CAD</span>
+  </div>
+  <div class="footer">
+    Merci pour votre confiance et votre acquisition d'une œuvre d'art originale signée Evan Patruno Art.
+  </div>
+  <script>window.onload = () => { window.print(); };</script>
+</body>
+</html>`;
+    printWin.document.write(html);
+    printWin.document.close();
   };
 
   const downloadCertificate = (cert) => {
-    const text = `==================================================
-              CERTIFICAT D'AUTHENTICITÉ
-                  EVAN PATRUNO ART
-==================================================
-Nous certifions que l'œuvre d'art originale suivante :
-
-Titre         : ${cert.creationTitle}
-Bois utilisé  : ${cert.wood}
-Dimensions    : ${cert.dimensions}
-Médiums/Style : ${cert.mediums}
-
-a été entièrement fabriquée de façon artisanale par
-l'artiste ébéniste Evan Patruno dans son atelier de
-Montréal, Québec, Canada.
-
-Date de vente : ${cert.date}
-No. Certificat: CERT-${cert.orderId}
-Signature     : Evan Patruno
-
---------------------------------------------------
-Scannez le QR Code de votre œuvre pour voir
-les détails de fabrication originaux et l'état
-de commande en temps réel sur evanpatruno.art.
-==================================================
-`;
-    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `Certificat_${cert.orderId}.txt`;
-    link.click();
+    const printWin = window.open('', '_blank', 'width=900,height=920');
+    if (!printWin) {
+      showToast("Veuillez autoriser les fenêtres pop-up pour générer le certificat PDF.", "error");
+      return;
+    }
+    const verifyUrl = `${window.location.origin}/?certId=${encodeURIComponent(cert.orderId)}`;
+    const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(verifyUrl)}`;
+    const html = `<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Certificat d'Authenticité CERT-${cert.orderId}</title>
+  <style>
+    body { font-family: 'Georgia', serif; background: #120010; color: #f8fafc; margin: 0; padding: 36px; display: flex; justify-content: center; }
+    .cert-frame { width: 100%; max-width: 760px; background: #1e0a19; border: 3px double #d4af37; border-radius: 18px; padding: 48px; text-align: center; box-sizing: border-box; }
+    .seal { display: inline-block; padding: 10px 24px; border: 2px solid #d4af37; border-radius: 50px; color: #d4af37; font-size: 12px; letter-spacing: 3px; text-transform: uppercase; font-weight: bold; margin-bottom: 18px; }
+    h1 { font-size: 32px; color: #d4af37; margin: 0 0 8px; letter-spacing: 1px; }
+    .subtitle { font-size: 12px; text-transform: uppercase; letter-spacing: 3px; color: #cbd5e1; margin-bottom: 30px; }
+    .specs { background: rgba(255,255,255,0.04); border: 1px solid rgba(212,175,55,0.35); border-radius: 12px; padding: 24px; text-align: left; margin: 24px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; font-family: 'Segoe UI', sans-serif; font-size: 14px; }
+    .specs div strong { color: #d4af37; display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; }
+    .footer-row { display: flex; justify-content: space-between; align-items: center; margin-top: 32px; padding-top: 24px; border-top: 1px solid rgba(212,175,55,0.25); }
+    .sig { font-family: 'Brush Script MT', cursive; font-size: 34px; color: #d4af37; }
+    @media print { body { background: #1e0a19; -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+  </style>
+</head>
+<body>
+  <div class="cert-frame">
+    <div class="seal">★ SCEAU D'AUTHENTICITÉ ★</div>
+    <h1>Certificat d'Authenticité</h1>
+    <div class="subtitle">Evan Patruno Art • Registre Officiel des Œuvres</div>
+    <p style="font-size:15px;line-height:1.7;color:#e2e8f0;">
+      Nous certifions par la présente que l'œuvre décrite ci-dessous est une création originale et unique, entièrement façonnée à la main par l'artiste ébéniste <strong>Evan Patruno</strong> dans son atelier au Québec, Canada.
+    </p>
+    <div class="specs">
+      <div style="grid-column: span 2;"><strong>Titre de l'œuvre</strong>${cert.creationTitle}</div>
+      <div><strong>Essence de bois</strong>${cert.wood}</div>
+      <div><strong>Dimensions</strong>${cert.dimensions}</div>
+      <div><strong>Médiums &amp; Résine</strong>${cert.mediums}</div>
+      <div><strong>Acquéreur officiel</strong>${cert.customerName}</div>
+      <div><strong>Date d'émission</strong>${cert.date}</div>
+      <div><strong>No. de Certificat</strong>CERT-${cert.orderId}</div>
+    </div>
+    <div class="footer-row">
+      <div style="text-align:left;">
+        <div class="sig">Evan Patruno</div>
+        <div style="font-size:12px;color:#94a3b8;font-family:sans-serif;">Signature de l'Artiste Créateur</div>
+      </div>
+      <div style="text-align:center;">
+        <img src="${qrSrc}" alt="QR Code" style="width:96px;height:96px;border:4px solid #fff;border-radius:8px;background:#fff;" />
+        <div style="font-size:10px;color:#94a3b8;margin-top:4px;font-family:sans-serif;">Vérification numérique</div>
+      </div>
+    </div>
+  </div>
+  <script>window.onload = () => { setTimeout(() => window.print(), 400); };</script>
+</body>
+</html>`;
+    printWin.document.write(html);
+    printWin.document.close();
   };
 
   const params = new URLSearchParams(window.location.search);
@@ -2600,7 +2668,7 @@ de commande en temps réel sur evanpatruno.art.
                                 const file = e.target.files[0];
                                 if (file) {
                                   if (file.size > 2 * 1024 * 1024) {
-                                    alert("Le fichier est trop lourd. Veuillez privilégier un lien cloud ci-dessous pour les fichiers de plus de 2 Mo.");
+                                    showToast("Le fichier dépasse 2 Mo. Veuillez privilégier un lien cloud ci-dessous.", "error");
                                     return;
                                   }
                                   const reader = new FileReader();
@@ -4739,14 +4807,14 @@ de commande en temps réel sur evanpatruno.art.
                 className="btn-secondary" 
                 style={{ flex: 1, padding: '12px', fontSize: '0.9rem' }}
               >
-                📄 Facture PDF (.txt)
+                📄 Imprimer Facture (PDF)
               </button>
               <button 
                 onClick={() => downloadCertificate(purchaseCertificate)}
                 className="btn-primary" 
                 style={{ flex: 1, padding: '12px', fontSize: '0.9rem', background: 'linear-gradient(135deg, #d4af37, #aa7c11)', border: 'none', color: '#1e0a19' }}
               >
-                📜 Certificat (.txt)
+                📜 Certificat Officiel (PDF)
               </button>
             </div>
 
@@ -4986,6 +5054,14 @@ de commande en temps réel sur evanpatruno.art.
               </button>
             </div>
           )}
+        </div>
+      )}
+
+      {/* LUXURY TOAST NOTIFICATION */}
+      {toast && (
+        <div className={`toast-notification ${toast.type === 'error' ? 'error' : ''}`} role="status">
+          <span>{toast.type === 'error' ? '⚠️' : '✨'}</span>
+          <span>{toast.message}</span>
         </div>
       )}
     </div>

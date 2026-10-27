@@ -3071,3 +3071,32 @@ section {
   letter-spacing: 2px;
 }
 
+/* Luxury Toast Notification */
+.toast-notification {
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20000;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 24px;
+  border-radius: 16px;
+  background: rgba(18, 0, 16, 0.96);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(176, 84, 156, 0.45);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.65), 0 0 20px rgba(176, 84, 156, 0.25);
+  color: #fff;
+  font-size: 0.92rem;
+  font-weight: 550;
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.toast-notification.error {
+  border-color: rgba(239, 68, 68, 0.55);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.65), 0 0 20px rgba(239, 68, 68, 0.25);
+}
+
+
