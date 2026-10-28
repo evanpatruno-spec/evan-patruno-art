@@ -85,6 +85,10 @@ export default function App() {
   const [currency, setCurrency] = useState('CAD');
   const [exchangeRates, setExchangeRates] = useState({ CAD: 1, USD: 0.74, EUR: 0.68 });
   const [galleryFilter, setGalleryFilter] = useState('all');
+  const [gallerySearch, setGallerySearch] = useState('');
+  const [onlyAvailableFilter, setOnlyAvailableFilter] = useState(false);
+  const [gallerySort, setGallerySort] = useState('default');
+  const [showAllGallery, setShowAllGallery] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [privacyModalOpen, setPrivacyModalOpen] = useState(false);
 
@@ -415,12 +419,19 @@ export default function App() {
     return `${converted.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ")}${symbol}`;
   };
 
+  const FREE_SHIPPING_THRESHOLD_CAD = 150;
+
   const getCartSubtotalCAD = () => {
     return cart.reduce((sum, item) => sum + getPriceNumber(item.price) * item.quantity, 0);
   };
 
+  const getEffectiveShippingCAD = () => {
+    if (getCartSubtotalCAD() >= FREE_SHIPPING_THRESHOLD_CAD) return 0;
+    return shippingFee;
+  };
+
   const getCartTotalCAD = () => {
-    return getCartSubtotalCAD() + shippingFee;
+    return getCartSubtotalCAD() + getEffectiveShippingCAD();
   };
 
   // Cart action handlers
@@ -433,6 +444,7 @@ export default function App() {
       return [...prev, { ...item, quantity: 1 }];
     });
     setIsCartOpen(true);
+    showToast(`🛒 "${item.title}" ajouté au panier !`);
   };
 
   const handleRemoveFromCart = (itemId) => {
@@ -788,11 +800,41 @@ export default function App() {
     ? creations
     : creations.filter(item => !item.title?.startsWith('TEST -'));
 
-  const filteredPortfolio = galleryFilter === 'all' 
-    ? visibleCreations 
-    : galleryFilter === 'sold'
-      ? visibleCreations.filter(item => item.status === 'sold')
-      : visibleCreations.filter(item => item.category === galleryFilter);
+  const filteredPortfolio = visibleCreations
+    .filter((item) => {
+      if (galleryFilter === 'sold') return item.status === 'sold';
+      if (galleryFilter !== 'all' && item.category !== galleryFilter) return false;
+      if (onlyAvailableFilter && item.status !== 'available') return false;
+      if (gallerySearch.trim()) {
+        const q = gallerySearch.toLowerCase().trim();
+        const hay = `${item.title || ''} ${item.desc || ''} ${item.wood || ''} ${item.mediums || ''} ${item.categoryName || ''}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      if (gallerySort === 'price-asc') {
+        const pa = getPriceNumber(a.price) || 999999;
+        const pb = getPriceNumber(b.price) || 999999;
+        return pa - pb;
+      }
+      if (gallerySort === 'price-desc') {
+        const pa = getPriceNumber(a.price) || 0;
+        const pb = getPriceNumber(b.price) || 0;
+        return pb - pa;
+      }
+      if (gallerySort === 'available-first') {
+        const sa = a.status === 'available' ? 0 : 1;
+        const sb = b.status === 'available' ? 0 : 1;
+        return sa - sb;
+      }
+      return 0;
+    });
+
+  const INITIAL_GALLERY_COUNT = 9;
+  const displayedPortfolio = (showAllGallery || galleryFilter !== 'all' || gallerySearch.trim() || onlyAvailableFilter)
+    ? filteredPortfolio
+    : filteredPortfolio.slice(0, INITIAL_GALLERY_COUNT);
 
   // Custom Builder Next/Prev handlers
   const handleNextStep = () => {
@@ -1163,7 +1205,7 @@ export default function App() {
     let docId = "EPA-" + Math.floor(Math.random() * 900000 + 100000);
     const isCart = checkoutItem.isCart;
     const finalPriceCAD = isCart ? getCartSubtotalCAD() : getPriceNumber(checkoutItem.price);
-    const totalWithShippingCAD = finalPriceCAD + (isCart ? shippingFee : 0);
+    const totalWithShippingCAD = finalPriceCAD + (isCart ? getEffectiveShippingCAD() : 0);
     const creationTitle = isCart ? cart.map(i => `${i.title} (x${i.quantity})`).join(', ') : checkoutItem.title;
     
     if (db) {
@@ -1177,7 +1219,7 @@ export default function App() {
           status: 'received',
           createdAt: serverTimestamp(),
           currency: currency,
-          shippingCAD: isCart ? shippingFee : 0,
+          shippingCAD: isCart ? getEffectiveShippingCAD() : 0,
           priceCAD: finalPriceCAD,
           convertedPrice: formatPriceNum(totalWithShippingCAD)
         };
@@ -1908,9 +1950,57 @@ export default function App() {
             </button>
           </div>
 
+          {/* Search, In-Stock Quick Filter & Sort Toolbar (#3, #4) */}
+          <div className="gallery-toolbar">
+            <div className="gallery-search-box">
+              <Search size={16} className="gallery-search-icon" />
+              <input
+                type="text"
+                className="gallery-search-input"
+                placeholder="Rechercher une œuvre (bois de rose, émeraude, frêne, ambre...)"
+                value={gallerySearch}
+                onChange={(e) => setGallerySearch(e.target.value)}
+                aria-label="Rechercher dans la galerie"
+              />
+              {gallerySearch && (
+                <button
+                  type="button"
+                  className="gallery-search-clear"
+                  onClick={() => setGallerySearch('')}
+                  aria-label="Effacer la recherche"
+                >
+                  &times;
+                </button>
+              )}
+            </div>
+
+            <div className="gallery-toolbar-actions">
+              <button
+                type="button"
+                className={`stock-toggle-btn ${onlyAvailableFilter ? 'active' : ''}`}
+                onClick={() => setOnlyAvailableFilter(!onlyAvailableFilter)}
+              >
+                <span className="status-dot available"></span>
+                <span>En stock uniquement ({visibleCreations.filter(i => i.status === 'available').length})</span>
+              </button>
+
+              <select
+                className="gallery-sort-select"
+                value={gallerySort}
+                onChange={(e) => setGallerySort(e.target.value)}
+                aria-label="Trier les créations"
+              >
+                <option value="default">Trier : Ordre d'atelier</option>
+                <option value="available-first">Trier : Disponibles d'abord</option>
+                <option value="price-asc">Trier : Prix croissant</option>
+                <option value="price-desc">Trier : Prix décroissant</option>
+              </select>
+            </div>
+          </div>
+
           {/* Museum Gallery Grid (#9, #11) */}
           <div className="gallery-grid" id="portfolio-grid">
-            {filteredPortfolio.map((item, idx) => {
+            {displayedPortfolio.map((item, idx) => {
               const catalogNumber = String(idx + 1).padStart(2, '0');
               return (
                 <div 
@@ -1991,6 +2081,38 @@ export default function App() {
               );
             })}
           </div>
+
+          {filteredPortfolio.length === 0 && (
+            <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-secondary)' }}>
+              <p style={{ marginBottom: '12px' }}>Aucune création ne correspond à votre recherche.</p>
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => {
+                  setGalleryFilter('all');
+                  setGallerySearch('');
+                  setOnlyAvailableFilter(false);
+                }}
+                style={{ padding: '10px 20px', fontSize: '0.88rem' }}
+              >
+                Réinitialiser les filtres
+              </button>
+            </div>
+          )}
+
+          {filteredPortfolio.length > INITIAL_GALLERY_COUNT && galleryFilter === 'all' && !gallerySearch.trim() && !onlyAvailableFilter && (
+            <div style={{ textAlign: 'center', marginTop: '34px' }}>
+              <button
+                type="button"
+                className="btn-secondary gallery-load-more-btn"
+                onClick={() => setShowAllGallery(!showAllGallery)}
+              >
+                {showAllGallery
+                  ? "Réduire l'affichage (Voir les 9 premières pièces)"
+                  : `Voir les ${filteredPortfolio.length - INITIAL_GALLERY_COUNT} autres créations (Afficher les ${filteredPortfolio.length} œuvres)`}
+              </button>
+            </div>
+          )}
         </section>
 
         {/* MATERIALS & TECH SECTION */}
@@ -4724,41 +4846,57 @@ export default function App() {
                     </span>
                   </div>
 
-                  <div style={{ display: 'flex', gap: '10px' }}>
-                    <button 
-                      type="button" 
-                      onClick={() => setSelectedItemDetails(null)} 
-                      className="btn-secondary" 
-                      style={{ flex: 0.8, padding: '13px' }}
-                    >
-                      Fermer
-                    </button>
+                  <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                     {selectedItemDetails.status === 'available' && !selectedItemDetails.price.toLowerCase().includes('demande') ? (
-                      <button 
-                        type="button" 
-                        onClick={() => {
-                          const item = selectedItemDetails;
-                          setSelectedItemDetails(null);
-                          handleStartCheckout(item);
-                        }} 
-                        className="btn-primary" 
-                        style={{ flex: 1.6, padding: '13px' }}
-                      >
-                        Acheter maintenant
-                      </button>
+                      <>
+                        <button 
+                          type="button" 
+                          onClick={() => {
+                            handleAddToCart(selectedItemDetails);
+                            setSelectedItemDetails(null);
+                          }} 
+                          className="btn-secondary" 
+                          style={{ flex: 1.1, padding: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', borderColor: 'rgba(176, 84, 156, 0.45)' }}
+                        >
+                          <span>🛒</span>
+                          <span>Ajouter au panier</span>
+                        </button>
+                        <button 
+                          type="button" 
+                          onClick={() => {
+                            const item = selectedItemDetails;
+                            setSelectedItemDetails(null);
+                            handleStartCheckout(item);
+                          }} 
+                          className="btn-primary" 
+                          style={{ flex: 1.3, padding: '13px' }}
+                        >
+                          Acheter maintenant
+                        </button>
+                      </>
                     ) : (
-                      <button 
-                        type="button" 
-                        onClick={() => {
-                          const item = selectedItemDetails;
-                          setSelectedItemDetails(null);
-                          openCustomBuilderForItem(item);
-                        }} 
-                        className="btn-primary" 
-                        style={{ flex: 1.6, padding: '13px' }}
-                      >
-                        Commander sur mesure
-                      </button>
+                      <>
+                        <button 
+                          type="button" 
+                          onClick={() => setSelectedItemDetails(null)} 
+                          className="btn-secondary" 
+                          style={{ flex: 0.8, padding: '13px' }}
+                        >
+                          Fermer
+                        </button>
+                        <button 
+                          type="button" 
+                          onClick={() => {
+                            const item = selectedItemDetails;
+                            setSelectedItemDetails(null);
+                            openCustomBuilderForItem(item);
+                          }} 
+                          className="btn-primary" 
+                          style={{ flex: 1.6, padding: '13px' }}
+                        >
+                          Commander sur mesure
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>
@@ -4905,6 +5043,30 @@ export default function App() {
           </div>
 
           <div className="cart-items-list">
+            {/* Free Shipping Progress Bar (#5) */}
+            <div className="free-shipping-banner">
+              {getCartSubtotalCAD() >= FREE_SHIPPING_THRESHOLD_CAD ? (
+                <div className="free-shipping-unlocked">
+                  🎉 <strong>Livraison standard OFFERTE</strong> sur votre commande !
+                </div>
+              ) : (
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                    <span>🚚 Livraison offerte dès {formatPriceNum(FREE_SHIPPING_THRESHOLD_CAD)}</span>
+                    <strong style={{ color: '#f3e5ab' }}>
+                      Plus que {formatPriceNum(FREE_SHIPPING_THRESHOLD_CAD - getCartSubtotalCAD())}
+                    </strong>
+                  </div>
+                  <div className="free-shipping-progress-track">
+                    <div
+                      className="free-shipping-progress-fill"
+                      style={{ width: `${Math.min(100, Math.round((getCartSubtotalCAD() / FREE_SHIPPING_THRESHOLD_CAD) * 100))}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
             {cart.length === 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '15px' }}>
                 <span style={{ fontSize: '3rem' }}>🛒</span>
@@ -4964,10 +5126,16 @@ export default function App() {
                 <span>Sous-total</span>
                 <span>{formatPriceNum(getCartSubtotalCAD())}</span>
               </div>
-              {shippingEstimated && (
+              {(shippingEstimated || getCartSubtotalCAD() >= FREE_SHIPPING_THRESHOLD_CAD) && (
                 <div className="cart-summary-line">
                   <span>Livraison</span>
-                  <span>{formatPriceNum(shippingFee)}</span>
+                  <span>
+                    {getCartSubtotalCAD() >= FREE_SHIPPING_THRESHOLD_CAD ? (
+                      <strong style={{ color: '#10b981' }}>GRATUITE (0 $)</strong>
+                    ) : (
+                      formatPriceNum(getEffectiveShippingCAD())
+                    )}
+                  </span>
                 </div>
               )}
               <div className="cart-summary-line total">
