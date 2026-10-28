@@ -159,7 +159,7 @@ const portfolioItems = [
     images: ["/assets/bijoux/1792105593282.jpg"],
     status: "available",
     statusText: "Disponible",
-    price: "65 $",
+    price: "40 $",
     wood: "Bois de rose",
     dimensions: "Médaillon Ø 38 mm • Cordon ajustable",
     mediums: "Résine époxy vert émeraude nacré, poli miroir"
@@ -174,7 +174,7 @@ const portfolioItems = [
     images: ["/assets/bijoux/1792106597150.jpg"],
     status: "available",
     statusText: "Disponible",
-    price: "65 $",
+    price: "40 $",
     wood: "Bois de rose",
     dimensions: "Médaillon Ø 38 mm • Cordon ajustable",
     mediums: "Résine époxy jaune ambré nacré, cordon ciré noir"
@@ -189,7 +189,7 @@ const portfolioItems = [
     images: ["/assets/bijoux/1792106638576.jpg"],
     status: "available",
     statusText: "Disponible",
-    price: "65 $",
+    price: "40 $",
     wood: "Bois de rose",
     dimensions: "Médaillon Ø 38 mm • Cordon ajustable",
     mediums: "Résine époxy vert mousse boréale, finition satinée"
@@ -204,7 +204,7 @@ const portfolioItems = [
     images: ["/assets/bijoux/1792106643545.jpg"],
     status: "available",
     statusText: "Disponible",
-    price: "70 $",
+    price: "40 $",
     wood: "Bois de rose",
     dimensions: "Médaillon Ø 38 mm • Cordon ajustable",
     mediums: "Résine époxy multi-pigments (bleu, pourpre, blanc)"
@@ -219,7 +219,7 @@ const portfolioItems = [
     images: ["/assets/bijoux/1792108042936.jpg"],
     status: "available",
     statusText: "Disponible",
-    price: "70 $",
+    price: "40 $",
     wood: "Bois de rose",
     dimensions: "Médaillon Ø 38 mm • Cordon ajustable",
     mediums: "Résine époxy bleu céleste & blanc nacré"
@@ -234,7 +234,7 @@ const portfolioItems = [
     images: ["/assets/bijoux/1792109280485.jpg"],
     status: "available",
     statusText: "Disponible",
-    price: "65 $",
+    price: "40 $",
     wood: "Bois de rose",
     dimensions: "Médaillon Ø 38 mm • Cordon ajustable",
     mediums: "Résine époxy or miel & pigments métalliques"
@@ -249,7 +249,7 @@ const portfolioItems = [
     images: ["/assets/bijoux/1792109284315.jpg"],
     status: "available",
     statusText: "Disponible",
-    price: "65 $",
+    price: "40 $",
     wood: "Bois de rose",
     dimensions: "Médaillon Ø 38 mm • Cordon ajustable",
     mediums: "Résine époxy vert-d'eau & or liquide"
@@ -264,7 +264,7 @@ const portfolioItems = [
     images: ["/assets/bijoux/1792109305032.jpg"],
     status: "available",
     statusText: "Disponible",
-    price: "65 $",
+    price: "40 $",
     wood: "Bois de rose",
     dimensions: "Médaillon Ø 38 mm • Cordon ajustable",
     mediums: "Résine époxy ambre impérial & mica doré"
@@ -279,7 +279,7 @@ const portfolioItems = [
     images: ["/assets/bijoux/1792110933638.jpg"],
     status: "available",
     statusText: "Disponible",
-    price: "65 $",
+    price: "40 $",
     wood: "Bois de rose",
     dimensions: "Médaillon Ø 38 mm • Cordon ajustable",
     mediums: "Résine époxy or antique, finition lustrée"
@@ -294,7 +294,7 @@ const portfolioItems = [
     images: ["/assets/bijoux/1792110962730.jpg"],
     status: "available",
     statusText: "Disponible",
-    price: "65 $",
+    price: "40 $",
     wood: "Bois de rose",
     dimensions: "Médaillon Ø 38 mm • Cordon ajustable",
     mediums: "Résine époxy corail volcanique & volutes blanches"
@@ -309,7 +309,7 @@ const portfolioItems = [
     images: ["/assets/bijoux/1792110974183.jpg"],
     status: "available",
     statusText: "Disponible",
-    price: "65 $",
+    price: "40 $",
     wood: "Bois de rose",
     dimensions: "Médaillon Ø 38 mm • Cordon ajustable",
     mediums: "Résine époxy cuivre ambré & poli haute brillance"
@@ -324,7 +324,7 @@ const portfolioItems = [
     images: ["/assets/bijoux/1792110981581.jpg"],
     status: "available",
     statusText: "Disponible",
-    price: "70 $",
+    price: "40 $",
     wood: "Bois de rose",
     dimensions: "Médaillon Ø 38 mm • Cordon ajustable",
     mediums: "Résine époxy vert jade & pigments nacrés"
@@ -339,7 +339,7 @@ const portfolioItems = [
     images: ["/assets/bijoux/1792110985994.jpg"],
     status: "available",
     statusText: "Disponible",
-    price: "65 $",
+    price: "40 $",
     wood: "Bois de rose",
     dimensions: "Médaillon Ø 38 mm • Cordon ajustable",
     mediums: "Résine époxy vert boréal & tourbillons nacrés"
@@ -354,7 +354,7 @@ const portfolioItems = [
     images: ["/assets/bijoux/1792110990338.jpg"],
     status: "available",
     statusText: "Disponible",
-    price: "70 $",
+    price: "40 $",
     wood: "Bois de rose",
     dimensions: "Médaillon Ø 38 mm • Cordon ajustable",
     mediums: "Résine époxy rose, améthyste & corail nacré"
@@ -369,7 +369,7 @@ const portfolioItems = [
     images: ["/assets/bijoux/1792110969931.jpg"],
     status: "available",
     statusText: "Disponible",
-    price: "65 $",
+    price: "40 $",
     wood: "Bois de rose",
     dimensions: "Médaillon Ø 38 mm • Cordon ajustable",
     mediums: "Résine époxy or antique, finition lustrée"
