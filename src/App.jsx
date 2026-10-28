@@ -239,8 +239,23 @@ export default function App() {
   
   // Checkout Modal State
   const [checkoutItem, setCheckoutItem] = useState(null);
-  const [selectedItemDetails, setSelectedItemDetails] = useState(null);
+  const [selectedItemDetails, setSelectedItemDetails] = useState(() => {
+    try {
+      const pieceId = new URLSearchParams(window.location.search).get('piece');
+      if (!pieceId) return null;
+      const idx = portfolioItems.findIndex(i => String(i.id) === String(pieceId));
+      if (idx === -1) return null;
+      return {
+        ...portfolioItems[idx],
+        catalogNumber: String(idx + 1).padStart(2, '0')
+      };
+    } catch {
+      return null;
+    }
+  });
   const [activeImageIdx, setActiveImageIdx] = useState(0);
+  const [fullscreenImage, setFullscreenImage] = useState(null);
+  const [careGuideOpen, setCareGuideOpen] = useState(false);
   const [currentReviews, setCurrentReviews] = useState([]);
   const [newReviewName, setNewReviewName] = useState('');
   const [newReviewRating, setNewReviewRating] = useState(5);
@@ -852,9 +867,90 @@ export default function App() {
 
   const handleOpenItemDetails = (item) => {
     setActiveImageIdx(0);
+    setCareGuideOpen(false);
     setCurrentReviews([]);
     setSelectedItemDetails(item);
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set('piece', String(item.id));
+      window.history.replaceState({}, '', url.toString());
+    } catch {
+      // ignore history errors
+    }
   };
+
+  const handleCloseItemDetails = () => {
+    setSelectedItemDetails(null);
+    setFullscreenImage(null);
+    try {
+      const url = new URL(window.location.href);
+      if (url.searchParams.has('piece')) {
+        url.searchParams.delete('piece');
+        window.history.replaceState({}, '', url.pathname + url.search + url.hash);
+      }
+    } catch {
+      // ignore
+    }
+  };
+
+  const handleCopyPieceLink = (item) => {
+    const shareUrl = `${window.location.origin}/?piece=${item.id}`;
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        showToast("🔗 Lien direct de la pièce copié dans le presse-papiers !");
+      }).catch(() => {
+        showToast(`Lien : ${shareUrl}`);
+      });
+    } else {
+      showToast(`Lien : ${shareUrl}`);
+    }
+  };
+
+  const handleNavigateModalItem = (direction) => {
+    if (!selectedItemDetails || filteredPortfolio.length <= 1) return;
+    const currentIndex = filteredPortfolio.findIndex(i => String(i.id) === String(selectedItemDetails.id));
+    const baseIdx = currentIndex === -1 ? 0 : currentIndex;
+    const nextIdx = (baseIdx + direction + filteredPortfolio.length) % filteredPortfolio.length;
+    const nextItem = filteredPortfolio[nextIdx];
+    if (nextItem) {
+      handleOpenItemDetails({
+        ...nextItem,
+        catalogNumber: String(nextIdx + 1).padStart(2, '0')
+      });
+    }
+  };
+
+  const handleAskAboutItem = (item) => {
+    handleCloseItemDetails();
+    setContactData(prev => ({
+      ...prev,
+      subject: `Question sur la pièce : ${item.title}`
+    }));
+    setTimeout(() => {
+      document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
+    }, 150);
+  };
+
+  // Keyboard navigation in Product Modal (#18)
+  useEffect(() => {
+    if (!selectedItemDetails) return;
+    const onKeyDown = (e) => {
+      if (e.target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
+      if (e.key === 'Escape') {
+        if (fullscreenImage) {
+          setFullscreenImage(null);
+        } else {
+          handleCloseItemDetails();
+        }
+      } else if (e.key === 'ArrowRight') {
+        handleNavigateModalItem(1);
+      } else if (e.key === 'ArrowLeft') {
+        handleNavigateModalItem(-1);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  });
 
   const openCustomBuilderForItem = (item) => {
     const typeMap = {
@@ -4731,16 +4827,43 @@ export default function App() {
 
       {/* DETAILED PRODUCT VIEW OVERLAY */}
       {selectedItemDetails && (
-        <div className="checkout-overlay" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 11000 }} onClick={() => setSelectedItemDetails(null)}>
+        <div className="checkout-overlay" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 11000 }} onClick={handleCloseItemDetails}>
           <div className="checkout-card glass animate-fade-in product-modal-card" onClick={(e) => e.stopPropagation()}>
-            <div className="checkout-header" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '14px', marginBottom: '22px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+            <div className="checkout-header" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '14px', marginBottom: '20px', gap: '12px', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', flex: 1 }}>
                 <span className={`art-badge ${selectedItemDetails.category}`} style={{ position: 'static', display: 'inline-block' }}>
                   {selectedItemDetails.categoryName}
                 </span>
-                <h3 className="checkout-title" style={{ fontSize: '1.35rem', margin: 0 }}>{selectedItemDetails.title}</h3>
+                <h3 className="checkout-title" style={{ fontSize: '1.3rem', margin: 0 }}>{selectedItemDetails.title}</h3>
               </div>
-              <button className="checkout-close" onClick={() => setSelectedItemDetails(null)}>&times;</button>
+
+              <div className="modal-header-controls">
+                <button
+                  type="button"
+                  className="modal-nav-pill"
+                  onClick={() => handleNavigateModalItem(-1)}
+                  title="Pièce précédente (Flèche gauche)"
+                >
+                  ◀ Préc.
+                </button>
+                <button
+                  type="button"
+                  className="modal-nav-pill"
+                  onClick={() => handleNavigateModalItem(1)}
+                  title="Pièce suivante (Flèche droite)"
+                >
+                  Suiv. ▶
+                </button>
+                <button
+                  type="button"
+                  className="modal-nav-pill"
+                  onClick={() => handleCopyPieceLink(selectedItemDetails)}
+                  title="Copier le lien direct vers cette pièce"
+                >
+                  🔗 Lien
+                </button>
+                <button className="checkout-close" onClick={handleCloseItemDetails} title="Fermer (Échap)">&times;</button>
+              </div>
             </div>
 
             <div className="product-details-grid">
@@ -4770,6 +4893,14 @@ export default function App() {
                     }}
                     aria-hidden="true"
                   />
+                  <button
+                    type="button"
+                    className="fullscreen-zoom-btn"
+                    onClick={() => setFullscreenImage(selectedItemDetails.images ? selectedItemDetails.images[activeImageIdx] : selectedItemDetails.image)}
+                    title="Ouvrir la photo en plein écran HD"
+                  >
+                    🔍 Plein écran HD
+                  </button>
                   
                   {selectedItemDetails.images && selectedItemDetails.images.length > 1 && (
                     <>
@@ -4801,7 +4932,7 @@ export default function App() {
 
               {/* Right Column: Clean Minimalist Product Specs & Actions */}
               <div className="product-modal-info-col">
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap' }}>
                     <span className="museum-modal-archive-badge">
                       PIÈCE UNIQUE #{selectedItemDetails.catalogNumber || '01'} • FAIT MAIN AU QUÉBEC
@@ -4812,7 +4943,7 @@ export default function App() {
                     </span>
                   </div>
 
-                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.96rem', lineHeight: '1.65', margin: 0 }}>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.6', margin: 0 }}>
                     {selectedItemDetails.desc}
                   </p>
 
@@ -4836,10 +4967,29 @@ export default function App() {
                       </div>
                     )}
                   </div>
+
+                  {/* Collapsible Care Guide (#16) */}
+                  <div className="care-guide-accordion">
+                    <button
+                      type="button"
+                      className="care-guide-toggle"
+                      onClick={() => setCareGuideOpen(!careGuideOpen)}
+                    >
+                      <span>🛡️ Conseils d'entretien (Bois noble &amp; Résine Époxy)</span>
+                      <span>{careGuideOpen ? '▲' : '▼'}</span>
+                    </button>
+                    {careGuideOpen && (
+                      <div className="care-guide-body">
+                        {selectedItemDetails.category === 'jewelry'
+                          ? "Nettoyez délicatement avec un chiffon microfibre doux légèrement humide. Évitez l'immersion prolongée dans l'eau, les parfums directs ou les solvants pour préserver l'éclat miroir de l'époxy et la richesse du bois de rose."
+                          : "Essuyez avec un chiffon microfibre doux et un savon neutre. Utilisez toujours des sous-plats pour les récipients très chauds et évitez les produits abrasifs."}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="product-modal-purchase-box">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '14px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '12px' }}>
                     <span style={{ fontSize: '0.88rem', color: 'var(--text-muted)' }}>Prix de la pièce :</span>
                     <span style={{ fontSize: '1.75rem', fontWeight: '800', color: '#fff', fontFamily: 'var(--font-heading)' }}>
                       {formatPrice(selectedItemDetails.price)}
@@ -4853,10 +5003,10 @@ export default function App() {
                           type="button" 
                           onClick={() => {
                             handleAddToCart(selectedItemDetails);
-                            setSelectedItemDetails(null);
+                            handleCloseItemDetails();
                           }} 
                           className="btn-secondary" 
-                          style={{ flex: 1.1, padding: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', borderColor: 'rgba(176, 84, 156, 0.45)' }}
+                          style={{ flex: 1.1, padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', borderColor: 'rgba(176, 84, 156, 0.45)' }}
                         >
                           <span>🛒</span>
                           <span>Ajouter au panier</span>
@@ -4865,11 +5015,11 @@ export default function App() {
                           type="button" 
                           onClick={() => {
                             const item = selectedItemDetails;
-                            setSelectedItemDetails(null);
+                            handleCloseItemDetails();
                             handleStartCheckout(item);
                           }} 
                           className="btn-primary" 
-                          style={{ flex: 1.3, padding: '13px' }}
+                          style={{ flex: 1.3, padding: '12px' }}
                         >
                           Acheter maintenant
                         </button>
@@ -4878,9 +5028,9 @@ export default function App() {
                       <>
                         <button 
                           type="button" 
-                          onClick={() => setSelectedItemDetails(null)} 
+                          onClick={handleCloseItemDetails} 
                           className="btn-secondary" 
-                          style={{ flex: 0.8, padding: '13px' }}
+                          style={{ flex: 0.8, padding: '12px' }}
                         >
                           Fermer
                         </button>
@@ -4888,20 +5038,56 @@ export default function App() {
                           type="button" 
                           onClick={() => {
                             const item = selectedItemDetails;
-                            setSelectedItemDetails(null);
+                            handleCloseItemDetails();
                             openCustomBuilderForItem(item);
                           }} 
                           className="btn-primary" 
-                          style={{ flex: 1.6, padding: '13px' }}
+                          style={{ flex: 1.6, padding: '12px' }}
                         >
                           Commander sur mesure
                         </button>
                       </>
                     )}
                   </div>
+
+                  <button
+                    type="button"
+                    className="ask-piece-link-btn"
+                    onClick={() => handleAskAboutItem(selectedItemDetails)}
+                  >
+                    💬 Poser une question à Evan sur cette création
+                  </button>
                 </div>
               </div>
             </div>
+
+            {/* Similar Creations Strip (#17) */}
+            {(() => {
+              const similarItems = visibleCreations
+                .filter(i => i.category === selectedItemDetails.category && String(i.id) !== String(selectedItemDetails.id))
+                .slice(0, 3);
+              if (similarItems.length === 0) return null;
+              return (
+                <div className="similar-items-strip">
+                  <span className="similar-strip-title">✨ Vous aimerez aussi dans cette collection :</span>
+                  <div className="similar-items-grid">
+                    {similarItems.map((sim) => (
+                      <div
+                        key={sim.id}
+                        className="similar-mini-card"
+                        onClick={() => handleOpenItemDetails(sim)}
+                      >
+                        <img src={sim.image} alt={sim.title} className="similar-mini-img" loading="lazy" />
+                        <div className="similar-mini-info">
+                          <strong>{sim.title}</strong>
+                          <span>{formatPrice(sim.price)}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Compact Full-Width Reviews Section Below Product Showcase */}
             <div className="reviews-section">
@@ -4971,6 +5157,70 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {/* FULLSCREEN HD LIGHTBOX OVERLAY (#9) */}
+      {fullscreenImage && (
+        <div
+          className="fullscreen-lightbox-overlay"
+          onClick={() => setFullscreenImage(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Zoom plein écran haute définition"
+        >
+          <button
+            type="button"
+            className="fullscreen-lightbox-close"
+            onClick={() => setFullscreenImage(null)}
+            aria-label="Fermer le zoom plein écran"
+          >
+            &times; Fermer (Échap)
+          </button>
+          <img
+            src={fullscreenImage}
+            alt={selectedItemDetails?.title || 'Création Evan Patruno Art'}
+            className="fullscreen-lightbox-img"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
+
+      {/* DYNAMIC SCHEMA.ORG PRODUCT CATALOG JSON-LD (#12) */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'ItemList',
+            name: 'Catalogue Créations Ébénisterie d\'Art & Résine — Evan Patruno Art',
+            numberOfItems: visibleCreations.length,
+            itemListElement: visibleCreations.map((piece, index) => ({
+              '@type': 'ListItem',
+              position: index + 1,
+              item: {
+                '@type': 'Product',
+                name: piece.title,
+                image: `https://evan-patruno-art.vercel.app${piece.image}`,
+                description: piece.story || `${piece.title} — ${piece.wood} & ${piece.mediums}`,
+                brand: {
+                  '@type': 'Brand',
+                  name: 'Evan Patruno Art'
+                },
+                material: `${piece.wood}, ${piece.mediums}`,
+                offers: {
+                  '@type': 'Offer',
+                  url: `https://evan-patruno-art.vercel.app/?piece=${piece.id}`,
+                  priceCurrency: 'CAD',
+                  price: parseInt(String(piece.price).replace(/[^\d]/g, ''), 10) || 40,
+                  availability:
+                    piece.status === 'Disponible'
+                      ? 'https://schema.org/InStock'
+                      : 'https://schema.org/SoldOut'
+                }
+              }
+            }))
+          })
+        }}
+      />
 
       {/* POST-PURCHASE CERTIFICATE OVERLAY */}
       {purchaseCertificate && (
