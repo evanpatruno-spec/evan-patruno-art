@@ -1872,7 +1872,7 @@ export default function App() {
           {isAdminLoggedIn && <li><a href="#admin-dashboard" className="nav-link" style={{ color: 'var(--accent-epoxy)' }} onClick={() => setMobileMenuOpen(false)}>Tableau de bord</a></li>}
         </ul>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div className="nav-actions">
           <button
             type="button"
             onClick={() => {
@@ -1895,23 +1895,11 @@ export default function App() {
           </button>
           <button 
             onClick={() => setIsCartOpen(true)}
-            className="btn-tab"
-            style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '8px', 
-              padding: '10px 16px', 
-              background: 'rgba(176, 84, 156, 0.12)', 
-              border: '1px solid rgba(176, 84, 156, 0.4)', 
-              borderRadius: '10px', 
-              color: '#fff', 
-              cursor: 'pointer',
-              fontWeight: '600',
-              transition: 'all 0.3s'
-            }}
+            className="btn-cart-nav"
             id="nav-cart-btn"
           >
-            🛒 Panier ({cart.reduce((sum, i) => sum + i.quantity, 0)})
+            <span>🛒</span>
+            <span>Panier ({cart.reduce((sum, i) => sum + i.quantity, 0)})</span>
           </button>
           <a href="#devis" className="btn-cta-nav" id="nav-cta-btn">Créer un Devis</a>
           <div className="currency-dropdown-container">
