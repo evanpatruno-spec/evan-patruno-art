@@ -661,7 +661,6 @@ export default function App() {
   const [checkoutItem, setCheckoutItem] = useState(null);
   const [selectedItemDetails, setSelectedItemDetails] = useState(null);
   const [activeImageIdx, setActiveImageIdx] = useState(0);
-  const [view3DActive, setView3DActive] = useState(false);
   const [currentReviews, setCurrentReviews] = useState([]);
   const [newReviewName, setNewReviewName] = useState('');
   const [newReviewRating, setNewReviewRating] = useState(5);
@@ -1284,7 +1283,6 @@ export default function App() {
 
   const handleOpenItemDetails = (item) => {
     setActiveImageIdx(0);
-    setView3DActive(false);
     setCurrentReviews([]);
     setSelectedItemDetails(item);
   };
