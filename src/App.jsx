@@ -2111,12 +2111,48 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      {/* Background Decorative Glow Blurs */}
-      <div className="glow-blur" style={{ top: '5%', left: '10%', width: '450px', height: '450px', background: 'var(--accent-wood-glow)' }}></div>
-      <div className="glow-blur" style={{ top: '25%', right: '5%', width: '500px', height: '500px', background: 'var(--accent-epoxy-glow)' }}></div>
-      <div className="glow-blur" style={{ top: '50%', left: '5%', width: '400px', height: '400px', background: 'var(--accent-voltage-glow)' }}></div>
-      <div className="glow-blur" style={{ top: '70%', right: '10%', width: '450px', height: '450px', background: 'var(--accent-wood-glow)' }}></div>
-      <div className="glow-blur" style={{ top: '90%', left: '15%', width: '500px', height: '500px', background: 'var(--accent-epoxy-glow)' }}></div>
+      {/* Soft Animated Background: Liquid Epoxy Nebula + Floating Gold Mica Specks (60 FPS GPU) */}
+      <div className="ambient-atelier-bg" aria-hidden="true">
+        <div className="ambient-aurora-layer">
+          <div className="ambient-aurora-blob blob-epoxy-1"></div>
+          <div className="ambient-aurora-blob blob-gold-2"></div>
+          <div className="ambient-aurora-blob blob-amethyst-3"></div>
+          <div className="ambient-aurora-blob blob-rose-4"></div>
+        </div>
+        <div className="ambient-mica-layer">
+          {[
+            { left: '6%', bottom: '8%', size: '6px', dur: '14s', delay: '0s' },
+            { left: '14%', bottom: '24%', size: '4px', dur: '18s', delay: '2.2s' },
+            { left: '22%', bottom: '12%', size: '7px', dur: '16s', delay: '4.5s' },
+            { left: '31%', bottom: '32%', size: '5px', dur: '19s', delay: '1.1s' },
+            { left: '39%', bottom: '6%', size: '6px', dur: '15s', delay: '3.4s' },
+            { left: '48%', bottom: '20%', size: '4px', dur: '17s', delay: '0.8s' },
+            { left: '56%', bottom: '14%', size: '7px', dur: '20s', delay: '5.2s' },
+            { left: '64%', bottom: '28%', size: '5px', dur: '15.5s', delay: '2.7s' },
+            { left: '73%', bottom: '9%', size: '6px', dur: '18.5s', delay: '1.6s' },
+            { left: '81%', bottom: '22%', size: '4px', dur: '14.5s', delay: '3.9s' },
+            { left: '89%', bottom: '15%', size: '6px', dur: '16.5s', delay: '0.4s' },
+            { left: '94%', bottom: '30%', size: '5px', dur: '19.5s', delay: '2.9s' },
+            { left: '18%', bottom: '48%', size: '5px', dur: '17.2s', delay: '6.1s' },
+            { left: '44%', bottom: '52%', size: '6px', dur: '16.2s', delay: '4.0s' },
+            { left: '69%', bottom: '45%', size: '4px', dur: '18.2s', delay: '1.9s' },
+            { left: '85%', bottom: '55%', size: '5px', dur: '15.8s', delay: '3.2s' }
+          ].map((s, idx) => (
+            <span
+              key={idx}
+              className="ambient-mica-speck"
+              style={{
+                left: s.left,
+                bottom: s.bottom,
+                width: s.size,
+                height: s.size,
+                animationDuration: s.dur,
+                animationDelay: s.delay
+              }}
+            />
+          ))}
+        </div>
+      </div>
 
       {/* Header/Navigation */}
       <nav id="navbar" className={`header-nav glass ${scrolled ? 'scrolled' : ''}`}>
