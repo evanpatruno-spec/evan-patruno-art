@@ -156,7 +156,7 @@ const portfolioItems = [
     categoryName: "Bijoux",
     desc: "Bijoux uniques fabriqués de façon artisanale à partir de loupe de bois noble et de résine époxy teintée et polie.",
     image: "/assets/jewelry-real.jpg",
-    images: ["/assets/jewelry-real.jpg", "/assets/table-ronde-turquoise-argent.jpg"],
+    images: ["/assets/jewelry-real.jpg"],
     has3DModel: true,
     status: "custom-only",
     statusText: "Sur commande uniquement",
@@ -172,7 +172,7 @@ const portfolioItems = [
     categoryName: "Fractale Lichtenberg",
     desc: "Brûlage fractal Lichtenberg par décharge électrique de haute tension (10 000V) sur bois.",
     image: "/assets/lichtenberg-real.jpg",
-    images: ["/assets/lichtenberg-real.jpg", "/assets/table-ronde-noir-argent.jpg"],
+    images: ["/assets/lichtenberg-real.jpg"],
     status: "sold",
     statusText: "Vendu",
     price: "Sur demande",
@@ -209,21 +209,6 @@ const portfolioItems = [
     wood: "Support toile sur châssis de bois",
     dimensions: "24\" x 24\"",
     mediums: "Acrylique pouring, illustration numérique, technique mixte"
-  },
-  {
-    id: 10,
-    title: "TEST - Article de Démonstration Stripe",
-    category: "table",
-    categoryName: "Table & Mobilier",
-    desc: "Un plateau test en noyer et résine epoxy bleue nacrée destiné à la validation du tunnel de paiement Stripe et de l'authentification.",
-    image: "/assets/table-ronde-turquoise.jpg",
-    images: ["/assets/table-ronde-turquoise.jpg"],
-    status: "available",
-    statusText: "Disponible",
-    price: "125 $",
-    wood: "Noyer",
-    dimensions: "12\" x 12\" x 1\"",
-    mediums: "Résine bleue nacrée"
   }
 ];
 
@@ -313,8 +298,28 @@ const faqItems = [
 export default function App() {
   const [scrolled, setScrolled] = useState(false);
   const [currency, setCurrency] = useState('CAD');
+  const [exchangeRates, setExchangeRates] = useState({ CAD: 1, USD: 0.74, EUR: 0.68 });
   const [galleryFilter, setGalleryFilter] = useState('all');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [privacyModalOpen, setPrivacyModalOpen] = useState(false);
+
+  // Fetch live exchange rates (CAD -> USD, EUR) with fallback
+  useEffect(() => {
+    fetch('https://api.frankfurter.app/latest?from=CAD&to=USD,EUR')
+      .then((res) => res.ok ? res.json() : null)
+      .then((data) => {
+        if (data?.rates?.USD && data?.rates?.EUR) {
+          setExchangeRates({
+            CAD: 1,
+            USD: data.rates.USD,
+            EUR: data.rates.EUR
+          });
+        }
+      })
+      .catch(() => {
+        // Keep default fallback rates if offline
+      });
+  }, []);
 
   const formatPrice = (priceStr) => {
     if (!priceStr || priceStr.toLowerCase().includes('demande')) {
@@ -324,13 +329,11 @@ export default function App() {
     if (!match) return priceStr;
     const amountCAD = parseFloat(match[0]);
     
-    let rate = 1;
+    const rate = exchangeRates[currency] || 1;
     let symbol = ' $ CAD';
     if (currency === 'USD') {
-      rate = 0.74;
       symbol = ' $ USD';
     } else if (currency === 'EUR') {
-      rate = 0.68;
       symbol = ' €';
     }
     
@@ -462,11 +465,12 @@ export default function App() {
     address: '',
     city: '',
     zip: '',
-    cardNumber: '',
-    expiry: '',
-    cvc: ''
+    paymentMethod: 'interac',
+    consentLoi25: false
   });
   const [checkoutSubmitting, setCheckoutSubmitting] = useState(false);
+  const [builderConsentLoi25, setBuilderConsentLoi25] = useState(false);
+  const [contactConsentLoi25, setContactConsentLoi25] = useState(false);
   
   // Admin Activity Log State
   const [activityFeed, setActivityFeed] = useState([]);
@@ -616,13 +620,11 @@ export default function App() {
   };
 
   const formatPriceNum = (amountCAD) => {
-    let rate = 1;
+    const rate = exchangeRates[currency] || 1;
     let symbol = ' $ CAD';
     if (currency === 'USD') {
-      rate = 0.74;
       symbol = ' $ USD';
     } else if (currency === 'EUR') {
-      rate = 0.68;
       symbol = ' €';
     }
     const converted = Math.round(amountCAD * rate);
@@ -916,19 +918,28 @@ export default function App() {
     };
   }, [isAdminLoggedIn]);
 
-  const handleAdminLogin = (e) => {
+  const handleAdminLogin = async (e) => {
     e.preventDefault();
-    const envPassword = import.meta.env.VITE_ADMIN_PASSWORD || "admin123";
-    if (adminPassword === envPassword) {
-      setIsAdminLoggedIn(true);
-      setIsAdminVisible(false);
-      setAdminError('');
-      setAdminPassword('');
-      setTimeout(() => {
-        document.getElementById('admin-dashboard')?.scrollIntoView({ behavior: 'smooth' });
-      }, 300);
-    } else {
-      setAdminError("Mot de passe incorrect");
+    try {
+      const msgBuffer = new TextEncoder().encode(adminPassword);
+      const hashBuffer = await window.crypto.subtle.digest('SHA-256', msgBuffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const inputHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      const targetHash = import.meta.env.VITE_ADMIN_PASSWORD_HASH || "a9046256d5e25e2ca5df112b83b09ca49da7c8ba399228928b9d680b49b9c780";
+
+      if (inputHash === targetHash) {
+        setIsAdminLoggedIn(true);
+        setIsAdminVisible(false);
+        setAdminError('');
+        setAdminPassword('');
+        setTimeout(() => {
+          document.getElementById('admin-dashboard')?.scrollIntoView({ behavior: 'smooth' });
+        }, 300);
+      } else {
+        setAdminError("Mot de passe incorrect");
+      }
+    } catch {
+      setAdminError("Erreur lors de la vérification de sécurité");
     }
   };
 
@@ -1297,7 +1308,15 @@ export default function App() {
   };
 
   const handleBuilderSubmit = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
+    if (!projectData.name.trim() || !projectData.email.trim()) {
+      showToast("Veuillez indiquer votre nom et votre adresse courriel.", "error");
+      return;
+    }
+    if (!builderConsentLoi25) {
+      showToast("Veuillez accepter la politique de confidentialité (Loi 25) pour envoyer votre demande.", "error");
+      return;
+    }
     
     const est = calculateLiveEstimate(projectData);
     const calculatedPrice = est ? `${est.min} $ - ${est.max} $ CAD` : 'Sur demande';
@@ -1306,6 +1325,7 @@ export default function App() {
       try {
         await addDoc(collection(db, 'projects'), {
           ...projectData,
+          consentLoi25: true,
           estimatedPrice: calculatedPrice,
           createdAt: serverTimestamp()
         });
@@ -1328,7 +1348,8 @@ export default function App() {
       Estimation: calculatedPrice,
       Notes: projectData.notes || 'Aucune',
       Fichier: projectData.fileName ? `${projectData.fileName} (${projectData.fileSize})` : 'Aucun',
-      Lien_Conception: projectData.cloudLink || 'Aucun'
+      Lien_Conception: projectData.cloudLink || 'Aucun',
+      Consentement_Loi25: 'Accepté'
     };
 
     fetch("https://formsubmit.co/ajax/evan.patruno@gmail.com", {
@@ -1345,10 +1366,15 @@ export default function App() {
 
   const handleContactSubmit = async (e) => {
     e.preventDefault();
+    if (!contactConsentLoi25) {
+      showToast("Veuillez accepter la politique de confidentialité (Loi 25).", "error");
+      return;
+    }
     if (db) {
       try {
         await addDoc(collection(db, 'inquiries'), {
           ...contactData,
+          consentLoi25: true,
           createdAt: serverTimestamp()
         });
       } catch (err) {
@@ -1367,7 +1393,8 @@ export default function App() {
         Nom: contactData.name,
         Courriel: contactData.email,
         Sujet: contactData.subject || 'Sans sujet',
-        Message: contactData.message
+        Message: contactData.message,
+        Consentement_Loi25: 'Accepté'
       })
     }).catch(err => console.error("Erreur lors de l'envoi de l'email de contact :", err));
 
@@ -1382,22 +1409,24 @@ export default function App() {
       address: '',
       city: '',
       zip: '',
-      cardNumber: '',
-      expiry: '',
-      cvc: ''
+      paymentMethod: 'interac',
+      consentLoi25: false
     });
   };
 
   const handleCheckoutSubmit = async (e) => {
     e.preventDefault();
+    if (!checkoutForm.consentLoi25) {
+      showToast("Veuillez accepter la politique de confidentialité (Loi 25) pour valider la commande.", "error");
+      return;
+    }
     setCheckoutSubmitting(true);
-    
-    // Simuler le délai de paiement Stripe
-    await new Promise(resolve => setTimeout(resolve, 2000));
     
     let docId = "EPA-" + Math.floor(Math.random() * 900000 + 100000);
     const isCart = checkoutItem.isCart;
     const finalPriceCAD = isCart ? getCartSubtotalCAD() : getPriceNumber(checkoutItem.price);
+    const totalWithShippingCAD = finalPriceCAD + (isCart ? shippingFee : 0);
+    const creationTitle = isCart ? cart.map(i => `${i.title} (x${i.quantity})`).join(', ') : checkoutItem.title;
     
     if (db) {
       try {
@@ -1405,12 +1434,14 @@ export default function App() {
           customerName: checkoutForm.name,
           customerEmail: checkoutForm.email,
           customerAddress: `${checkoutForm.address}, ${checkoutForm.city}, ${checkoutForm.zip}`,
+          paymentMethod: checkoutForm.paymentMethod,
+          consentLoi25: true,
           status: 'received',
           createdAt: serverTimestamp(),
           currency: currency,
           shippingCAD: isCart ? shippingFee : 0,
           priceCAD: finalPriceCAD,
-          convertedPrice: formatPriceNum(finalPriceCAD + (isCart ? shippingFee : 0))
+          convertedPrice: formatPriceNum(totalWithShippingCAD)
         };
 
         if (isCart) {
@@ -1423,7 +1454,7 @@ export default function App() {
             dimensions: i.dimensions || "N/A",
             mediums: i.mediums || "N/A"
           }));
-          orderPayload.creationTitle = cart.map(i => `${i.title} (x${i.quantity})`).join(', ');
+          orderPayload.creationTitle = creationTitle;
           orderPayload.creationId = "cart-" + Date.now();
         } else {
           orderPayload.creationId = checkoutItem.id;
@@ -1436,14 +1467,35 @@ export default function App() {
         console.error("Erreur lors de la sauvegarde de la commande :", err);
       }
     }
+
+    // Notification courriel immédiate à l'atelier via FormSubmit
+    fetch("https://formsubmit.co/ajax/evan.patruno@gmail.com", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
+      body: JSON.stringify({
+        _subject: `Nouvelle commande #${docId} - ${creationTitle}`,
+        Numero_Commande: docId,
+        Client: checkoutForm.name,
+        Courriel: checkoutForm.email,
+        Adresse_Livraison: `${checkoutForm.address}, ${checkoutForm.city}, ${checkoutForm.zip}`,
+        Oeuvre: creationTitle,
+        Montant_Total_CAD: `${totalWithShippingCAD} $ CAD`,
+        Mode_Paiement: checkoutForm.paymentMethod === 'interac' ? 'Virement Interac (info@evanpatruno.ca)' : 'Facture / Lien de paiement Stripe sécurisé',
+        Consentement_Loi25: 'Accepté'
+      })
+    }).catch(err => console.error("Erreur notification courriel commande :", err));
     
     const orderData = {
       orderId: docId,
-      creationTitle: isCart ? cart.map(i => `${i.title} (x${i.quantity})`).join(', ') : checkoutItem.title,
-      priceCAD: finalPriceCAD + (isCart ? shippingFee : 0),
+      creationTitle,
+      priceCAD: totalWithShippingCAD,
       customerName: checkoutForm.name,
       customerEmail: checkoutForm.email,
       customerAddress: `${checkoutForm.address}, ${checkoutForm.city}, ${checkoutForm.zip}`,
+      paymentMethod: checkoutForm.paymentMethod,
       wood: isCart ? (cart[0]?.wood || "N/A") : (checkoutItem.wood || "N/A"),
       dimensions: isCart ? (cart[0]?.dimensions || "N/A") : (checkoutItem.dimensions || "N/A"),
       mediums: isCart ? (cart[0]?.mediums || "N/A") : (checkoutItem.mediums || "N/A"),
@@ -1454,7 +1506,7 @@ export default function App() {
     setPurchaseCertificate(orderData);
     setCheckoutItem(null);
     if (isCart) {
-      setCart([]); // Vider le panier après paiement réussi
+      setCart([]);
     }
   };
 
@@ -2893,6 +2945,24 @@ export default function App() {
                           />
                         </div>
                       </div>
+
+                      <div className="loi25-consent-box" style={{ marginTop: '14px' }}>
+                        <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', fontSize: '0.82rem', color: 'var(--text-secondary)', cursor: 'pointer', lineHeight: '1.45' }}>
+                          <input
+                            type="checkbox"
+                            required
+                            checked={builderConsentLoi25}
+                            onChange={(e) => setBuilderConsentLoi25(e.target.checked)}
+                            style={{ marginTop: '3px', accentColor: 'var(--accent-epoxy)' }}
+                          />
+                          <span>
+                            J'accepte que mes renseignements personnels soient recueillis par <strong>Evan Patruno Art</strong> afin d'établir ma soumission, conformément à la{' '}
+                            <button type="button" onClick={() => setPrivacyModalOpen(true)} className="loi25-link-btn">
+                              Politique de confidentialité (Loi 25 du Québec)
+                            </button>. *
+                          </span>
+                        </label>
+                      </div>
                     </form>
                   )}
                 </>
@@ -3405,6 +3475,24 @@ export default function App() {
                       value={contactData.message}
                       onChange={(e) => setContactData(prev => ({ ...prev, message: e.target.value }))}
                     ></textarea>
+                  </div>
+
+                  <div className="loi25-consent-box" style={{ marginBottom: '14px' }}>
+                    <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', fontSize: '0.82rem', color: 'var(--text-secondary)', cursor: 'pointer', lineHeight: '1.45' }}>
+                      <input
+                        type="checkbox"
+                        required
+                        checked={contactConsentLoi25}
+                        onChange={(e) => setContactConsentLoi25(e.target.checked)}
+                        style={{ marginTop: '3px', accentColor: 'var(--accent-epoxy)' }}
+                      />
+                      <span>
+                        Je consens à ce qu'<strong>Evan Patruno Art</strong> utilise mes coordonnées pour répondre à ma demande, selon la{' '}
+                        <button type="button" onClick={() => setPrivacyModalOpen(true)} className="loi25-link-btn">
+                          Politique de confidentialité (Loi 25)
+                        </button>. *
+                      </span>
+                    </label>
                   </div>
 
                   <button type="submit" className="btn-form-submit" id="contact-submit-btn">
@@ -4427,7 +4515,11 @@ export default function App() {
           <div className="footer-bottom">
             <div>
               <p>© {new Date().getFullYear()} Evan Patruno Art. Tous droits réservés.</p>
-              <span onClick={() => setIsAdminVisible(true)} className="footer-admin-link">Gérer le catalogue (Admin)</span>
+              <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', marginTop: '6px' }}>
+                <span onClick={() => setPrivacyModalOpen(true)} className="footer-admin-link">Politique de confidentialité (Loi 25)</span>
+                <span style={{ color: 'var(--text-muted)' }}>•</span>
+                <span onClick={() => setIsAdminVisible(true)} className="footer-admin-link">Gérer le catalogue (Admin)</span>
+              </div>
             </div>
             <p style={{ display: 'flex', gap: '15px' }}>
               <span>Fait main au Québec</span>
@@ -4437,6 +4529,42 @@ export default function App() {
           </div>
         </div>
       </footer>
+
+      {/* POLITIQUE DE CONFIDENTIALITÉ (LOI 25 QUÉBEC) MODAL */}
+      {privacyModalOpen && (
+        <div className="checkout-overlay" style={{ zIndex: 12000 }} onClick={() => setPrivacyModalOpen(false)}>
+          <div className="checkout-card glass animate-fade-in" style={{ maxWidth: '680px', textAlign: 'left' }} onClick={(e) => e.stopPropagation()}>
+            <div className="checkout-header">
+              <h3 className="checkout-title">Politique de Confidentialité &amp; Loi 25 (Québec)</h3>
+              <button className="checkout-close" onClick={() => setPrivacyModalOpen(false)}>&times;</button>
+            </div>
+            <div style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: '1.65', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <p>
+                Conformément à la <strong>Loi 25 sur la protection des renseignements personnels dans le secteur privé (Québec)</strong>, <strong>Evan Patruno Art</strong> s'engage à protéger la confidentialité des données confiées par ses clients et visiteurs.
+              </p>
+              <div>
+                <strong style={{ color: '#fff', display: 'block', marginBottom: '4px' }}>1. Responsable de la protection des renseignements personnels</strong>
+                <span>Evan Patruno — Atelier Evan Patruno Art, Saint-Jean-sur-Richelieu (Québec), Canada • Courriel : <a href="mailto:info@evanpatruno.ca" style={{ color: 'var(--accent-epoxy)' }}>info@evanpatruno.ca</a> • Tél. : 514-567-3249.</span>
+              </div>
+              <div>
+                <strong style={{ color: '#fff', display: 'block', marginBottom: '4px' }}>2. Renseignements recueillis &amp; finalités</strong>
+                <span>Nous recueillons uniquement les renseignements nécessaires au traitement de vos demandes de soumission, commandes d'œuvres et suivis de fabrication (nom, courriel, téléphone optionnel, adresse de livraison et spécifications du projet). Aucune donnée bancaire sensible (numéro de carte ou CVC) n'est stockée sur ce site.</span>
+              </div>
+              <div>
+                <strong style={{ color: '#fff', display: 'block', marginBottom: '4px' }}>3. Conservation, sécurité &amp; tiers</strong>
+                <span>Les données de commande et de devis sont hébergées de manière sécurisée (Firebase / Google Cloud et notifications FormSubmit) uniquement pour la durée nécessaire à la réalisation de l'œuvre, à la garantie du certificat d'authenticité et aux obligations fiscales. Elles ne sont jamais vendues ni cédées à des tiers.</span>
+              </div>
+              <div>
+                <strong style={{ color: '#fff', display: 'block', marginBottom: '4px' }}>4. Vos droits (Accès, rectification et retrait)</strong>
+                <span>Vous pouvez en tout temps demander l'accès à vos renseignements personnels, leur rectification ou leur suppression définitive en écrivant à <a href="mailto:info@evanpatruno.ca" style={{ color: 'var(--accent-epoxy)' }}>info@evanpatruno.ca</a>.</span>
+              </div>
+              <button type="button" className="btn-primary" onClick={() => setPrivacyModalOpen(false)} style={{ marginTop: '8px', width: '100%', padding: '12px' }}>
+                J'ai compris
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ADMIN LOGIN OVERLAY */}
       {isAdminVisible && (
@@ -4465,7 +4593,7 @@ export default function App() {
         </div>
       )}
 
-      {/* SIMULATED STRIPE CHECKOUT OVERLAY */}
+      {/* PCI-DSS COMPLIANT ORDER & RESERVATION CHECKOUT OVERLAY */}
       {checkoutItem && (
         <div className="checkout-overlay">
           <div className="checkout-card glass animate-fade-in" style={{ position: 'relative' }}>
@@ -4506,19 +4634,32 @@ export default function App() {
                 </div>
               )}
               
-              <div className="stripe-form-group">
-                <label>Nom complet</label>
-                <input 
-                  type="text" 
-                  className="builder-input" 
-                  required 
-                  value={checkoutForm.name}
-                  onChange={(e) => setCheckoutForm(prev => ({ ...prev, name: e.target.value }))}
-                />
+              <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                <div className="stripe-form-group">
+                  <label>Nom complet *</label>
+                  <input 
+                    type="text" 
+                    className="builder-input" 
+                    required 
+                    value={checkoutForm.name}
+                    onChange={(e) => setCheckoutForm(prev => ({ ...prev, name: e.target.value }))}
+                  />
+                </div>
+                <div className="stripe-form-group">
+                  <label>Courriel de confirmation *</label>
+                  <input 
+                    type="email" 
+                    className="builder-input" 
+                    required 
+                    placeholder="votre@courriel.com"
+                    value={checkoutForm.email}
+                    onChange={(e) => setCheckoutForm(prev => ({ ...prev, email: e.target.value }))}
+                  />
+                </div>
               </div>
 
               <div className="stripe-form-group">
-                <label>Adresse de livraison</label>
+                <label>Adresse de livraison *</label>
                 <input 
                   type="text" 
                   className="builder-input" 
@@ -4531,7 +4672,7 @@ export default function App() {
 
               <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                 <div className="stripe-form-group">
-                  <label>Ville</label>
+                  <label>Ville *</label>
                   <input 
                     type="text" 
                     className="builder-input" 
@@ -4541,7 +4682,7 @@ export default function App() {
                   />
                 </div>
                 <div className="stripe-form-group">
-                  <label>Code Postal</label>
+                  <label>Code Postal *</label>
                   <input 
                     type="text" 
                     className="builder-input" 
@@ -4552,83 +4693,72 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Luxury Credit Card Mockup */}
-              <div style={{ marginTop: '20px' }}>
-                <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '10px' }}>Détails de la Carte (Sécurisé par Stripe)</label>
-                <div className="stripe-preview-card">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div className="stripe-card-chip"></div>
-                    <span style={{ fontSize: '0.9rem', fontWeight: '800', fontStyle: 'italic', opacity: 0.8 }}>STRIPE PAY</span>
-                  </div>
-                  <div className="stripe-card-number">
-                    {checkoutForm.cardNumber ? checkoutForm.cardNumber.replace(/\s?/g, '').replace(/(\d{4})/g, '$1 ').trim() : '•••• •••• •••• ••••'}
-                  </div>
-                  <div className="stripe-card-meta">
-                    <div>
-                      <span style={{ fontSize: '0.6rem', display: 'block', opacity: 0.7 }}>Titulaire</span>
-                      <strong>{checkoutForm.name || 'VOTRE NOM'}</strong>
-                    </div>
-                    <div>
-                      <span style={{ fontSize: '0.6rem', display: 'block', opacity: 0.7 }}>Expire</span>
-                      <strong>{checkoutForm.expiry || 'MM/AA'}</strong>
-                    </div>
-                  </div>
+              <div className="stripe-form-group" style={{ marginTop: '8px' }}>
+                <label>Mode de règlement sécurisé (Conforme PCI-DSS) *</label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '4px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setCheckoutForm(prev => ({ ...prev, paymentMethod: 'interac' }))}
+                    className={`swatch-pill-card ${checkoutForm.paymentMethod === 'interac' ? 'active' : ''}`}
+                    style={{ padding: '12px' }}
+                  >
+                    <span style={{ fontSize: '1.3rem' }}>🏦</span>
+                    <span className="swatch-text">
+                      <strong>Virement Interac</strong>
+                      <small>info@evanpatruno.ca</small>
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCheckoutForm(prev => ({ ...prev, paymentMethod: 'stripe_link' }))}
+                    className={`swatch-pill-card ${checkoutForm.paymentMethod === 'stripe_link' ? 'active' : ''}`}
+                    style={{ padding: '12px' }}
+                  >
+                    <span style={{ fontSize: '1.3rem' }}>💳</span>
+                    <span className="swatch-text">
+                      <strong>Lien Stripe / Carte</strong>
+                      <small>Facture sécurisée par courriel</small>
+                    </span>
+                  </button>
                 </div>
+                <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '8px', lineHeight: '1.45', background: 'rgba(255,255,255,0.03)', padding: '10px 12px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                  {checkoutForm.paymentMethod === 'interac'
+                    ? "🔒 Votre commande et votre certificat sont générés immédiatement. Vous pourrez effectuer votre virement Interac à info@evanpatruno.ca en indiquant votre numéro de commande."
+                    : "🔒 Pour votre sécurité (norme PCI-DSS), aucune donnée de carte n'est saisie ici : vous recevrez un lien de paiement officiel Stripe Checkout par courriel."}
+                </p>
               </div>
 
-              <div className="stripe-form-group" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '15px' }}>
-                <div>
-                  <label>Numéro de carte</label>
-                  <input 
-                    type="text" 
-                    className="builder-input"
+              <div className="loi25-consent-box" style={{ marginTop: '6px' }}>
+                <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', fontSize: '0.8rem', color: 'var(--text-secondary)', cursor: 'pointer', lineHeight: '1.4' }}>
+                  <input
+                    type="checkbox"
                     required
-                    placeholder="4242 4242 4242 4242"
-                    value={checkoutForm.cardNumber}
-                    onChange={(e) => setCheckoutForm(prev => ({ ...prev, cardNumber: e.target.value }))}
+                    checked={checkoutForm.consentLoi25}
+                    onChange={(e) => setCheckoutForm(prev => ({ ...prev, consentLoi25: e.target.checked }))}
+                    style={{ marginTop: '3px', accentColor: 'var(--accent-epoxy)' }}
                   />
-                </div>
-                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  <div className="stripe-form-group">
-                    <label>Expiration</label>
-                    <input 
-                      type="text" 
-                      className="builder-input" 
-                      required 
-                      placeholder="MM/AA"
-                      maxLength="5"
-                      value={checkoutForm.expiry}
-                      onChange={(e) => setCheckoutForm(prev => ({ ...prev, expiry: e.target.value }))}
-                    />
-                  </div>
-                  <div className="stripe-form-group">
-                    <label>CVC</label>
-                    <input 
-                      type="text" 
-                      className="builder-input" 
-                      required 
-                      placeholder="123"
-                      maxLength="3"
-                      value={checkoutForm.cvc}
-                      onChange={(e) => setCheckoutForm(prev => ({ ...prev, cvc: e.target.value }))}
-                    />
-                  </div>
-                </div>
+                  <span>
+                    J'accepte le traitement de mes données de livraison pour cette commande conformément à la{' '}
+                    <button type="button" onClick={() => setPrivacyModalOpen(true)} className="loi25-link-btn">
+                      Politique de confidentialité (Loi 25)
+                    </button>. *
+                  </span>
+                </label>
               </div>
 
               <button 
                 type="submit" 
                 className="btn-checkout-submit"
-                style={{ marginTop: '20px', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}
+                style={{ marginTop: '16px', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}
                 disabled={checkoutSubmitting}
               >
                 {checkoutSubmitting ? (
                   <>
                     <span className="payment-loader"></span>
-                    <span>Traitement sécurisé Stripe...</span>
+                    <span>Enregistrement de la commande...</span>
                   </>
                 ) : (
-                  `Payer ${checkoutItem.isCart ? formatPriceNum(getCartTotalCAD()) : formatPrice(checkoutItem.price)}`
+                  `Confirmer la commande (${checkoutItem.isCart ? formatPriceNum(getCartTotalCAD()) : formatPrice(checkoutItem.price)})`
                 )}
               </button>
             </form>
@@ -5170,6 +5300,12 @@ export default function App() {
               </button>
             </div>
           )}
+          <div style={{ padding: '6px 14px', fontSize: '0.68rem', color: 'var(--text-muted)', textAlign: 'center', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+            Conforme à la{' '}
+            <button type="button" onClick={() => setPrivacyModalOpen(true)} className="loi25-link-btn" style={{ fontSize: '0.68rem' }}>
+              Politique de confidentialité (Loi 25)
+            </button>
+          </div>
         </div>
       )}
 

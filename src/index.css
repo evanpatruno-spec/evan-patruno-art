@@ -3655,6 +3655,30 @@ body.blacklight-mode .art-image {
   background: radial-gradient(circle at 30% 30%, #ffffff, #cbd5e1 65%, #64748b 100%);
 }
 
+/* 8. Loi 25 Consent & Link Buttons */
+.loi25-consent-box {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.loi25-link-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--accent-epoxy);
+  text-decoration: underline;
+  font-size: inherit;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.loi25-link-btn:hover {
+  color: #d4af37;
+}
+
+
 
 
 
