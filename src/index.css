@@ -4017,6 +4017,21 @@ body.blacklight-mode .art-image {
   color: #d4af37;
 }
 
+/* 9. Accessibility: Respect prefers-reduced-motion (#8) */
+@media (prefers-reduced-motion: reduce) {
+  .ambient-aurora-blob,
+  .ambient-mica-speck,
+  .animate-fade-in,
+  .animate-slide-up {
+    animation: none !important;
+  }
+  .art-image,
+  .hero-showcase-img,
+  .art-epoxy-sheen {
+    transition: none !important;
+  }
+}
+
 
 
 

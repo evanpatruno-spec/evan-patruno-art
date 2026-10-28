@@ -36,6 +36,13 @@ import {
   Sun,
   Moon
 } from 'lucide-react';
+import {
+  portfolioItems,
+  craftCapabilities,
+  defaultMockEstimates,
+  faqItems,
+  instagramPosts
+} from './data/catalogData';
 
 const Instagram = ({ size = 24, ...props }) => (
   <svg 
@@ -72,437 +79,6 @@ const Facebook = ({ size = 24, ...props }) => (
     <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
   </svg>
 );
-
-const portfolioItems = [
-  {
-    id: 1,
-    title: "Table Ronde Frêne & Rivière Turquoise",
-    category: "table",
-    categoryName: "Table & Mobilier",
-    desc: "Table ronde en frêne massif sublimée par une rivière de résine époxy turquoise. Chaque pièce de bois a été soigneusement sélectionnée pour révéler ses veines et ses nœuds uniques.",
-    image: "/assets/table-ronde-turquoise.jpg",
-    images: ["/assets/table-ronde-turquoise.jpg", "/assets/table-ronde-turquoise-argent.jpg", "/assets/table-ronde-noir-argent.jpg"],
-    status: "custom-only",
-    statusText: "Sur commande uniquement",
-    price: "Sur demande",
-    wood: "Frêne",
-    dimensions: "Diamètre 24\" / Hauteur 20\"",
-    mediums: "Résine époxy turquoise"
-  },
-  {
-    id: 2,
-    title: "Table Ronde Frêne & Turquoise/Argent",
-    category: "table",
-    categoryName: "Table & Mobilier",
-    desc: "Table ronde de 24\" en frêne massif et résine époxy turquoise et argent métallique, offrant un contraste saisissant.",
-    image: "/assets/table-ronde-turquoise-argent.jpg",
-    images: ["/assets/table-ronde-turquoise-argent.jpg", "/assets/table-ronde-turquoise.jpg"],
-    status: "available",
-    statusText: "Disponible",
-    price: "Sur demande",
-    wood: "Frêne",
-    dimensions: "Diamètre 24\"",
-    mediums: "Résine époxy turquoise & pigments argent"
-  },
-  {
-    id: 3,
-    title: "Table Haute Ronde Frêne & Noir/Argent",
-    category: "table",
-    categoryName: "Table & Mobilier",
-    desc: "Table ronde haute (24\" de diamètre, 30\" de hauteur) en bois de frêne naturel et résine époxy noir et argent métallique.",
-    image: "/assets/table-ronde-noir-argent.jpg",
-    images: ["/assets/table-ronde-noir-argent.jpg", "/assets/table-ronde-turquoise.jpg"],
-    status: "available",
-    statusText: "Disponible",
-    price: "Sur demande",
-    wood: "Frêne",
-    dimensions: "Diamètre 24\" / Hauteur 30\"",
-    mediums: "Résine époxy noire & pigments argent"
-  },
-  {
-    id: 4,
-    title: "Table Basse en Bois Brûlé (Shou Sugi Ban)",
-    category: "table",
-    categoryName: "Table & Mobilier",
-    desc: "Table basse fabriquée à partir de bois de récupération, brûlé à la torche pour une finition noire délicate et moderne.",
-    image: "/assets/table-basse-brulee.jpg",
-    images: ["/assets/table-basse-brulee.jpg", "/assets/table-basse-chambre.jpg"],
-    status: "sold",
-    statusText: "Vendu",
-    price: "Sur demande",
-    wood: "Bois de récupération (pin/épinette)",
-    dimensions: "40\" x 20\" x 18\"",
-    mediums: "Bois brûlé à la torche, vernis de protection"
-  },
-  {
-    id: 5,
-    title: "Dessus de Table Basse en Frêne",
-    category: "table",
-    categoryName: "Table & Mobilier",
-    desc: "Plateau en frêne massif destiné à une future table basse de chambre à coucher.",
-    image: "/assets/table-basse-chambre.jpg",
-    images: ["/assets/table-basse-chambre.jpg", "/assets/table-basse-brulee.jpg"],
-    status: "custom-only",
-    statusText: "Sur commande uniquement",
-    price: "Sur demande",
-    wood: "Frêne",
-    dimensions: "36\" x 18\"",
-    mediums: "Huile de finition naturelle"
-  },
-  {
-    id: 6,
-    title: "Pendentif Émeraude Boréale & Bois de Rose",
-    category: "jewelry",
-    categoryName: "Bijoux",
-    desc: "Médaillon artisanal façonnant la rencontre entre du bois de rose aux reliefs naturels et un océan de résine époxy vert émeraude nacré aux reflets profonds.",
-    image: "/assets/bijoux/1792105593282.jpg",
-    images: ["/assets/bijoux/1792105593282.jpg"],
-    status: "available",
-    statusText: "Disponible",
-    price: "40 $",
-    wood: "Bois de rose",
-    dimensions: "Médaillon Ø 38 mm • Cordon ajustable",
-    mediums: "Résine époxy vert émeraude nacré, poli miroir"
-  },
-  {
-    id: 11,
-    title: "Pendentif Ambre Solaire & Bois de Rose",
-    category: "jewelry",
-    categoryName: "Bijoux",
-    desc: "Pendentif rond contrastant un croissant de bois de rose au grain riche avec une coulée lumineuse de résine époxy jaune ambré et or solaire.",
-    image: "/assets/bijoux/1792106597150.jpg",
-    images: ["/assets/bijoux/1792106597150.jpg"],
-    status: "available",
-    statusText: "Disponible",
-    price: "40 $",
-    wood: "Bois de rose",
-    dimensions: "Médaillon Ø 38 mm • Cordon ajustable",
-    mediums: "Résine époxy jaune ambré nacré, cordon ciré noir"
-  },
-  {
-    id: 12,
-    title: "Pendentif Forêt Mystique & Bois de Rose",
-    category: "jewelry",
-    categoryName: "Bijoux",
-    desc: "Création organique où deux rives de bois de rose encadrent une résine vert forêt profond aux nuances minérales et satinées.",
-    image: "/assets/bijoux/1792106638576.jpg",
-    images: ["/assets/bijoux/1792106638576.jpg"],
-    status: "available",
-    statusText: "Disponible",
-    price: "40 $",
-    wood: "Bois de rose",
-    dimensions: "Médaillon Ø 38 mm • Cordon ajustable",
-    mediums: "Résine époxy vert mousse boréale, finition satinée"
-  },
-  {
-    id: 13,
-    title: "Pendentif Nébuleuse Pourpre & Bois de Rose",
-    category: "jewelry",
-    categoryName: "Bijoux",
-    desc: "Alliance spectaculaire d'un bois de rose aux tons chauds et d'un tourbillon cosmique mêlant bleu électrique, magenta pourpre et voiles lactés.",
-    image: "/assets/bijoux/1792106643545.jpg",
-    images: ["/assets/bijoux/1792106643545.jpg"],
-    status: "available",
-    statusText: "Disponible",
-    price: "40 $",
-    wood: "Bois de rose",
-    dimensions: "Médaillon Ø 38 mm • Cordon ajustable",
-    mediums: "Résine époxy multi-pigments (bleu, pourpre, blanc)"
-  },
-  {
-    id: 14,
-    title: "Pendentif Faille Céleste & Bois de Rose",
-    category: "jewelry",
-    categoryName: "Bijoux",
-    desc: "Deux rives de bois de rose traversées en diagonale par une rivière de résine bleu saphir aux volutes nuageuses.",
-    image: "/assets/bijoux/1792108042936.jpg",
-    images: ["/assets/bijoux/1792108042936.jpg"],
-    status: "available",
-    statusText: "Disponible",
-    price: "40 $",
-    wood: "Bois de rose",
-    dimensions: "Médaillon Ø 38 mm • Cordon ajustable",
-    mediums: "Résine époxy bleu céleste & blanc nacré"
-  },
-  {
-    id: 15,
-    title: "Pendentif Oasis Dorée & Bois de Rose",
-    category: "jewelry",
-    categoryName: "Bijoux",
-    desc: "Îlot de bois de rose aux reliefs naturels baignant dans un halo de résine époxy miel doré et ambre chatoyant.",
-    image: "/assets/bijoux/1792109280485.jpg",
-    images: ["/assets/bijoux/1792109280485.jpg"],
-    status: "available",
-    statusText: "Disponible",
-    price: "40 $",
-    wood: "Bois de rose",
-    dimensions: "Médaillon Ø 38 mm • Cordon ajustable",
-    mediums: "Résine époxy or miel & pigments métalliques"
-  },
-  {
-    id: 16,
-    title: "Pendentif Archipel Vert-d'Eau & Bois de Rose",
-    category: "jewelry",
-    categoryName: "Bijoux",
-    desc: "Double récif de bois de rose relié par un courant fluide de résine époxy mêlant vert chartreuse, olive doré et reflets nacrés.",
-    image: "/assets/bijoux/1792109284315.jpg",
-    images: ["/assets/bijoux/1792109284315.jpg"],
-    status: "available",
-    statusText: "Disponible",
-    price: "40 $",
-    wood: "Bois de rose",
-    dimensions: "Médaillon Ø 38 mm • Cordon ajustable",
-    mediums: "Résine époxy vert-d'eau & or liquide"
-  },
-  {
-    id: 17,
-    title: "Pendentif Rivière d'Ambre & Bois de Rose",
-    category: "jewelry",
-    categoryName: "Bijoux",
-    desc: "Coulée diagonale de résine ambre doré flamboyant serpentant entre deux berges de bois de rose finement texturé.",
-    image: "/assets/bijoux/1792109305032.jpg",
-    images: ["/assets/bijoux/1792109305032.jpg"],
-    status: "available",
-    statusText: "Disponible",
-    price: "40 $",
-    wood: "Bois de rose",
-    dimensions: "Médaillon Ø 38 mm • Cordon ajustable",
-    mediums: "Résine époxy ambre impérial & mica doré"
-  },
-  {
-    id: 18,
-    title: "Pendentif Presqu'île d'Or Liquide & Bois de Rose",
-    category: "jewelry",
-    categoryName: "Bijoux",
-    desc: "Fragment central de bois de rose plongé au cœur d'un tourbillon d'époxy ocre-or aux nuances chaudes et métallisées.",
-    image: "/assets/bijoux/1792110933638.jpg",
-    images: ["/assets/bijoux/1792110933638.jpg"],
-    status: "available",
-    statusText: "Disponible",
-    price: "40 $",
-    wood: "Bois de rose",
-    dimensions: "Médaillon Ø 38 mm • Cordon ajustable",
-    mediums: "Résine époxy or antique, finition lustrée"
-  },
-  {
-    id: 19,
-    title: "Pendentif Magma Corail & Bois de Rose",
-    category: "jewelry",
-    categoryName: "Bijoux",
-    desc: "Contraste ardent entre la richesse du bois de rose au fil vertical et une vague de résine rouge corail marbrée de blanc.",
-    image: "/assets/bijoux/1792110962730.jpg",
-    images: ["/assets/bijoux/1792110962730.jpg"],
-    status: "available",
-    statusText: "Disponible",
-    price: "40 $",
-    wood: "Bois de rose",
-    dimensions: "Médaillon Ø 38 mm • Cordon ajustable",
-    mediums: "Résine époxy corail volcanique & volutes blanches"
-  },
-  {
-    id: 20,
-    title: "Pendentif Éclipse Ambrée & Bois de Rose",
-    category: "jewelry",
-    categoryName: "Bijoux",
-    desc: "Croissant lumineux de résine cuivre-ambré épousant le relief organique d'un cœur de bois de rose façonné à la main.",
-    image: "/assets/bijoux/1792110974183.jpg",
-    images: ["/assets/bijoux/1792110974183.jpg"],
-    status: "available",
-    statusText: "Disponible",
-    price: "40 $",
-    wood: "Bois de rose",
-    dimensions: "Médaillon Ø 38 mm • Cordon ajustable",
-    mediums: "Résine époxy cuivre ambré & poli haute brillance"
-  },
-  {
-    id: 21,
-    title: "Pendentif Lagon de Jade & Bois de Rose",
-    category: "jewelry",
-    categoryName: "Bijoux",
-    desc: "Trois îlots de bois de rose naturel reliés par un lagon translucide et nacré de résine époxy vert jade aux reflets profonds.",
-    image: "/assets/bijoux/1792110981581.jpg",
-    images: ["/assets/bijoux/1792110981581.jpg"],
-    status: "available",
-    statusText: "Disponible",
-    price: "40 $",
-    wood: "Bois de rose",
-    dimensions: "Médaillon Ø 38 mm • Cordon ajustable",
-    mediums: "Résine époxy vert jade & pigments nacrés"
-  },
-  {
-    id: 22,
-    title: "Pendentif Vague Boréale & Bois de Rose",
-    category: "jewelry",
-    categoryName: "Bijoux",
-    desc: "Mouvement fluide d'une vague vert émeraude et écume nacrée capturée entre deux fragments de bois de rose.",
-    image: "/assets/bijoux/1792110985994.jpg",
-    images: ["/assets/bijoux/1792110985994.jpg"],
-    status: "available",
-    statusText: "Disponible",
-    price: "40 $",
-    wood: "Bois de rose",
-    dimensions: "Médaillon Ø 38 mm • Cordon ajustable",
-    mediums: "Résine époxy vert boréal & tourbillons nacrés"
-  },
-  {
-    id: 23,
-    title: "Pendentif Confluence Rose-Améthyste & Bois de Rose",
-    category: "jewelry",
-    categoryName: "Bijoux",
-    desc: "Composition géométrique et organique mariant le bois de rose à un ruban soyeux de résine rose poudré, corail et améthyste.",
-    image: "/assets/bijoux/1792110990338.jpg",
-    images: ["/assets/bijoux/1792110990338.jpg"],
-    status: "available",
-    statusText: "Disponible",
-    price: "40 $",
-    wood: "Bois de rose",
-    dimensions: "Médaillon Ø 38 mm • Cordon ajustable",
-    mediums: "Résine époxy rose, améthyste & corail nacré"
-  },
-  {
-    id: 24,
-    title: "Pendentif Presqu'île d'Or & Bois de Rose — Édition II",
-    category: "jewelry",
-    categoryName: "Bijoux",
-    desc: "Variante d'atelier en bois de rose et résine époxy or liquide tourbillonnante, montée sur cordon ciré noir ajustable.",
-    image: "/assets/bijoux/1792110969931.jpg",
-    images: ["/assets/bijoux/1792110969931.jpg"],
-    status: "available",
-    statusText: "Disponible",
-    price: "40 $",
-    wood: "Bois de rose",
-    dimensions: "Médaillon Ø 38 mm • Cordon ajustable",
-    mediums: "Résine époxy or antique, finition lustrée"
-  },
-  {
-    id: 7,
-    title: "Gravure Fractale Lichtenberg sur Bois",
-    category: "lichtenberg",
-    categoryName: "Fractale Lichtenberg",
-    desc: "Brûlage fractal Lichtenberg par décharge électrique de haute tension (10 000V) sur bois.",
-    image: "/assets/lichtenberg-real.jpg",
-    images: ["/assets/lichtenberg-real.jpg"],
-    status: "sold",
-    statusText: "Vendu",
-    price: "Sur demande",
-    wood: "Cèdre / Frêne",
-    dimensions: "Dimensions variables",
-    mediums: "Brûlage haute tension, résine de couleur"
-  },
-  {
-    id: 8,
-    title: "Toile Fluid Art - Exoplanète",
-    category: "laser",
-    categoryName: "Art Laser & Acrylique",
-    desc: "Peinture acrylique fluide (pouring) aux textures d'écorce vivante évoquant le cosmos et le ballet de moons exoplanétaires.",
-    image: "/assets/pouring-exoplanete.jpg",
-    images: ["/assets/pouring-exoplanete.jpg", "/assets/fluid-art-ai.jpg"],
-    status: "available",
-    statusText: "Disponible",
-    price: "380 $",
-    wood: "Support toile sur châssis de bois",
-    dimensions: "20\" x 20\"",
-    mediums: "Acrylique fluide (coulée/pouring), vernis brillant"
-  },
-  {
-    id: 9,
-    title: "Toile Fluid Art - Monstre Cosmique",
-    category: "laser",
-    categoryName: "Art Laser & Acrylique",
-    desc: "Toile pouring acrylique fusionnée à des détails d'illustration numérique créant un monstre cosmique.",
-    image: "/assets/fluid-art-ai.jpg",
-    images: ["/assets/fluid-art-ai.jpg", "/assets/pouring-exoplanete.jpg"],
-    status: "available",
-    statusText: "Disponible",
-    price: "420 $",
-    wood: "Support toile sur châssis de bois",
-    dimensions: "24\" x 24\"",
-    mediums: "Acrylique pouring, illustration numérique, technique mixte"
-  }
-];
-
-const craftCapabilities = [
-  { type: 'ébénisterie', name: 'Ébénisterie & Mobilier Résine', icon: '🪵', desc: 'Conception et fabrication de tables rivières haut de gamme et objets de service en bois nobles (noyer, érable, cèdre) combinés à de la résine époxy.' },
-  { type: 'bijoux', name: 'Bijoux en Bois & Résine', icon: '💎', desc: 'Façonnage de pièces d\'orfèvrerie brute, pendentifs, bagues et colliers alliant l\'essence naturelle du bois à la transparence colorée de l\'époxy.' },
-  { type: 'laser', name: 'Gravure & Découpe Laser 4\'x4\'', icon: '📐', desc: 'Marquage et découpe de précision grand format (jusqu\'à 4 pieds par 4 pieds) sur bois massif, acrylique et cuir pour enseignes, décors multicouches et logos.' },
-  { type: 'peinture', name: 'Toiles d\'Art & Peinture Acrylique', icon: '🎨', desc: 'Création d\'œuvres abstraites et toiles Fluid Art (pouring) aux textures fluides et organiques évoquant le cosmos ou des textures minérales.' },
-  { type: 'impression3d', name: 'Impression 3D Multicolore (Bambu P1S)', icon: '⚙️', desc: 'Fabrication additive haute vitesse et multicolore (jusqu\'à 4 couleurs par pièce) pour du prototypage fonctionnel, pièces de rechange ou décors personnalisés.' },
-  { type: 'kumihimo', name: 'Bracelets & Tressage Kumihimo', icon: '🧶', desc: 'Tissage artisanal traditionnel japonais réalisé entièrement à la main avec des cordons en soie, coton ciré ou polyester pour des bracelets uniques.' },
-  { type: 'drone', name: 'Production Média & Drone (DJI Mini 3 Pro)', icon: '🚁', desc: 'Captations aériennes haute résolution (photos 48 Mpx et vidéos 4K) pour suivis de chantiers, imagerie immobilière ou contenus artistiques.' }
-];
-
-const defaultMockEstimates = [
-  {
-    id: 'mock-est-1',
-    title: "Planche apéro en noyer pour Sophie",
-    category: "board",
-    woodSpecies: "Noyer noir (Foncé, grain riche)",
-    dimensions: "10\" x 14\" x 0.75\"",
-    length: 14,
-    width: 10,
-    thickness: 0.75,
-    woodCost: 18,
-    epoxyVolume: 0.35,
-    epoxyCost: 10,
-    laborHours: 4,
-    laborCost: 160,
-    otherCosts: 15,
-    margin: 1.4,
-    finalPrice: 284,
-    notes: "Poignées intégrées et gravure au laser d'un logo de famille.",
-    date: new Date(Date.now() - 3600000 * 24 * 3)
-  },
-  {
-    id: 'mock-est-2',
-    title: "Table rivière en érable pour Tremblay",
-    category: "table",
-    woodSpecies: "Érable (Clair, très robuste)",
-    dimensions: "36\" x 72\" x 1.75\"",
-    length: 72,
-    width: 36,
-    thickness: 1.75,
-    woodCost: 350,
-    epoxyVolume: 12.5,
-    epoxyCost: 350,
-    laborHours: 25,
-    laborCost: 1000,
-    otherCosts: 120,
-    margin: 1.4,
-    finalPrice: 2548,
-    notes: "Pieds en X, rivière bleu océan translucide.",
-    date: new Date(Date.now() - 3600000 * 24 * 10)
-  },
-  {
-    id: 'mock-est-3',
-    title: "Planche charcuterie géante - Le Cargo",
-    category: "board",
-    woodSpecies: "Cerisier (Ambré, grain fin)",
-    dimensions: "18\" x 36\" x 1.25\"",
-    length: 36,
-    width: 18,
-    thickness: 1.25,
-    woodCost: 75,
-    epoxyVolume: 1.8,
-    epoxyCost: 50,
-    laborHours: 6,
-    laborCost: 240,
-    otherCosts: 25,
-    margin: 1.3,
-    finalPrice: 507,
-    notes: "Série de 3 planches pour le service du bar à vin.",
-    date: new Date(Date.now() - 3600000 * 24 * 15)
-  }
-];
-
-const faqItems = [
-  { category: "general", question: "Quels sont les délais de fabrication pour un projet sur mesure ?", answer: "Les délais varient selon la complexité : environ 4 à 8 semaines pour une table rivière (séchage, coulée et finition), 2 semaines pour des découpes/gravures laser personnalisées, et 3 à 5 jours pour des pièces imprimées en 3D standard." },
-  { category: "wood", question: "Quelles essences de bois utilisez-vous pour vos tables ?", answer: "Nous travaillons principalement avec des bois locaux d'une grande noblesse : le Noyer noir (sombre et veiné), l'Érable (très clair et dense), le Cerisier (ambré) et le Cèdre (chaud, odorant et résistant à l'humidité)." },
-  { category: "wood", question: "La résine époxy est-elle résistante à la chaleur et aux rayures ?", answer: "Nos résines sont traitées contre les rayons UV (jaunissement) et reçoivent un vernis de protection haute résistance. Cependant, pour préserver la brillance, il est fortement recommandé d'utiliser des sous-plats pour les plats chauds et d'éviter les rayures directes avec des objets tranchants." },
-  { category: "3dprint", question: "Quels sont les formats de fichiers acceptés pour l'impression 3D ?", answer: "Nous acceptons principalement les fichiers de modèles 3D au format .STL, .OBJ ou .3MF. Vous pouvez téléverser votre fichier directement lors de votre demande de devis ou coller un lien Thingiverse/Printables." },
-  { category: "3dprint", question: "Quels matériaux de filaments utilisez-vous sur votre Bambu P1S ?", answer: "Nous imprimons principalement en PLA (biodégradable, parfait pour la décoration et le multi-couleurs), en PETG (plus résistant, idéal pour l'extérieur) et en TPU (flexible et caoutchouteux)." },
-  { category: "laser", question: "Quelle est la taille maximale pour les gravures et découpes laser ?", answer: "Notre équipement laser professionnel dispose d'une surface de travail maximale de 4 pieds par 4 pieds (48\" x 48\"). Nous pouvons graver ou découper le bois massif, le contreplaqué, l'acrylique (plexiglas) et le cuir." },
-  { category: "drone", question: "Quelles sont les réglementations respectées lors de vos vols de drone ?", answer: "Nos opérations de drone DJI Mini 3 Pro respectent scrupuleusement la réglementation de Transports Canada pour les drones de moins de 250g. Les vols sont effectués en toute sécurité, hors des zones de restriction aérienne et dans le respect de la vie privée." }
-];
 
 export default function App() {
   const [scrolled, setScrolled] = useState(false);
@@ -961,57 +537,6 @@ export default function App() {
     }
   };
 
-  const instagramPosts = [
-    {
-      id: 1,
-      image: "/assets/sunset-montreal.jpg",
-      postUrl: "https://www.instagram.com/evanpatruno.art/reel/DZtvKL9NNhm/",
-      caption: "Le soleil s'étire et doucement décline... 🌅",
-      likes: "142",
-      comments: "12"
-    },
-    {
-      id: 2,
-      image: "/assets/mauricie-landscape.jpg",
-      postUrl: "https://www.instagram.com/evanpatruno.art/p/DZnLQAslieN/",
-      caption: "Une virée en Mauricie à capturer les contrastes sauvages... 🌲",
-      likes: "89",
-      comments: "5"
-    },
-    {
-      id: 3,
-      image: "/assets/pouring-exoplanete.jpg",
-      postUrl: "https://www.instagram.com/evanpatruno.art/p/DZDzSU2hZkc/",
-      caption: "Une coulée de matière... Toile Exoplanète 🌌",
-      likes: "155",
-      comments: "18"
-    },
-    {
-      id: 4,
-      image: "/assets/fluid-art-ai.jpg",
-      postUrl: "https://www.instagram.com/evanpatruno.art/p/DY8P9DuNtc8/",
-      caption: "Toiles pouring/abstraites et monstre cosmique 🎨",
-      likes: "178",
-      comments: "14"
-    },
-    {
-      id: 5,
-      image: "/assets/bijoux/1792105593282.jpg",
-      postUrl: "https://www.instagram.com/evanpatruno.art/p/DRIowfnAbMa/",
-      caption: "Créations uniques : bijoux en bois de rose et résine époxy 🪵✨",
-      likes: "115",
-      comments: "9"
-    },
-    {
-      id: 6,
-      image: "/assets/table-ronde-turquoise.jpg",
-      postUrl: "https://www.instagram.com/evanpatruno.art/p/DOQsJAfDQv-/",
-      caption: "Table ronde en frêne & résine époxy turquoise 🌊",
-      likes: "135",
-      comments: "16"
-    }
-  ];
-
   // Load data from Firestore or fallback to mock
   useEffect(() => {
     if (!db) {
@@ -1028,10 +553,12 @@ export default function App() {
       if (fetched.length === 0) {
         setCreations(portfolioItems);
       } else {
-        const staticImages = new Set(portfolioItems.map(item => item.image));
-        const customFetched = fetched.filter(
-          item => item.image && !staticImages.has(item.image) && item.image !== '/assets/jewelry-real.jpg' && !String(item.title || '').includes('TEST')
-        );
+        const staticImages = new Set(portfolioItems.map(item => item.image.replace(/\.(jpg|webp)$/i, '')));
+        const customFetched = fetched.filter(item => {
+          if (!item.image) return false;
+          const normImg = item.image.replace(/\.(jpg|webp)$/i, '');
+          return !staticImages.has(normImg) && !normImg.includes('jewelry-real') && !normImg.includes('1792110969931') && !String(item.title || '').includes('TEST');
+        });
         setCreations([...portfolioItems, ...customFetched]);
       }
     }, (error) => {
@@ -2275,28 +1802,28 @@ export default function App() {
                   badge: '🪵 Mobilier & Époxy',
                   title: 'Tables Rivières',
                   sub: 'Frêne massif & pigments nacrés',
-                  img: '/assets/table-ronde-turquoise.jpg'
+                  img: '/assets/table-ronde-turquoise.webp'
                 },
                 {
                   cat: 'jewelry',
-                  badge: '💎 15 Pendentifs',
+                  badge: '💎 14 Pendentifs Uniques',
                   title: 'Bijoux Bois de Rose',
                   sub: 'Bois précieux & résine polie',
-                  img: '/assets/bijoux/1792105593282.jpg'
+                  img: '/assets/bijoux/1792105593282.webp'
                 },
                 {
                   cat: 'laser',
                   badge: '🎨 Art & Laser 4\'×4\'',
                   title: 'Toiles & Gravures',
                   sub: 'Fluid Art & découpe précision',
-                  img: '/assets/pouring-exoplanete.jpg'
+                  img: '/assets/pouring-exoplanete.webp'
                 },
                 {
                   cat: 'lichtenberg',
                   badge: '⚡ Haute Tension',
                   title: 'Fractales 10 000V',
                   sub: 'Gravure électrique sur bois',
-                  img: '/assets/lichtenberg-real.jpg'
+                  img: '/assets/lichtenberg-real.webp'
                 }
               ].map((card) => (
                 <a
@@ -2305,7 +1832,7 @@ export default function App() {
                   className="hero-showcase-card"
                   onClick={() => setGalleryFilter(card.cat)}
                 >
-                  <img src={card.img} alt={card.title} className="hero-showcase-img" />
+                  <img src={card.img} alt={card.title} className="hero-showcase-img" width="400" height="300" decoding="async" />
                   <div className="hero-showcase-overlay">
                     <span className="hero-showcase-badge">{card.badge}</span>
                     <div className="hero-showcase-text">
@@ -2400,7 +1927,7 @@ export default function App() {
                       <span className="uv-glow-tag">✨ Éclat UV &amp; Rétroéclairage LED</span>
                     )}
                     <div className="art-epoxy-sheen" aria-hidden="true"></div>
-                    <img src={item.image} alt={item.title} className="art-image" loading="lazy" />
+                    <img src={item.image} alt={item.title} className="art-image" width="600" height="450" loading="lazy" decoding="async" />
                   </div>
                   
                   <div className="art-info">
@@ -3547,7 +3074,7 @@ export default function App() {
             <div className="about-media-col">
               <div className="about-profile-card glass" id="profile-card">
                 <div className="about-image-frame" style={{ overflow: 'hidden' }}>
-                  <img src="/assets/evan-photo.jpg" alt="Evan Patruno" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src="/assets/evan-photo.webp" alt="Evan Patruno" width="500" height="500" loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
                 <div className="about-badge-social">
                   <h4 style={{ fontWeight: 700, fontSize: '1.2rem', marginBottom: '4px' }}>Evan Patruno</h4>
@@ -3586,7 +3113,7 @@ export default function App() {
                 className="instagram-item"
                 id={`instagram-post-${post.id}`}
               >
-                <img src={post.image} alt={post.caption} className="instagram-img" loading="lazy" />
+                <img src={post.image} alt={post.caption} className="instagram-img" width="400" height="400" loading="lazy" decoding="async" />
                 <div className="instagram-overlay">
                   <p className="instagram-caption">{post.caption}</p>
                   <div className="instagram-stats">
