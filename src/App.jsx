@@ -374,23 +374,158 @@ export default function App() {
     }
   }, []);
 
-  // IntersectionObserver scroll reveal setup
+  // IntersectionObserver scroll reveal + Stagger Cascade + Anti-Orphan Typography Engine
   useEffect(() => {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
+    let revealObs = null;
+
+    const applyMotionAndTypography = () => {
+      // 1. Liens insécables sur ponctuations françaises (?, !, :, ;, », %, $) et derniers mots courts des titres
+      const textTargets = document.querySelectorAll(
+        'h1, h2, h3, h4, p, li, a, button, .section-subtitle, .editorial-catalog-tag, .badge'
+      );
+      textTargets.forEach((el) => {
+        if (el.dataset.epTypoBound === '1') return;
+        const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null, false);
+        const nodes = [];
+        let n;
+        while ((n = walker.nextNode())) nodes.push(n);
+        nodes.forEach((textNode) => {
+          let v = textNode.nodeValue;
+          if (!v || !v.trim()) return;
+          v = v.replace(/\s+([?!:;»%$→])/g, '\u00A0$1');
+          textNode.nodeValue = v;
+        });
+        if (el.matches('h1, h2, h3, h4, .section-subtitle') && nodes.length > 0) {
+          const lastNode = nodes[nodes.length - 1];
+          const lv = lastNode.nodeValue;
+          if (lv && lv.trim().length > 0) {
+            lastNode.nodeValue = lv.replace(/\s+(\S{1,10}\s*)$/, '\u00A0$1');
+          }
+        }
+        el.dataset.epTypoBound = '1';
+      });
+
+      // 2. Enregistrement des éléments animés au défilement (Scroll Reveal + Stagger)
+      const toObserve = [];
+      const register = (el, variant = 'ep-anim-up', delayMs = 0) => {
+        if (
+          !el ||
+          el.classList.contains('ep-anim') ||
+          el.closest('.modal-overlay') ||
+          el.closest('.cart-drawer-overlay') ||
+          el.closest('.header-nav')
+        ) {
+          return;
+        }
+        el.classList.add('ep-anim', variant);
+        if (delayMs > 0) el.style.setProperty('--ep-delay', `${delayMs}ms`);
+        toObserve.push(el);
+      };
+
+      // Grilles avec effet cascade (Stagger)
+      const staggerContainers = [
+        { parent: '.gallery-grid', child: '.art-card' },
+        { parent: '.pigments-grid', child: '.pigment-card' },
+        { parent: '.choices-grid', child: '.choice-card' },
+        { parent: '.devis-history-grid', child: '.card-history' },
+        { parent: '.instagram-grid', child: '.instagram-item' },
+        { parent: '.care-guide-container', child: '.care-accordion-item' },
+        { parent: '.about-features', child: '.about-feat-item' },
+        { parent: '.hero-quick-stats', child: '.hero-stat-pill' },
+        { parent: '.hero-showcase-grid', child: '.hero-showcase-card' }
+      ];
+
+      staggerContainers.forEach(({ parent, child }) => {
+        document.querySelectorAll(parent).forEach((grid) => {
+          grid.querySelectorAll(child).forEach((card, idx) => {
+            register(card, 'ep-anim-up', (idx % 4) * 85);
+          });
+        });
+      });
+
+      // Colonnes gauches / droites en opposition
+      document.querySelectorAll('.about-text-col, .contact-info-col').forEach((el) => {
+        register(el, 'ep-anim-left', 0);
+      });
+      document.querySelectorAll('.about-media-col, .contact-form-col').forEach((el) => {
+        register(el, 'ep-anim-right', 90);
+      });
+
+      // Blocs vedettes avec effet zoom doux (Scale)
+      document.querySelectorAll('.builder-card, .order-tracker-container').forEach((el) => {
+        register(el, 'ep-anim-scale', 0);
+      });
+
+      // En-têtes de sections et barres d'outils
+      document
+        .querySelectorAll(
+          '.section-header, .gallery-filters, .gallery-toolbar, .faq-search-wrapper, .faq-category-filters'
+        )
+        .forEach((el) => {
+          register(el, 'ep-anim-up', 0);
+        });
+
+      if (!revealObs && typeof IntersectionObserver !== 'undefined') {
+        revealObs = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                entry.target.classList.add('ep-in-view', 'visible');
+                revealObs.unobserve(entry.target);
+              }
+            });
+          },
+          { threshold: 0.08, rootMargin: '0px 0px -30px 0px' }
+        );
+      }
+
+      // Compatibilité avec les sections .scroll-reveal existantes
+      document.querySelectorAll('.scroll-reveal:not(.visible)').forEach((el) => {
+        if (revealObs) revealObs.observe(el);
+        else el.classList.add('visible');
+      });
+
+      toObserve.forEach((el) => {
+        if (revealObs) {
+          const rect = el.getBoundingClientRect();
+          if (rect.top < window.innerHeight * 0.92) {
+            el.classList.add('ep-in-view');
+          } else {
+            revealObs.observe(el);
+          }
+        } else {
+          el.classList.add('ep-in-view');
         }
       });
-    }, { threshold: 0.08 });
+    };
 
-    const elements = document.querySelectorAll('.scroll-reveal');
-    elements.forEach((el) => observer.observe(el));
+    const t1 = setTimeout(applyMotionAndTypography, 40);
+    const t2 = setTimeout(applyMotionAndTypography, 320);
+
+    const mutObs = new MutationObserver(() => {
+      applyMotionAndTypography();
+    });
+    const rootEl = document.getElementById('root');
+    if (rootEl) {
+      mutObs.observe(rootEl, { childList: true, subtree: true });
+    }
 
     return () => {
-      elements.forEach((el) => observer.unobserve(el));
+      clearTimeout(t1);
+      clearTimeout(t2);
+      mutObs.disconnect();
+      if (revealObs) revealObs.disconnect();
     };
-  }, []);
+  }, [
+    galleryFilter,
+    gallerySearch,
+    onlyAvailableFilter,
+    gallerySort,
+    showAllGallery,
+    builderStep,
+    devisHistoryFilter,
+    faqActiveCategory
+  ]);
 
   // Weight and price helper functions
   const calculateEstimatedWeight = () => {
@@ -504,16 +639,25 @@ export default function App() {
     setShippingEstimated(true);
   };
 
-  // Track scroll position to add class to header
+  // Track scroll position with hysteresis + Top Gold Reading Progress Bar
   useEffect(() => {
+    let bar = document.getElementById('ep-reading-progress');
+    if (!bar && document.body) {
+      bar = document.createElement('div');
+      bar.id = 'ep-reading-progress';
+      document.body.prepend(bar);
+    }
     const handleScroll = () => {
-      if (window.scrollY > 50) {
-        setScrolled(true);
-      } else {
-        setScrolled(false);
+      const y = window.scrollY;
+      setScrolled((prev) => (prev ? y > 35 : y > 80));
+      if (bar) {
+        const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        const pct = height > 0 ? Math.min(100, Math.max(0, (y / height) * 100)) : 0;
+        bar.style.width = `${pct}%`;
       }
     };
-    window.addEventListener('scroll', handleScroll);
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 

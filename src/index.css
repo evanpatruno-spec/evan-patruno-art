@@ -4415,6 +4415,306 @@ body.blacklight-mode .art-image {
   }
 }
 
+/* ==========================================================================
+   EVAN PATRUNO ART — LUXURY LAYOUT, MOTION, SHIMMER & TYPOGRAPHY ENGINE
+   (Harmonized with evanpatruno.ca & Himalaya)
+   ========================================================================== */
+
+/* 1. Top Gold Reading Progress Bar */
+#ep-reading-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  width: 0%;
+  background: linear-gradient(90deg, #873276 0%, #d4af37 60%, #f3e5ab 100%);
+  z-index: 99999;
+  box-shadow: 0 0 12px rgba(212, 175, 55, 0.65);
+  transition: width 0.1s ease-out;
+  pointer-events: none;
+}
+
+/* 2. Sticky Glass Cockpit Header on Scroll */
+.header-nav {
+  transition:
+    background-color 0.35s ease,
+    box-shadow 0.35s ease,
+    padding 0.35s ease,
+    border-color 0.35s ease;
+}
+
+.header-nav.scrolled {
+  background-color: rgba(20, 5, 17, 0.9) !important;
+  backdrop-filter: blur(18px) !important;
+  -webkit-backdrop-filter: blur(18px) !important;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.55) !important;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.28) !important;
+}
+
+/* 3. Hero 4-Stage Entrance Choreography & Luxury Eyebrow Badge */
+@keyframes epHeroDrop {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -18px, 0) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes epHeroRise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 28px, 0);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    filter: blur(0);
+  }
+}
+
+@keyframes epHeroPop {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 20px, 0) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.hero-content-col .badge {
+  background: rgba(212, 175, 55, 0.12);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  color: #f3e5ab;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+  animation: epHeroDrop 0.75s cubic-bezier(0.22, 1, 0.36, 1) 0.05s both;
+}
+
+.hero-title {
+  animation: epHeroRise 0.85s cubic-bezier(0.22, 1, 0.36, 1) 0.16s both;
+}
+
+.hero-description {
+  animation: epHeroRise 0.85s cubic-bezier(0.22, 1, 0.36, 1) 0.28s both;
+}
+
+.hero-ctas,
+.hero-quick-stats,
+.hero-showcase-grid {
+  animation: epHeroPop 0.85s cubic-bezier(0.22, 1, 0.36, 1) 0.38s both;
+}
+
+/* 4. Directional Scroll Reveal & Stagger Cascade System */
+.ep-anim {
+  opacity: 0;
+  will-change: transform, opacity, filter;
+  transition:
+    opacity 0.78s cubic-bezier(0.22, 1, 0.36, 1) var(--ep-delay, 0ms),
+    transform 0.78s cubic-bezier(0.22, 1, 0.36, 1) var(--ep-delay, 0ms),
+    filter 0.78s cubic-bezier(0.22, 1, 0.36, 1) var(--ep-delay, 0ms);
+}
+
+.ep-anim-up {
+  transform: translate3d(0, 34px, 0);
+  filter: blur(3px);
+}
+
+.ep-anim-left {
+  transform: translate3d(-40px, 0, 0);
+  filter: blur(3px);
+}
+
+.ep-anim-right {
+  transform: translate3d(40px, 0, 0);
+  filter: blur(3px);
+}
+
+.ep-anim-scale {
+  transform: translate3d(0, 24px, 0) scale(0.96);
+  filter: blur(3px);
+}
+
+.ep-anim.ep-in-view {
+  opacity: 1 !important;
+  transform: translate3d(0, 0, 0) scale(1) !important;
+  filter: blur(0) !important;
+}
+
+/* 5. Luxury Card Top Gold Hairline, Hover Elevation & High-Contrast White Titles */
+.art-card,
+.pigment-card,
+.card-history,
+.contact-card-info,
+.contact-form-col,
+.builder-card,
+.order-tracker-container {
+  border-top: 1px solid rgba(212, 175, 55, 0.28) !important;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.art-card:hover,
+.pigment-card:hover,
+.card-history:hover,
+.contact-card-info:hover {
+  transform: translateY(-6px);
+  border-color: rgba(212, 175, 55, 0.45) !important;
+  box-shadow: 0 28px 60px rgba(0, 0, 0, 0.55), 0 0 25px rgba(212, 175, 55, 0.1);
+}
+
+.art-title,
+.pigment-name,
+.choice-title,
+.contact-info-title,
+.about-feat-text h4 {
+  color: #ffffff !important;
+  letter-spacing: -0.01em;
+}
+
+/* 6. Gold Medallions & Continuous Subtle Levitation */
+@keyframes epFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.choice-icon,
+.about-feat-icon,
+.contact-icon-box,
+.pigment-card > div:first-child {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.14) 0%, rgba(135, 50, 118, 0.22) 100%) !important;
+  border: 1px solid rgba(212, 175, 55, 0.35) !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  color: #f3e5ab;
+  animation: epFloat 3.6s ease-in-out infinite;
+}
+
+/* 7. Periodic Gold Shimmer Sweep on Primary CTA Buttons */
+@keyframes epShimmerSweep {
+  0%,
+  65% {
+    left: -130%;
+  }
+  100% {
+    left: 140%;
+  }
+}
+
+.btn-primary,
+.btn-cta-nav {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary::after,
+.btn-cta-nav::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -130%;
+  width: 58%;
+  height: 100%;
+  background: linear-gradient(
+    110deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.32) 50%,
+    transparent 80%
+  );
+  transform: skewX(-20deg);
+  animation: epShimmerSweep 5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* 8. Typography Balancing, Anti-Orphan & Mobile Button/Card Harmonization */
+h1,
+h2,
+h3,
+h4,
+.section-title,
+.section-subtitle,
+.art-title,
+.pigment-name,
+.choice-title {
+  text-wrap: balance;
+}
+
+p,
+li,
+.art-desc,
+.pigment-desc,
+.choice-desc,
+.care-accordion-content-inner {
+  text-wrap: pretty;
+}
+
+.btn-primary,
+.btn-secondary,
+.btn-cta-nav {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 8px;
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+@media (max-width: 768px) {
+  .section-title {
+    font-size: clamp(1.55rem, 5.6vw, 2.05rem);
+    line-height: 1.22;
+    padding: 0 6px;
+  }
+
+  .hero-ctas .btn-primary,
+  .hero-ctas .btn-secondary,
+  .gallery-load-more-btn {
+    width: fit-content;
+    max-width: 100%;
+    padding: 13px 22px;
+    font-size: 0.84rem;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    line-height: 1.3;
+    border-radius: 999px;
+  }
+
+  .art-card,
+  .pigment-card,
+  .card-history,
+  .contact-card-info,
+  .contact-form-col,
+  .builder-card {
+    border-radius: 22px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ep-anim {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+    transition: none !important;
+  }
+  .choice-icon,
+  .about-feat-icon,
+  .contact-icon-box,
+  .pigment-card > div:first-child,
+  .btn-primary::after,
+  .btn-cta-nav::after {
+    animation: none !important;
+  }
+}
+
+
 
 
 
