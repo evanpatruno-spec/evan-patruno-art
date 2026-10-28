@@ -1957,138 +1957,155 @@ export default function App() {
         {/* PORTFOLIO GALLERY */}
         <section id="portfolio" className="scroll-reveal">
           <div className="section-header animate-fade-in">
+            <span className="editorial-catalog-tag">N° 01 — GALERIE &amp; ARCHIVES D'ATELIER</span>
             <h2 className="section-title">Mes Créations</h2>
             <p className="section-subtitle">
               Explorez mon travail à travers les différents domaines d'artisanat. Chaque pièce est entièrement unique et fabriquée dans mon atelier.
             </p>
           </div>
 
-          {/* Filter Bar */}
+          {/* Filter Bar with Live Artwork Counters (#17) */}
           <div className="gallery-filters" id="gallery-filter-bar">
             <button 
               className={`filter-btn ${galleryFilter === 'all' ? 'active' : ''}`}
               onClick={() => setGalleryFilter('all')}
               id="filter-all"
             >
-              Tout voir
+              <span>Tout voir</span>
+              <span className="filter-count-pill">{visibleCreations.length}</span>
             </button>
             <button 
               className={`filter-btn ${galleryFilter === 'table' ? 'active' : ''}`}
               onClick={() => setGalleryFilter('table')}
               id="filter-tables"
             >
-              🪵 Tables &amp; Mobilier
+              <span>🪵 Tables &amp; Mobilier</span>
+              <span className="filter-count-pill">{visibleCreations.filter(i => i.category === 'table').length}</span>
             </button>
             <button 
               className={`filter-btn ${galleryFilter === 'jewelry' ? 'active' : ''}`}
               onClick={() => setGalleryFilter('jewelry')}
               id="filter-jewelry"
             >
-              💎 Bijoux Résine
+              <span>💎 Bijoux Résine</span>
+              <span className="filter-count-pill">{visibleCreations.filter(i => i.category === 'jewelry').length}</span>
             </button>
             <button 
               className={`filter-btn ${galleryFilter === 'lichtenberg' ? 'active' : ''}`}
               onClick={() => setGalleryFilter('lichtenberg')}
               id="filter-lichtenberg"
             >
-              ⚡ Lichtenberg
+              <span>⚡ Lichtenberg</span>
+              <span className="filter-count-pill">{visibleCreations.filter(i => i.category === 'lichtenberg').length}</span>
             </button>
             <button 
               className={`filter-btn ${galleryFilter === 'laser' ? 'active' : ''}`}
               onClick={() => setGalleryFilter('laser')}
               id="filter-laser"
             >
-              🎨 Gravure &amp; Laser
+              <span>🎨 Gravure &amp; Laser</span>
+              <span className="filter-count-pill">{visibleCreations.filter(i => i.category === 'laser').length}</span>
             </button>
             <button 
               className={`filter-btn ${galleryFilter === 'sold' ? 'active' : ''}`}
               onClick={() => setGalleryFilter('sold')}
               id="filter-sold"
             >
-              📜 Projets Réalisés
+              <span>📜 Projets Réalisés</span>
+              <span className="filter-count-pill">{visibleCreations.filter(i => i.status === 'sold').length}</span>
             </button>
           </div>
 
-          {/* Gallery Grid */}
-          <div className="gallery-grid" id="portfolio-grid">
-            {filteredPortfolio.map((item) => (
-              <div 
-                key={item.id} 
-                className="art-card glass" 
-                id={`portfolio-item-${item.id}`}
-                style={{ cursor: 'pointer' }}
-                onClick={() => handleOpenItemDetails(item)}
-              >
-                <div className="art-image-wrapper">
-                  <span className={`art-badge ${item.category}`}>{item.categoryName}</span>
-                  {blacklightMode && (
-                    <span className="uv-glow-tag">✨ Éclat UV &amp; Rétroéclairage LED</span>
-                  )}
-                  <img src={item.image} alt={item.title} className="art-image" loading="lazy" />
-                </div>
-                
-                 <div className="art-info">
-                  <div>
-                    <h3 className="art-title">{item.title}</h3>
-                    {reviewsSummary[item.id] && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.8rem', color: '#fbbf24', marginTop: '4px' }}>
-                        <span>★</span>
-                        <strong>{reviewsSummary[item.id].avgRating}</strong>
-                        <span style={{ color: 'var(--text-muted)' }}>({reviewsSummary[item.id].count} avis)</span>
-                      </div>
+          {/* Asymmetric Bento Museum Gallery Grid (#1, #9, #11) */}
+          <div className="gallery-grid bento-museum-grid" id="portfolio-grid">
+            {filteredPortfolio.map((item, idx) => {
+              const isBentoWide = galleryFilter === 'all' && (idx === 0 || (item.category === 'table' && idx % 5 === 0));
+              const catalogNumber = String(idx + 1).padStart(2, '0');
+              return (
+                <div 
+                  key={item.id} 
+                  className={`art-card glass ${isBentoWide ? 'bento-wide' : ''}`} 
+                  id={`portfolio-item-${item.id}`}
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => handleOpenItemDetails({ ...item, catalogNumber })}
+                >
+                  <div className="art-image-wrapper">
+                    <span className={`art-badge ${item.category}`}>{item.categoryName}</span>
+                    <span className="museum-catalog-pill">PIÈCE #{catalogNumber}</span>
+                    {blacklightMode && (
+                      <span className="uv-glow-tag">✨ Éclat UV &amp; Rétroéclairage LED</span>
                     )}
-                    <p className="art-desc">{item.desc}</p>
+                    <div className="art-epoxy-sheen" aria-hidden="true"></div>
+                    <img src={item.image} alt={item.title} className="art-image" loading="lazy" />
                   </div>
                   
-                  {(item.wood || item.dimensions || item.mediums) && (
-                    <div className="art-specs" style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '12px', marginBottom: '12px', borderTop: '1px solid rgba(255, 255, 255, 0.1)', paddingTop: '10px' }}>
-                      {item.wood && <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><span>🪵</span> <span><strong>Bois :</strong> {item.wood}</span></div>}
-                      {item.dimensions && <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><span>📏</span> <span><strong>Dimensions :</strong> {item.dimensions}</span></div>}
-                      {item.mediums && <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><span>✨</span> <span><strong>Matériaux :</strong> {item.mediums}</span></div>}
+                  <div className="art-info">
+                    <div>
+                      <div className="museum-plaque-header">
+                        <span className="museum-plaque-ref">ARCHIVE N° {catalogNumber} • PIÈCE SIGNÉE 1/1</span>
+                        {reviewsSummary[item.id] && (
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.78rem', color: '#fbbf24' }}>
+                            <span>★</span>
+                            <strong>{reviewsSummary[item.id].avgRating}</strong>
+                            <span style={{ color: 'var(--text-muted)' }}>({reviewsSummary[item.id].count})</span>
+                          </span>
+                        )}
+                      </div>
+                      <h3 className="art-title">{item.title}</h3>
+                      <p className="art-desc">{item.desc}</p>
                     </div>
-                  )}
-
-                  <div className="art-footer" style={{ display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'stretch', width: '100%' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-                      <span className="art-status">
-                        <span className={`status-dot ${item.status}`}></span>
-                        {item.statusText}
-                      </span>
-                      <span className="art-price">{formatPrice(item.price)}</span>
-                    </div>
-                    {item.status === 'available' && !item.price.toLowerCase().includes('demande') ? (
-                      <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleAddToCart(item);
-                        }}
-                        className="btn-primary" 
-                        style={{ padding: '8px 16px', fontSize: '0.85rem', width: '100%', marginTop: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
-                      >
-                        <span>🛒</span> Ajouter au panier
-                      </button>
-                    ) : (
-                      <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openCustomBuilderForItem(item);
-                        }}
-                        className="btn-secondary" 
-                        style={{ padding: '8px 16px', fontSize: '0.85rem', width: '100%', marginTop: '5px' }}
-                      >
-                        Sur Mesure
-                      </button>
+                    
+                    {(item.wood || item.dimensions || item.mediums) && (
+                      <div className="art-specs museum-plaque-specs">
+                        {item.wood && <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><span>🪵</span> <span><strong>Bois :</strong> {item.wood}</span></div>}
+                        {item.dimensions && <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><span>📏</span> <span><strong>Dimensions :</strong> {item.dimensions}</span></div>}
+                        {item.mediums && <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><span>✨</span> <span><strong>Matériaux :</strong> {item.mediums}</span></div>}
+                      </div>
                     )}
+
+                    <div className="art-footer" style={{ display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'stretch', width: '100%' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                        <span className="art-status">
+                          <span className={`status-dot ${item.status}`}></span>
+                          {item.statusText}
+                        </span>
+                        <span className="art-price">{formatPrice(item.price)}</span>
+                      </div>
+                      {item.status === 'available' && !item.price.toLowerCase().includes('demande') ? (
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAddToCart(item);
+                          }}
+                          className="btn-primary" 
+                          style={{ padding: '8px 16px', fontSize: '0.85rem', width: '100%', marginTop: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                        >
+                          <span>🛒</span> Ajouter au panier
+                        </button>
+                      ) : (
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openCustomBuilderForItem(item);
+                          }}
+                          className="btn-secondary" 
+                          style={{ padding: '8px 16px', fontSize: '0.85rem', width: '100%', marginTop: '5px' }}
+                        >
+                          Sur Mesure
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
 
         {/* MATERIALS & TECH SECTION */}
         <section id="materials" className="rounded-section scroll-reveal">
           <div className="section-header">
+            <span className="editorial-catalog-tag">N° 02 — SAVOIR-FAIRE &amp; TECHNOLOGIES</span>
             <h2 className="section-title">Ce que je peux produire</h2>
             <p className="section-subtitle">
               De l'ébénisterie d'art de luxe à la haute technologie de fabrication : explorez mes capacités de production et d'artisanat.
@@ -2223,6 +2240,7 @@ export default function App() {
         {/* CUSTOM INQUIRY BUILDER */}
         <section id="devis" className="scroll-reveal" style={{ borderBottom: '1px solid var(--border-color)' }}>
           <div className="section-header">
+            <span className="editorial-catalog-tag">N° 03 — ATELIER DE CONCEPTION SUR MESURE</span>
             <h2 className="section-title">Créez votre Projet Personnalisé</h2>
             <p className="section-subtitle">
               Vous avez une idée précise ? Utilisez notre configurateur interactif pour définir vos besoins et recevoir une proposition sur mesure.
@@ -2341,14 +2359,37 @@ export default function App() {
                       {['Table rivière', 'Planche de présentation', 'Bijou en bois/époxy', 'Fractale de Lichtenberg', 'Découpe & Gravure laser'].includes(projectData.type) && (
                         <>
                           <div className="builder-form-group" style={{ gridColumn: 'span 2' }}>
-                            <label htmlFor="wood-select">Essence de bois privilégiée</label>
+                            <label htmlFor="wood-select">1. Essence de bois privilégiée (Nuancier Tactile)</label>
+                            <div className="material-swatches-grid">
+                              {[
+                                { value: "Noyer noir (Foncé, grain riche)", name: "Noyer Noir", note: "Foncé, grain riche", swatchClass: "swatch-walnut" },
+                                { value: "Érable (Clair, très robuste)", name: "Érable Madré", note: "Clair, très robuste", swatchClass: "swatch-maple" },
+                                { value: "Cèdre (Chaud, excellent parfum, résistant)", name: "Cèdre Rouge", note: "Chaud & aromatique", swatchClass: "swatch-cedar" },
+                                { value: "Cerisier (Ambré, grain fin)", name: "Cerisier", note: "Ambré, grain fin", swatchClass: "swatch-cherry" },
+                                { value: "Autre / Je ne sais pas encore", name: "À conseiller", note: "Selon votre décor", swatchClass: "swatch-custom-wood" }
+                              ].map((w) => (
+                                <button
+                                  type="button"
+                                  key={w.value}
+                                  className={`swatch-pill-card ${projectData.wood === w.value ? 'active' : ''}`}
+                                  onClick={() => setProjectData(prev => ({ ...prev, wood: w.value }))}
+                                >
+                                  <span className={`swatch-circle ${w.swatchClass}`}></span>
+                                  <span className="swatch-text">
+                                    <strong>{w.name}</strong>
+                                    <small>{w.note}</small>
+                                  </span>
+                                </button>
+                              ))}
+                            </div>
                             <select 
                               id="wood-select"
                               className="builder-select" 
                               value={projectData.wood}
                               onChange={(e) => setProjectData(prev => ({ ...prev, wood: e.target.value }))}
+                              style={{ marginTop: '10px' }}
                             >
-                              <option value="">Sélectionnez une option...</option>
+                              <option value="">Ou sélectionnez dans la liste...</option>
                               <option value="Noyer noir (Foncé, grain riche)">Noyer noir (Foncé, grain riche)</option>
                               <option value="Érable (Clair, très robuste)">Érable (Clair, très robuste)</option>
                               <option value="Cèdre (Chaud, excellent parfum, résistant)">Cèdre (Chaud, excellent parfum)</option>
@@ -2357,15 +2398,41 @@ export default function App() {
                             </select>
                           </div>
 
-                          <div className="builder-form-group" style={{ gridColumn: 'span 2' }}>
-                            <label htmlFor="epoxy-select">Style ou Couleur de la résine Époxy / Finition</label>
+                          <div className="builder-form-group" style={{ gridColumn: 'span 2', marginTop: '12px' }}>
+                            <label htmlFor="epoxy-select">2. Pigments de Résine Époxy &amp; Finition</label>
+                            <div className="material-swatches-grid epoxy-swatches-grid">
+                              {[
+                                { value: "Bleu Abysse Translucide", name: "Bleu Abysse", note: "Translucide profond", swatchClass: "pigment-abyss" },
+                                { value: "Turquoise Caraïbes Cristallin", name: "Turquoise", note: "Lagon cristallin", swatchClass: "pigment-turquoise" },
+                                { value: "Vert Émeraude Nacré (Pigments Métalliques)", name: "Vert Émeraude", note: "Nacré métallique", swatchClass: "pigment-emerald" },
+                                { value: "Noir Fumé Translucide (Look Moderne)", name: "Noir Fumé", note: "Moderne & sobre", swatchClass: "pigment-smoke" },
+                                { value: "Doré / Cuivré Métallique Scintillant", name: "Or 24K & Cuivre", note: "Éclat précieux", swatchClass: "pigment-gold" },
+                                { value: "Améthyste Violet Translucide", name: "Améthyste", note: "Violet cosmique", swatchClass: "pigment-amethyst" },
+                                { value: "Rouge Lave & Bronze Nacré", name: "Rouge Lave", note: "Magma & bronze", swatchClass: "pigment-lava" },
+                                { value: "Résine Transparente Limpide (Fini Verre)", name: "Cristal Pur", note: "Effet verre limpide", swatchClass: "pigment-crystal" }
+                              ].map((p) => (
+                                <button
+                                  type="button"
+                                  key={p.value}
+                                  className={`swatch-pill-card ${projectData.epoxy === p.value ? 'active' : ''}`}
+                                  onClick={() => setProjectData(prev => ({ ...prev, epoxy: p.value }))}
+                                >
+                                  <span className={`swatch-circle ${p.swatchClass}`}></span>
+                                  <span className="swatch-text">
+                                    <strong>{p.name}</strong>
+                                    <small>{p.note}</small>
+                                  </span>
+                                </button>
+                              ))}
+                            </div>
                             <select 
                               id="epoxy-select" 
                               className="builder-select"
                               value={projectData.epoxy}
                               onChange={(e) => setProjectData(prev => ({ ...prev, epoxy: e.target.value }))}
+                              style={{ marginTop: '10px' }}
                             >
-                              <option value="">Sélectionnez une option...</option>
+                              <option value="">Toutes les nuances &amp; options...</option>
                               <option value="Bleu Abysse Translucide">🌊 Bleu Abysse Translucide</option>
                               <option value="Bleu Océan &amp; Vagues Blanches (Effet Mer)">🌊 Bleu Océan &amp; Vagues Blanches (Effet Mer)</option>
                               <option value="Turquoise Caraïbes Cristallin">🏝️ Turquoise Caraïbes Cristallin</option>
@@ -2881,6 +2948,7 @@ export default function App() {
         {/* HISTORIQUE DE PROJETS SECTION */}
         <section id="historique" className="scroll-reveal" style={{ borderBottom: '1px solid var(--border-color)' }}>
           <div className="section-header animate-fade-in">
+            <span className="editorial-catalog-tag">N° 04 — REGISTRE DES RÉALISATIONS &amp; ESTIMATIONS</span>
             <h2 className="section-title">Historique des Projets &amp; Tarifs</h2>
             <p className="section-subtitle">
               Découvrez nos réalisations passées pour vous inspirer et estimer les tarifs de vos futurs projets sur mesure.
@@ -3063,6 +3131,7 @@ export default function App() {
         <section id="atelier" className="scroll-reveal">
           <div className="about-grid">
             <div className="about-text-col">
+              <span className="editorial-catalog-tag" style={{ alignSelf: 'flex-start', marginBottom: '10px' }}>N° 05 — L'ATELIER &amp; LA SIGNATURE</span>
               <h2 className="section-title" style={{ textAlign: 'left' }}>L'Artiste derrière le Bois</h2>
               <h3>Evan Patruno</h3>
               <p>
@@ -4602,11 +4671,30 @@ export default function App() {
                     </div>
                   </div>
                 ) : (
-                  <div className="slider-container">
+                  <div
+                    className="slider-container macro-zoom-wrapper"
+                    onMouseMove={(e) => {
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const x = ((e.clientX - rect.left) / rect.width) * 100;
+                      const y = ((e.clientY - rect.top) / rect.height) * 100;
+                      e.currentTarget.style.setProperty('--zoom-x', `${x}%`);
+                      e.currentTarget.style.setProperty('--zoom-y', `${y}%`);
+                      e.currentTarget.style.setProperty('--lens-left', `${e.clientX - rect.left}px`);
+                      e.currentTarget.style.setProperty('--lens-top', `${e.clientY - rect.top}px`);
+                    }}
+                  >
+                    <span className="macro-zoom-hint">🔍 Survolez pour la Loupe Macro ×2.5</span>
                     <img 
                       src={selectedItemDetails.images ? selectedItemDetails.images[activeImageIdx] : selectedItemDetails.image} 
                       alt={selectedItemDetails.title} 
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                    />
+                    <div
+                      className="macro-magnifier-lens"
+                      style={{
+                        backgroundImage: `url(${selectedItemDetails.images ? selectedItemDetails.images[activeImageIdx] : selectedItemDetails.image})`
+                      }}
+                      aria-hidden="true"
                     />
                     
                     {selectedItemDetails.images && selectedItemDetails.images.length > 1 && (
@@ -4638,19 +4726,27 @@ export default function App() {
                 )}
               </div>
 
-              {/* Right Column: Info & Star Reviews */}
+              {/* Right Column: Authentic Museum Plaque & Star Reviews */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', textAlign: 'left' }}>
                 <div>
-                  <span className={`art-badge ${selectedItemDetails.category}`} style={{ position: 'static', display: 'inline-block', marginBottom: '10px' }}>
-                    {selectedItemDetails.categoryName}
-                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '10px' }}>
+                    <span className={`art-badge ${selectedItemDetails.category}`} style={{ position: 'static', display: 'inline-block' }}>
+                      {selectedItemDetails.categoryName}
+                    </span>
+                    <span className="museum-modal-archive-badge">
+                      PIÈCE ARCHIVE #{selectedItemDetails.catalogNumber || '01'} • ÉDITION 1/1
+                    </span>
+                  </div>
                   <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.6' }}>
                     {selectedItemDetails.desc}
                   </p>
                 </div>
 
-                <div style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px', padding: '15px' }}>
-                  <h4 style={{ color: 'var(--accent-wood)', fontSize: '0.9rem', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '1px' }}>Spécifications :</h4>
+                <div className="museum-authentic-plaque">
+                  <div className="museum-plaque-top">
+                    <span>CARTEL D'AUTHENTICITÉ — ATELIER QUÉBEC</span>
+                    <span className="museum-signature">Evan Patruno</span>
+                  </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.9rem' }}>
                     {selectedItemDetails.wood && <div>🪵 <strong>Bois :</strong> {selectedItemDetails.wood}</div>}
                     {selectedItemDetails.dimensions && <div>📏 <strong>Dimensions :</strong> {selectedItemDetails.dimensions}</div>}

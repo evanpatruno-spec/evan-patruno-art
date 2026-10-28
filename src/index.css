@@ -3323,5 +3323,338 @@ body.blacklight-mode .art-image {
   letter-spacing: 0.03em;
 }
 
+/* ==========================================================================
+   COMBO SIGNATURE: BENTO MUSEUM, EPOXY SHEEN, MACRO LENS & MATERIAL SWATCHES
+   ========================================================================== */
+
+/* 1. Editorial Magazine Catalog Tag */
+.editorial-catalog-tag {
+  display: inline-block;
+  font-family: var(--font-heading);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #d4af37;
+  padding: 5px 14px;
+  margin-bottom: 12px;
+  border-radius: 100px;
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  background: rgba(212, 175, 55, 0.08);
+}
+
+/* 2. Gallery Filter Counters (#17) */
+.filter-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-count-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 20px;
+  padding: 0 7px;
+  border-radius: 100px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-secondary);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  transition: all 0.25s ease;
+}
+
+.filter-btn.active .filter-count-pill {
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* 3. Asymmetric Bento Museum Grid (#1) */
+@media (min-width: 960px) {
+  .bento-museum-grid .art-card.bento-wide {
+    grid-column: span 2;
+    display: grid;
+    grid-template-columns: 1.25fr 1fr;
+    align-items: stretch;
+  }
+
+  .bento-museum-grid .art-card.bento-wide .art-image-wrapper {
+    height: 100%;
+    min-height: 360px;
+  }
+}
+
+/* 4. Liquid Epoxy Mirror Sheen on Hover (#9) */
+.art-epoxy-sheen {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;
+  background: linear-gradient(
+    115deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.04) 38%,
+    rgba(255, 255, 255, 0.26) 50%,
+    rgba(176, 84, 156, 0.18) 58%,
+    transparent 75%
+  );
+  transform: translateX(-130%);
+  transition: transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.art-card:hover .art-epoxy-sheen {
+  transform: translateX(130%);
+}
+
+/* 5. Museum Catalog Pills & Plaques (#11) */
+.museum-catalog-pill {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
+  padding: 5px 11px;
+  border-radius: 100px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: #f3e5ab;
+  background: rgba(18, 0, 16, 0.82);
+  border: 1px solid rgba(212, 175, 55, 0.45);
+  backdrop-filter: blur(8px);
+}
+
+.museum-plaque-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.museum-plaque-ref {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #d4af37;
+  opacity: 0.9;
+}
+
+.museum-plaque-specs {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.84rem;
+  color: var(--text-secondary);
+  margin: 12px 0;
+  padding: 11px 14px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+.museum-modal-archive-badge {
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: 100px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #d4af37;
+  background: rgba(212, 175, 55, 0.1);
+  border: 1px solid rgba(212, 175, 55, 0.38);
+}
+
+.museum-authentic-plaque {
+  background: linear-gradient(135deg, rgba(28, 14, 24, 0.85) 0%, rgba(14, 4, 12, 0.92) 100%);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  border-radius: 14px;
+  padding: 16px 18px;
+  box-shadow: inset 0 0 20px rgba(212, 175, 55, 0.05);
+}
+
+.museum-plaque-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: #d4af37;
+}
+
+.museum-signature {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-style: italic;
+  font-size: 0.95rem;
+  letter-spacing: 0.03em;
+  color: #f3e5ab;
+}
+
+/* 6. Macro Magnifier Lens x2.5 in Artwork Modal (#6) */
+.macro-zoom-wrapper {
+  --zoom-x: 50%;
+  --zoom-y: 50%;
+  --lens-left: 50%;
+  --lens-top: 50%;
+  cursor: crosshair;
+}
+
+.macro-zoom-hint {
+  position: absolute;
+  bottom: 14px;
+  left: 14px;
+  z-index: 12;
+  padding: 5px 12px;
+  border-radius: 100px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: #f8fafc;
+  background: rgba(18, 0, 16, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(8px);
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.macro-zoom-wrapper:hover .macro-zoom-hint {
+  opacity: 0;
+}
+
+.macro-magnifier-lens {
+  position: absolute;
+  left: var(--lens-left);
+  top: var(--lens-top);
+  width: 155px;
+  height: 155px;
+  border-radius: 50%;
+  border: 2px solid #d4af37;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.75), 0 0 18px rgba(212, 175, 55, 0.35), inset 0 0 14px rgba(255, 255, 255, 0.25);
+  background-repeat: no-repeat;
+  background-size: 260%;
+  background-position: var(--zoom-x) var(--zoom-y);
+  transform: translate(-50%, -50%) scale(0.75);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 15;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+@media (hover: hover) {
+  .macro-zoom-wrapper:hover .macro-magnifier-lens {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+/* 7. Tactile Wood & Epoxy Pigment Swatches in Custom Builder (#12) */
+.material-swatches-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.swatch-pill-card {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.22s ease;
+}
+
+.swatch-pill-card:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(176, 84, 156, 0.5);
+  transform: translateY(-1px);
+}
+
+.swatch-pill-card.active {
+  background: rgba(176, 84, 156, 0.16);
+  border-color: #d4af37;
+  box-shadow: 0 0 18px rgba(212, 175, 55, 0.25);
+}
+
+.swatch-circle {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  box-shadow: inset 0 2px 6px rgba(255, 255, 255, 0.25), 0 4px 10px rgba(0, 0, 0, 0.4);
+}
+
+.swatch-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+
+.swatch-text strong {
+  font-size: 0.83rem;
+  color: #fff;
+}
+
+.swatch-text small {
+  font-size: 0.71rem;
+  color: var(--text-secondary);
+}
+
+/* Wood grain textures */
+.swatch-walnut {
+  background: repeating-linear-gradient(35deg, #3b2314 0px, #4e2f1d 5px, #2a180d 10px, #593722 15px);
+}
+.swatch-maple {
+  background: repeating-linear-gradient(25deg, #e5c494 0px, #f2d8b3 6px, #d4ae78 12px);
+}
+.swatch-cedar {
+  background: repeating-linear-gradient(40deg, #9e472a 0px, #b85b3b 6px, #7d351d 12px);
+}
+.swatch-cherry {
+  background: repeating-linear-gradient(30deg, #8b3a2b 0px, #a44a37 6px, #6e2b1f 12px);
+}
+.swatch-custom-wood {
+  background: conic-gradient(#3b2314, #e5c494, #9e472a, #8b3a2b, #3b2314);
+}
+
+/* Liquid Epoxy Pigment Swatches */
+.pigment-abyss {
+  background: radial-gradient(circle at 30% 30%, #38bdf8, #0369a1 55%, #082f49 100%);
+}
+.pigment-turquoise {
+  background: radial-gradient(circle at 30% 30%, #5eead4, #0d9488 60%, #115e59 100%);
+}
+.pigment-emerald {
+  background: radial-gradient(circle at 30% 30%, #6ee7b7, #059669 55%, #064e3b 100%);
+}
+.pigment-smoke {
+  background: radial-gradient(circle at 30% 30%, #64748b, #1e293b 60%, #020617 100%);
+}
+.pigment-gold {
+  background: radial-gradient(circle at 30% 30%, #fef08a, #d97706 55%, #78350f 100%);
+}
+.pigment-amethyst {
+  background: radial-gradient(circle at 30% 30%, #e879f9, #9333ea 55%, #3b0764 100%);
+}
+.pigment-lava {
+  background: radial-gradient(circle at 30% 30%, #fca5a5, #dc2626 55%, #7f1d1d 100%);
+}
+.pigment-crystal {
+  background: radial-gradient(circle at 30% 30%, #ffffff, #cbd5e1 65%, #64748b 100%);
+}
+
+
 
 
