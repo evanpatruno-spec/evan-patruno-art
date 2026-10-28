@@ -3368,9 +3368,9 @@ body.blacklight-mode .art-image {
 }
 
 .filter-btn.active .filter-count-pill {
-  background: rgba(255, 255, 255, 0.22);
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(18, 0, 16, 0.14);
+  color: var(--bg-primary);
+  border-color: rgba(18, 0, 16, 0.25);
 }
 
 /* 3. Liquid Epoxy Mirror Sheen on Hover (#9) */
