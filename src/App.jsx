@@ -156,8 +156,7 @@ const portfolioItems = [
     categoryName: "Bijoux",
     desc: "Médaillon artisanal façonnant la rencontre entre du bois de rose aux reliefs naturels et un océan de résine époxy vert émeraude nacré aux reflets profonds.",
     image: "/assets/bijoux/1792105593282.jpg",
-    images: ["/assets/bijoux/1792105593282.jpg", "/assets/jewelry-real.jpg"],
-    has3DModel: true,
+    images: ["/assets/bijoux/1792105593282.jpg"],
     status: "available",
     statusText: "Disponible",
     price: "65 $",
@@ -172,8 +171,7 @@ const portfolioItems = [
     categoryName: "Bijoux",
     desc: "Pendentif rond contrastant un croissant de bois de rose au grain riche avec une coulée lumineuse de résine époxy jaune ambré et or solaire.",
     image: "/assets/bijoux/1792106597150.jpg",
-    images: ["/assets/bijoux/1792106597150.jpg", "/assets/jewelry-real.jpg"],
-    has3DModel: true,
+    images: ["/assets/bijoux/1792106597150.jpg"],
     status: "available",
     statusText: "Disponible",
     price: "65 $",
@@ -188,8 +186,7 @@ const portfolioItems = [
     categoryName: "Bijoux",
     desc: "Création organique où deux rives de bois de rose encadrent une résine vert forêt profond aux nuances minérales et satinées.",
     image: "/assets/bijoux/1792106638576.jpg",
-    images: ["/assets/bijoux/1792106638576.jpg", "/assets/jewelry-real.jpg"],
-    has3DModel: true,
+    images: ["/assets/bijoux/1792106638576.jpg"],
     status: "available",
     statusText: "Disponible",
     price: "65 $",
@@ -204,8 +201,7 @@ const portfolioItems = [
     categoryName: "Bijoux",
     desc: "Alliance spectaculaire d'un bois de rose aux tons chauds et d'un tourbillon cosmique mêlant bleu électrique, magenta pourpre et voiles lactés.",
     image: "/assets/bijoux/1792106643545.jpg",
-    images: ["/assets/bijoux/1792106643545.jpg", "/assets/jewelry-real.jpg"],
-    has3DModel: true,
+    images: ["/assets/bijoux/1792106643545.jpg"],
     status: "available",
     statusText: "Disponible",
     price: "70 $",
@@ -220,8 +216,7 @@ const portfolioItems = [
     categoryName: "Bijoux",
     desc: "Deux rives de bois de rose traversées en diagonale par une rivière de résine bleu saphir aux volutes nuageuses.",
     image: "/assets/bijoux/1792108042936.jpg",
-    images: ["/assets/bijoux/1792108042936.jpg", "/assets/jewelry-real.jpg"],
-    has3DModel: true,
+    images: ["/assets/bijoux/1792108042936.jpg"],
     status: "available",
     statusText: "Disponible",
     price: "70 $",
@@ -236,8 +231,7 @@ const portfolioItems = [
     categoryName: "Bijoux",
     desc: "Îlot de bois de rose aux reliefs naturels baignant dans un halo de résine époxy miel doré et ambre chatoyant.",
     image: "/assets/bijoux/1792109280485.jpg",
-    images: ["/assets/bijoux/1792109280485.jpg", "/assets/jewelry-real.jpg"],
-    has3DModel: true,
+    images: ["/assets/bijoux/1792109280485.jpg"],
     status: "available",
     statusText: "Disponible",
     price: "65 $",
@@ -252,8 +246,7 @@ const portfolioItems = [
     categoryName: "Bijoux",
     desc: "Double récif de bois de rose relié par un courant fluide de résine époxy mêlant vert chartreuse, olive doré et reflets nacrés.",
     image: "/assets/bijoux/1792109284315.jpg",
-    images: ["/assets/bijoux/1792109284315.jpg", "/assets/jewelry-real.jpg"],
-    has3DModel: true,
+    images: ["/assets/bijoux/1792109284315.jpg"],
     status: "available",
     statusText: "Disponible",
     price: "65 $",
@@ -268,8 +261,7 @@ const portfolioItems = [
     categoryName: "Bijoux",
     desc: "Coulée diagonale de résine ambre doré flamboyant serpentant entre deux berges de bois de rose finement texturé.",
     image: "/assets/bijoux/1792109305032.jpg",
-    images: ["/assets/bijoux/1792109305032.jpg", "/assets/jewelry-real.jpg"],
-    has3DModel: true,
+    images: ["/assets/bijoux/1792109305032.jpg"],
     status: "available",
     statusText: "Disponible",
     price: "65 $",
@@ -284,8 +276,7 @@ const portfolioItems = [
     categoryName: "Bijoux",
     desc: "Fragment central de bois de rose plongé au cœur d'un tourbillon d'époxy ocre-or aux nuances chaudes et métallisées.",
     image: "/assets/bijoux/1792110933638.jpg",
-    images: ["/assets/bijoux/1792110933638.jpg", "/assets/jewelry-real.jpg"],
-    has3DModel: true,
+    images: ["/assets/bijoux/1792110933638.jpg"],
     status: "available",
     statusText: "Disponible",
     price: "65 $",
@@ -300,8 +291,7 @@ const portfolioItems = [
     categoryName: "Bijoux",
     desc: "Contraste ardent entre la richesse du bois de rose au fil vertical et une vague de résine rouge corail marbrée de blanc.",
     image: "/assets/bijoux/1792110962730.jpg",
-    images: ["/assets/bijoux/1792110962730.jpg", "/assets/jewelry-real.jpg"],
-    has3DModel: true,
+    images: ["/assets/bijoux/1792110962730.jpg"],
     status: "available",
     statusText: "Disponible",
     price: "65 $",
@@ -316,8 +306,7 @@ const portfolioItems = [
     categoryName: "Bijoux",
     desc: "Croissant lumineux de résine cuivre-ambré épousant le relief organique d'un cœur de bois de rose façonné à la main.",
     image: "/assets/bijoux/1792110974183.jpg",
-    images: ["/assets/bijoux/1792110974183.jpg", "/assets/jewelry-real.jpg"],
-    has3DModel: true,
+    images: ["/assets/bijoux/1792110974183.jpg"],
     status: "available",
     statusText: "Disponible",
     price: "65 $",
@@ -332,8 +321,7 @@ const portfolioItems = [
     categoryName: "Bijoux",
     desc: "Trois îlots de bois de rose naturel reliés par un lagon translucide et nacré de résine époxy vert jade aux reflets profonds.",
     image: "/assets/bijoux/1792110981581.jpg",
-    images: ["/assets/bijoux/1792110981581.jpg", "/assets/jewelry-real.jpg"],
-    has3DModel: true,
+    images: ["/assets/bijoux/1792110981581.jpg"],
     status: "available",
     statusText: "Disponible",
     price: "70 $",
@@ -348,8 +336,7 @@ const portfolioItems = [
     categoryName: "Bijoux",
     desc: "Mouvement fluide d'une vague vert émeraude et écume nacrée capturée entre deux fragments de bois de rose.",
     image: "/assets/bijoux/1792110985994.jpg",
-    images: ["/assets/bijoux/1792110985994.jpg", "/assets/jewelry-real.jpg"],
-    has3DModel: true,
+    images: ["/assets/bijoux/1792110985994.jpg"],
     status: "available",
     statusText: "Disponible",
     price: "65 $",
@@ -364,8 +351,7 @@ const portfolioItems = [
     categoryName: "Bijoux",
     desc: "Composition géométrique et organique mariant le bois de rose à un ruban soyeux de résine rose poudré, corail et améthyste.",
     image: "/assets/bijoux/1792110990338.jpg",
-    images: ["/assets/bijoux/1792110990338.jpg", "/assets/jewelry-real.jpg"],
-    has3DModel: true,
+    images: ["/assets/bijoux/1792110990338.jpg"],
     status: "available",
     statusText: "Disponible",
     price: "70 $",
@@ -380,8 +366,7 @@ const portfolioItems = [
     categoryName: "Bijoux",
     desc: "Variante d'atelier en bois de rose et résine époxy or liquide tourbillonnante, montée sur cordon ciré noir ajustable.",
     image: "/assets/bijoux/1792110969931.jpg",
-    images: ["/assets/bijoux/1792110969931.jpg", "/assets/jewelry-real.jpg"],
-    has3DModel: true,
+    images: ["/assets/bijoux/1792110969931.jpg"],
     status: "available",
     statusText: "Disponible",
     price: "65 $",
@@ -1012,9 +997,9 @@ export default function App() {
     },
     {
       id: 5,
-      image: "/assets/jewelry-real.jpg",
+      image: "/assets/bijoux/1792105593282.jpg",
       postUrl: "https://www.instagram.com/evanpatruno.art/p/DRIowfnAbMa/",
-      caption: "Créations uniques : bijoux en bois et résine époxy 🪵✨",
+      caption: "Créations uniques : bijoux en bois de rose et résine époxy 🪵✨",
       likes: "115",
       comments: "9"
     },
@@ -5063,246 +5048,226 @@ export default function App() {
 
       {/* DETAILED PRODUCT VIEW OVERLAY */}
       {selectedItemDetails && (
-        <div className="checkout-overlay" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 11000 }}>
-          <div className="checkout-card glass animate-fade-in" style={{ maxWidth: '900px', width: '95%', padding: '30px', maxHeight: '90vh', overflowY: 'auto' }}>
-            <div className="checkout-header" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '15px', marginBottom: '20px' }}>
-              <h3 className="checkout-title" style={{ fontSize: '1.4rem' }}>{selectedItemDetails.title}</h3>
+        <div className="checkout-overlay" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 11000 }} onClick={() => setSelectedItemDetails(null)}>
+          <div className="checkout-card glass animate-fade-in product-modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="checkout-header" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '14px', marginBottom: '22px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                <span className={`art-badge ${selectedItemDetails.category}`} style={{ position: 'static', display: 'inline-block' }}>
+                  {selectedItemDetails.categoryName}
+                </span>
+                <h3 className="checkout-title" style={{ fontSize: '1.35rem', margin: 0 }}>{selectedItemDetails.title}</h3>
+              </div>
               <button className="checkout-close" onClick={() => setSelectedItemDetails(null)}>&times;</button>
             </div>
 
             <div className="product-details-grid">
-              {/* Left Column: Image Slider / 3D Viewer */}
-              <div style={{ position: 'relative' }}>
-                {selectedItemDetails.has3DModel && (
-                  <button 
-                    className="viewer3d-toggle-btn"
-                    onClick={() => setView3DActive(!view3DActive)}
-                  >
-                    {view3DActive ? "👁️ Afficher Photo" : "📦 Afficher Modèle 3D"}
-                  </button>
-                )}
-
-                {view3DActive ? (
-                  <div className="viewer3d-container">
-                    <div className="viewer3d-object">
-                      <div className="viewer3d-wireframe-cube">
-                        <div className="viewer3d-face face-front"></div>
-                        <div className="viewer3d-face face-back"></div>
-                        <div className="viewer3d-face face-left"></div>
-                        <div className="viewer3d-face face-right"></div>
-                        <div className="viewer3d-face face-top"></div>
-                        <div className="viewer3d-face face-bottom"></div>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
+              {/* Left Column: Large High-Impact Product Photo */}
+              <div className="product-modal-media-col">
+                <div
+                  className="slider-container macro-zoom-wrapper"
+                  onMouseMove={(e) => {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const x = ((e.clientX - rect.left) / rect.width) * 100;
+                    const y = ((e.clientY - rect.top) / rect.height) * 100;
+                    e.currentTarget.style.setProperty('--zoom-x', `${x}%`);
+                    e.currentTarget.style.setProperty('--zoom-y', `${y}%`);
+                    e.currentTarget.style.setProperty('--lens-left', `${e.clientX - rect.left}px`);
+                    e.currentTarget.style.setProperty('--lens-top', `${e.clientY - rect.top}px`);
+                  }}
+                >
+                  <img 
+                    src={selectedItemDetails.images ? selectedItemDetails.images[activeImageIdx] : selectedItemDetails.image} 
+                    alt={selectedItemDetails.title} 
+                    className="product-modal-main-img"
+                  />
                   <div
-                    className="slider-container macro-zoom-wrapper"
-                    onMouseMove={(e) => {
-                      const rect = e.currentTarget.getBoundingClientRect();
-                      const x = ((e.clientX - rect.left) / rect.width) * 100;
-                      const y = ((e.clientY - rect.top) / rect.height) * 100;
-                      e.currentTarget.style.setProperty('--zoom-x', `${x}%`);
-                      e.currentTarget.style.setProperty('--zoom-y', `${y}%`);
-                      e.currentTarget.style.setProperty('--lens-left', `${e.clientX - rect.left}px`);
-                      e.currentTarget.style.setProperty('--lens-top', `${e.clientY - rect.top}px`);
+                    className="macro-magnifier-lens"
+                    style={{
+                      backgroundImage: `url(${selectedItemDetails.images ? selectedItemDetails.images[activeImageIdx] : selectedItemDetails.image})`
                     }}
-                  >
-                    <span className="macro-zoom-hint">🔍 Survolez pour la Loupe Macro ×2.5</span>
-                    <img 
-                      src={selectedItemDetails.images ? selectedItemDetails.images[activeImageIdx] : selectedItemDetails.image} 
-                      alt={selectedItemDetails.title} 
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-                    />
-                    <div
-                      className="macro-magnifier-lens"
-                      style={{
-                        backgroundImage: `url(${selectedItemDetails.images ? selectedItemDetails.images[activeImageIdx] : selectedItemDetails.image})`
-                      }}
-                      aria-hidden="true"
-                    />
-                    
-                    {selectedItemDetails.images && selectedItemDetails.images.length > 1 && (
-                      <>
-                        <button 
-                          className="slider-btn slider-btn-prev"
-                          onClick={() => setActiveImageIdx(prev => (prev === 0 ? selectedItemDetails.images.length - 1 : prev - 1))}
-                        >
-                          ◀
-                        </button>
-                        <button 
-                          className="slider-btn slider-btn-next"
-                          onClick={() => setActiveImageIdx(prev => (prev === selectedItemDetails.images.length - 1 ? 0 : prev + 1))}
-                        >
-                          ▶
-                        </button>
-                        <div className="slider-dots">
-                          {selectedItemDetails.images.map((_, dotIdx) => (
-                            <span 
-                              key={dotIdx}
-                              className={`slider-dot ${activeImageIdx === dotIdx ? 'active' : ''}`}
-                              onClick={() => setActiveImageIdx(dotIdx)}
-                            ></span>
-                          ))}
-                        </div>
-                      </>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Right Column: Authentic Museum Plaque & Star Reviews */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', textAlign: 'left' }}>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '10px' }}>
-                    <span className={`art-badge ${selectedItemDetails.category}`} style={{ position: 'static', display: 'inline-block' }}>
-                      {selectedItemDetails.categoryName}
-                    </span>
-                    <span className="museum-modal-archive-badge">
-                      PIÈCE ARCHIVE #{selectedItemDetails.catalogNumber || '01'} • ÉDITION 1/1
-                    </span>
-                  </div>
-                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.6' }}>
-                    {selectedItemDetails.desc}
-                  </p>
-                </div>
-
-                <div className="museum-authentic-plaque">
-                  <div className="museum-plaque-top">
-                    <span>CARTEL D'AUTHENTICITÉ — ATELIER QUÉBEC</span>
-                    <span className="museum-signature">Evan Patruno</span>
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.9rem' }}>
-                    {selectedItemDetails.wood && <div>🪵 <strong>Bois :</strong> {selectedItemDetails.wood}</div>}
-                    {selectedItemDetails.dimensions && <div>📏 <strong>Dimensions :</strong> {selectedItemDetails.dimensions}</div>}
-                    {selectedItemDetails.mediums && <div>✨ <strong>Matériaux :</strong> {selectedItemDetails.mediums}</div>}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
-                      <span>Statut :</span>
-                      <span className="art-status">
-                        <span className={`status-dot ${selectedItemDetails.status}`}></span>
-                        {selectedItemDetails.statusText}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px' }}>
-                  <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>Prix unitaire :</span>
-                  <span style={{ fontSize: '1.6rem', fontWeight: '800', color: '#fff' }}>{formatPrice(selectedItemDetails.price)}</span>
-                </div>
-
-                <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
-                  <button 
-                    type="button" 
-                    onClick={() => setSelectedItemDetails(null)} 
-                    className="btn-secondary" 
-                    style={{ flex: 1, padding: '12px' }}
-                  >
-                    Retour
-                  </button>
-                  {selectedItemDetails.status === 'available' && !selectedItemDetails.price.toLowerCase().includes('demande') ? (
-                    <button 
-                      type="button" 
-                      onClick={() => {
-                        const item = selectedItemDetails;
-                        setSelectedItemDetails(null);
-                        handleStartCheckout(item);
-                      }} 
-                      className="btn-primary" 
-                      style={{ flex: 1.5, padding: '12px' }}
-                    >
-                      Acheter maintenant
-                    </button>
-                  ) : (
-                    <button 
-                      type="button" 
-                      onClick={() => {
-                        const item = selectedItemDetails;
-                        setSelectedItemDetails(null);
-                        openCustomBuilderForItem(item);
-                      }} 
-                      className="btn-primary" 
-                      style={{ flex: 1.5, padding: '12px' }}
-                    >
-                      Commander sur mesure
-                    </button>
-                  )}
-                </div>
-
-                {/* Reviews System */}
-                <div className="reviews-section">
-                  <h4 style={{ color: '#fff', fontSize: '1.05rem', marginBottom: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span>Avis Clients</span>
-                    <span className="review-stars">
-                      ★ {currentReviews.length > 0 ? (currentReviews.reduce((acc, r) => acc + r.rating, 0) / currentReviews.length).toFixed(1) : "0.0"} ({currentReviews.length})
-                    </span>
-                  </h4>
-
-                  {/* List of comments */}
-                  <div style={{ maxHeight: '200px', overflowY: 'auto', marginBottom: '20px', paddingRight: '8px' }}>
-                    {currentReviews.length === 0 ? (
-                      <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', textAlign: 'center', padding: '15px' }}>
-                        Aucun avis pour le moment. Soyez le premier à donner votre avis !
-                      </p>
-                    ) : (
-                      currentReviews.map((rev) => (
-                        <div key={rev.id} className="review-item">
-                          <div className="review-header">
-                            <strong style={{ fontSize: '0.85rem', color: '#fff' }}>{rev.name}</strong>
-                            <span className="review-stars">{"★".repeat(rev.rating)}{"☆".repeat(5 - rev.rating)}</span>
-                          </div>
-                          <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', lineHeight: '1.4', margin: 0 }}>{rev.comment}</p>
-                        </div>
-                      ))
-                    )}
-                  </div>
-
-                  {/* Write a comment form */}
-                  <form onSubmit={handleSubmitReview} style={{ display: 'flex', flexDirection: 'column', gap: '10px', background: 'rgba(255,255,255,0.02)', padding: '15px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.04)' }}>
-                    <h5 style={{ color: '#fff', margin: 0, fontSize: '0.85rem' }}>Laisser une évaluation</h5>
-                    
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Votre Note :</span>
-                      <div className="review-stars-input" style={{ margin: 0 }}>
-                        {[1, 2, 3, 4, 5].map((starVal) => (
-                          <button
-                            type="button"
-                            key={starVal}
-                            onClick={() => setNewReviewRating(starVal)}
-                            className="review-star-btn"
-                            style={{ color: starVal <= newReviewRating ? '#fbbf24' : 'rgba(255,255,255,0.15)' }}
-                          >
-                            ★
-                          </button>
+                    aria-hidden="true"
+                  />
+                  
+                  {selectedItemDetails.images && selectedItemDetails.images.length > 1 && (
+                    <>
+                      <button 
+                        className="slider-btn slider-btn-prev"
+                        onClick={() => setActiveImageIdx(prev => (prev === 0 ? selectedItemDetails.images.length - 1 : prev - 1))}
+                      >
+                        ◀
+                      </button>
+                      <button 
+                        className="slider-btn slider-btn-next"
+                        onClick={() => setActiveImageIdx(prev => (prev === selectedItemDetails.images.length - 1 ? 0 : prev + 1))}
+                      >
+                        ▶
+                      </button>
+                      <div className="slider-dots">
+                        {selectedItemDetails.images.map((_, dotIdx) => (
+                          <span 
+                            key={dotIdx}
+                            className={`slider-dot ${activeImageIdx === dotIdx ? 'active' : ''}`}
+                            onClick={() => setActiveImageIdx(dotIdx)}
+                          ></span>
                         ))}
                       </div>
-                    </div>
-
-                    <input 
-                      type="text"
-                      className="builder-input"
-                      placeholder="Votre nom..."
-                      required
-                      value={newReviewName}
-                      onChange={(e) => setNewReviewName(e.target.value)}
-                      style={{ padding: '8px 12px', fontSize: '0.8rem' }}
-                    />
-
-                    <textarea
-                      className="builder-textarea"
-                      placeholder="Partagez votre avis sur cette pièce..."
-                      required
-                      value={newReviewComment}
-                      onChange={(e) => setNewReviewComment(e.target.value)}
-                      style={{ padding: '8px 12px', fontSize: '0.8rem', minHeight: '60px', height: '60px' }}
-                    ></textarea>
-
-                    <button type="submit" className="btn-primary" style={{ padding: '8px', fontSize: '0.8rem', borderRadius: '8px' }}>
-                      Publier l'évaluation
-                    </button>
-                  </form>
+                    </>
+                  )}
                 </div>
               </div>
+
+              {/* Right Column: Clean Minimalist Product Specs & Actions */}
+              <div className="product-modal-info-col">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap' }}>
+                    <span className="museum-modal-archive-badge">
+                      PIÈCE UNIQUE #{selectedItemDetails.catalogNumber || '01'} • FAIT MAIN AU QUÉBEC
+                    </span>
+                    <span className="art-status">
+                      <span className={`status-dot ${selectedItemDetails.status}`}></span>
+                      {selectedItemDetails.statusText}
+                    </span>
+                  </div>
+
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.96rem', lineHeight: '1.65', margin: 0 }}>
+                    {selectedItemDetails.desc}
+                  </p>
+
+                  <div className="product-clean-specs">
+                    {selectedItemDetails.wood && (
+                      <div className="product-spec-row">
+                        <span className="product-spec-label">🪵 Essence</span>
+                        <strong className="product-spec-val">{selectedItemDetails.wood}</strong>
+                      </div>
+                    )}
+                    {selectedItemDetails.dimensions && (
+                      <div className="product-spec-row">
+                        <span className="product-spec-label">📏 Format</span>
+                        <strong className="product-spec-val">{selectedItemDetails.dimensions}</strong>
+                      </div>
+                    )}
+                    {selectedItemDetails.mediums && (
+                      <div className="product-spec-row">
+                        <span className="product-spec-label">✨ Finition</span>
+                        <strong className="product-spec-val">{selectedItemDetails.mediums}</strong>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="product-modal-purchase-box">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '14px' }}>
+                    <span style={{ fontSize: '0.88rem', color: 'var(--text-muted)' }}>Prix de la pièce :</span>
+                    <span style={{ fontSize: '1.75rem', fontWeight: '800', color: '#fff', fontFamily: 'var(--font-heading)' }}>
+                      {formatPrice(selectedItemDetails.price)}
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <button 
+                      type="button" 
+                      onClick={() => setSelectedItemDetails(null)} 
+                      className="btn-secondary" 
+                      style={{ flex: 0.8, padding: '13px' }}
+                    >
+                      Fermer
+                    </button>
+                    {selectedItemDetails.status === 'available' && !selectedItemDetails.price.toLowerCase().includes('demande') ? (
+                      <button 
+                        type="button" 
+                        onClick={() => {
+                          const item = selectedItemDetails;
+                          setSelectedItemDetails(null);
+                          handleStartCheckout(item);
+                        }} 
+                        className="btn-primary" 
+                        style={{ flex: 1.6, padding: '13px' }}
+                      >
+                        Acheter maintenant
+                      </button>
+                    ) : (
+                      <button 
+                        type="button" 
+                        onClick={() => {
+                          const item = selectedItemDetails;
+                          setSelectedItemDetails(null);
+                          openCustomBuilderForItem(item);
+                        }} 
+                        className="btn-primary" 
+                        style={{ flex: 1.6, padding: '13px' }}
+                      >
+                        Commander sur mesure
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Compact Full-Width Reviews Section Below Product Showcase */}
+            <div className="reviews-section">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+                <h4 style={{ color: '#fff', fontSize: '0.98rem', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <span>Avis Clients</span>
+                  <span className="review-stars">
+                    ★ {currentReviews.length > 0 ? (currentReviews.reduce((acc, r) => acc + r.rating, 0) / currentReviews.length).toFixed(1) : "5.0"} ({currentReviews.length})
+                  </span>
+                </h4>
+              </div>
+
+              {currentReviews.length > 0 && (
+                <div style={{ maxHeight: '140px', overflowY: 'auto', marginBottom: '14px', paddingRight: '6px' }}>
+                  {currentReviews.map((rev) => (
+                    <div key={rev.id} className="review-item">
+                      <div className="review-header">
+                        <strong style={{ fontSize: '0.85rem', color: '#fff' }}>{rev.name}</strong>
+                        <span className="review-stars">{"★".repeat(rev.rating)}{"☆".repeat(5 - rev.rating)}</span>
+                      </div>
+                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', lineHeight: '1.4', margin: 0 }}>{rev.comment}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <form onSubmit={handleSubmitReview} className="review-compact-form">
+                <div className="review-stars-input" style={{ margin: 0 }} title="Votre note">
+                  {[1, 2, 3, 4, 5].map((starVal) => (
+                    <button
+                      type="button"
+                      key={starVal}
+                      onClick={() => setNewReviewRating(starVal)}
+                      className="review-star-btn"
+                      style={{ color: starVal <= newReviewRating ? '#fbbf24' : 'rgba(255,255,255,0.15)' }}
+                    >
+                      ★
+                    </button>
+                  ))}
+                </div>
+
+                <input 
+                  type="text"
+                  className="builder-input"
+                  placeholder="Votre prénom..."
+                  required
+                  value={newReviewName}
+                  onChange={(e) => setNewReviewName(e.target.value)}
+                  style={{ padding: '9px 12px', fontSize: '0.82rem', flex: '0.7', minWidth: '130px' }}
+                />
+
+                <input
+                  type="text"
+                  className="builder-input"
+                  placeholder="Écrire un avis sur cette création..."
+                  required
+                  value={newReviewComment}
+                  onChange={(e) => setNewReviewComment(e.target.value)}
+                  style={{ padding: '9px 12px', fontSize: '0.82rem', flex: '1.5', minWidth: '200px' }}
+                />
+
+                <button type="submit" className="btn-secondary" style={{ padding: '9px 16px', fontSize: '0.82rem', borderRadius: '10px', whiteSpace: 'nowrap' }}>
+                  Publier
+                </button>
+              </form>
             </div>
           </div>
         </div>
