@@ -2068,15 +2068,14 @@ export default function App() {
             </button>
           </div>
 
-          {/* Asymmetric Bento Museum Gallery Grid (#1, #9, #11) */}
-          <div className="gallery-grid bento-museum-grid" id="portfolio-grid">
+          {/* Museum Gallery Grid (#9, #11) */}
+          <div className="gallery-grid" id="portfolio-grid">
             {filteredPortfolio.map((item, idx) => {
-              const isBentoWide = galleryFilter === 'all' && (idx === 0 || (item.category === 'table' && idx % 5 === 0));
               const catalogNumber = String(idx + 1).padStart(2, '0');
               return (
                 <div 
                   key={item.id} 
-                  className={`art-card glass ${isBentoWide ? 'bento-wide' : ''}`} 
+                  className="art-card glass" 
                   id={`portfolio-item-${item.id}`}
                   style={{ cursor: 'pointer' }}
                   onClick={() => handleOpenItemDetails({ ...item, catalogNumber })}
