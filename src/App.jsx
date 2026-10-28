@@ -2213,23 +2213,89 @@ export default function App() {
         
         {/* HERO SECTION */}
         <section id="accueil" className="hero-section">
-          <div className="hero-wrapper animate-slide-up">
-            <div className="badge">
-              <span className="badge-dot"></span>
-              <span>Créations uniques faites à la main au Québec</span>
+          <div className="hero-split-layout animate-slide-up">
+            <div className="hero-content-col">
+              <div className="badge">
+                <span className="badge-dot"></span>
+                <span>Créations uniques faites à la main au Québec</span>
+              </div>
+              
+              <h1 className="hero-title">
+                Plusieurs <span className="wood">arts</span>, une <span className="epoxy">passion</span>
+              </h1>
+              
+              <p className="hero-description">
+                Ébénisterie d'art, bijoux en bois de rose &amp; résine époxy, gravure laser grand format (4'x4'), toiles Fluid Art, bracelets Kumihimo, impression 3D (Bambu P1S) &amp; imagerie drone (DJI). Façonner la matière et la technologie sous toutes leurs formes pour donner vie à vos projets personnalisés.
+              </p>
+              
+              <div className="hero-ctas">
+                <a href="#portfolio" className="btn-primary">Découvrir le Portfolio</a>
+                <a href="#devis" className="btn-secondary">Concevoir ma Pièce</a>
+              </div>
+
+              <div className="hero-quick-stats">
+                <div className="hero-stat-pill">
+                  <strong>{visibleCreations.length} Créations</strong>
+                  <span>Pièces signées 1/1</span>
+                </div>
+                <div className="hero-stat-pill">
+                  <strong>Bois Nobles</strong>
+                  <span>Bois de rose, frêne &amp; noyer</span>
+                </div>
+                <div className="hero-stat-pill">
+                  <strong>Atelier Complet</strong>
+                  <span>Époxy, Laser 4'×4' &amp; 3D</span>
+                </div>
+              </div>
             </div>
-            
-            <h1 className="hero-title">
-              Plusieurs <span className="wood">arts</span>, une <span className="epoxy">passion</span>
-            </h1>
-            
-            <p className="hero-description">
-              Ébénisterie d'art, résine époxy, gravure laser grand format (4'x4'), toiles de peinture, bijoux, bracelets Kumihimo, impression 3D (Bambu P1S) &amp; imagerie drone (DJI). Façonner la matière et la technologie sous toutes leurs formes pour donner vie à vos projets personnalisés.
-            </p>
-            
-            <div className="hero-ctas">
-              <a href="#portfolio" className="btn-primary">Découvrir le Portfolio</a>
-              <a href="#devis" className="btn-secondary">Concevoir ma Pièce</a>
+
+            <div className="hero-showcase-grid">
+              {[
+                {
+                  cat: 'table',
+                  badge: '🪵 Mobilier & Époxy',
+                  title: 'Tables Rivières',
+                  sub: 'Frêne massif & pigments nacrés',
+                  img: '/assets/table-ronde-turquoise.jpg'
+                },
+                {
+                  cat: 'jewelry',
+                  badge: '💎 15 Pendentifs',
+                  title: 'Bijoux Bois de Rose',
+                  sub: 'Bois précieux & résine polie',
+                  img: '/assets/bijoux/1792105593282.jpg'
+                },
+                {
+                  cat: 'laser',
+                  badge: '🎨 Art & Laser 4\'×4\'',
+                  title: 'Toiles & Gravures',
+                  sub: 'Fluid Art & découpe précision',
+                  img: '/assets/pouring-exoplanete.jpg'
+                },
+                {
+                  cat: 'lichtenberg',
+                  badge: '⚡ Haute Tension',
+                  title: 'Fractales 10 000V',
+                  sub: 'Gravure électrique sur bois',
+                  img: '/assets/lichtenberg-real.jpg'
+                }
+              ].map((card) => (
+                <a
+                  key={card.cat}
+                  href="#portfolio"
+                  className="hero-showcase-card"
+                  onClick={() => setGalleryFilter(card.cat)}
+                >
+                  <img src={card.img} alt={card.title} className="hero-showcase-img" />
+                  <div className="hero-showcase-overlay">
+                    <span className="hero-showcase-badge">{card.badge}</span>
+                    <div className="hero-showcase-text">
+                      <strong>{card.title}</strong>
+                      <span>{card.sub}</span>
+                    </div>
+                  </div>
+                </a>
+              ))}
             </div>
           </div>
         </section>
